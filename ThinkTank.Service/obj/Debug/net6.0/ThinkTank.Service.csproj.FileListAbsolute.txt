@@ -1,0 +1,17 @@
+D:\PRN231\ThinkTank-SEP490-Back-end\ThinkTank.Service\bin\Debug\net6.0\ThinkTank.Service.deps.json
+D:\PRN231\ThinkTank-SEP490-Back-end\ThinkTank.Service\bin\Debug\net6.0\ThinkTank.Service.runtimeconfig.json
+D:\PRN231\ThinkTank-SEP490-Back-end\ThinkTank.Service\bin\Debug\net6.0\ThinkTank.Service.dll
+D:\PRN231\ThinkTank-SEP490-Back-end\ThinkTank.Service\bin\Debug\net6.0\ThinkTank.Service.pdb
+D:\PRN231\ThinkTank-SEP490-Back-end\ThinkTank.Service\bin\Debug\net6.0\ThinkTank.Data.dll
+D:\PRN231\ThinkTank-SEP490-Back-end\ThinkTank.Service\bin\Debug\net6.0\ThinkTank.Data.pdb
+D:\PRN231\ThinkTank-SEP490-Back-end\ThinkTank.Service\obj\Debug\net6.0\ThinkTank.Service.csproj.AssemblyReference.cache
+D:\PRN231\ThinkTank-SEP490-Back-end\ThinkTank.Service\obj\Debug\net6.0\ThinkTank.Service.GeneratedMSBuildEditorConfig.editorconfig
+D:\PRN231\ThinkTank-SEP490-Back-end\ThinkTank.Service\obj\Debug\net6.0\ThinkTank.Service.AssemblyInfoInputs.cache
+D:\PRN231\ThinkTank-SEP490-Back-end\ThinkTank.Service\obj\Debug\net6.0\ThinkTank.Service.AssemblyInfo.cs
+D:\PRN231\ThinkTank-SEP490-Back-end\ThinkTank.Service\obj\Debug\net6.0\ThinkTank.Service.csproj.CoreCompileInputs.cache
+D:\PRN231\ThinkTank-SEP490-Back-end\ThinkTank.Service\obj\Debug\net6.0\ThinkTank.Service.csproj.CopyComplete
+D:\PRN231\ThinkTank-SEP490-Back-end\ThinkTank.Service\obj\Debug\net6.0\ThinkTank.Service.dll
+D:\PRN231\ThinkTank-SEP490-Back-end\ThinkTank.Service\obj\Debug\net6.0\refint\ThinkTank.Service.dll
+D:\PRN231\ThinkTank-SEP490-Back-end\ThinkTank.Service\obj\Debug\net6.0\ThinkTank.Service.pdb
+D:\PRN231\ThinkTank-SEP490-Back-end\ThinkTank.Service\obj\Debug\net6.0\ThinkTank.Service.genruntimeconfig.cache
+D:\PRN231\ThinkTank-SEP490-Back-end\ThinkTank.Service\obj\Debug\net6.0\ref\ThinkTank.Service.dll
