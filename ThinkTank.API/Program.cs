@@ -29,6 +29,7 @@ builder.Services.AddScoped<IFileStorageService, FirebaseStorageService>();
 builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped<IAccountService, AccountService>();
+builder.Services.AddScoped<IFriendService, FriendService>();
 builder.Services.AddDbContext<ThinkTankContext>(options =>
 {
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultSQLConnection"));

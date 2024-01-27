@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace ThinkTank.Data.Entities
 {
-    public partial class Anonymity
+    public partial class Anonymous
     {
         public int Id { get; set; }
         public string Description { get; set; } = null!;
