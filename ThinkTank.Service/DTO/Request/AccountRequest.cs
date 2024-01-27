@@ -6,8 +6,10 @@ using System.Threading.Tasks;
 
 namespace ThinkTank.Service.DTO.Request
 {
-    public class OpenAIConfig
+    public class AccountRequest
     {
-        public string Key { get; set; } = "";
+        public string? Code { get; set; } 
+        public string? FullName { get; set; } 
+        public string? UserName { get; set; }
     }
 }

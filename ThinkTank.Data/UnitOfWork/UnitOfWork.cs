@@ -6,14 +6,16 @@ using System.Text;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using ThinkTank.Data.Repository;
+using ThinkTank.Data.Entities;
 
 namespace ThinkTank.Data.UnitOfWork
 {
-   /* public class UnitOfWork : IUnitOfWork
+    public class UnitOfWork : IUnitOfWork
     {
-        private readonly MutoteContext _context;
+        private readonly ThinkTankContext _context;
 
-        public UnitOfWork(MutoteContext context)
+        public UnitOfWork(ThinkTankContext context)
         {
             _context = context;
         }
@@ -61,5 +63,5 @@ namespace ThinkTank.Data.UnitOfWork
 
         public Task<int> CommitAsync() => _context.SaveChangesAsync();
     }
-   */
+   
 }

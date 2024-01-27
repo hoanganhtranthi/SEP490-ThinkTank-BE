@@ -8,6 +8,5 @@ namespace ThinkTank.Service.Helpers
 {
     public class Enum
     {      
-       
     }
 }

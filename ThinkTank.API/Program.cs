@@ -1,10 +1,17 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using MuTote.API.Mapper;
 using MuTote.API.Utility;
 using System.Reflection;
+using System.Security.Claims;
 using System.Text;
+using ThinkTank.Data.Entities;
+using ThinkTank.Data.Repository;
+using ThinkTank.Data.UnitOfWork;
 using ThinkTank.Service.ImpService;
 using ThinkTank.Service.Services.ImpService;
 using ThinkTank.Service.Services.IService;
@@ -17,12 +24,15 @@ builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Services.AddAutoMapper(typeof(Mapping));
 builder.Services.AddScoped<IFileStorageService, FirebaseStorageService>();
-builder.Services.AddScoped<IQueueService, QueueService>();
-/*builder.Services.AddDbContext<MutoteContext>(options =>
+builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
+builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+builder.Services.AddScoped<IAccountService, AccountService>();
+builder.Services.AddDbContext<ThinkTankContext>(options =>
 {
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultSQLConnection"));
-});*/
+});
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("_myAllowSpecificOrigins",
@@ -89,6 +99,30 @@ builder.Services.AddAuthentication(x =>
         };
     });
 //end JWT
+
+
+builder.Services.AddTransient<IAuthorizationHandler, CustomAuthorizationHandler>();
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("Admin", policy =>
+    {
+        policy.RequireRole("Admin");
+        policy.AddRequirements(new CustomRequirement());
+    });
+    options.AddPolicy("Player", policy =>
+    {
+        policy.RequireRole("Player");
+        policy.AddRequirements(new CustomRequirement());
+    });
+    options.AddPolicy("All", policy =>
+    {
+        policy.RequireRole("Player","Admin");
+        policy.AddRequirements(new CustomRequirement());
+    });
+});
+builder.Configuration.AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
+builder.Configuration.AddJsonFile($"appsettings.{Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Production"}.json", optional: true);
+builder.Configuration.AddEnvironmentVariables();
 var app = builder.Build();
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

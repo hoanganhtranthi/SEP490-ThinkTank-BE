@@ -1,7 +1,7 @@
 ﻿
 
 
-using Microsoft.Data.SqlClient;
+using static ThinkTank.Service.Helpers.SortType;
 
 namespace ThinkTank.Service.DTO.Request
 {

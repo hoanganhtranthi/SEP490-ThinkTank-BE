@@ -58,55 +58,18 @@ namespace ThinkTank.Service.Utilities
                                      (Func<CustomAttributeData, bool>)(a =>
                                         a.AttributeType == typeof(DateRangeAttribute))))
                         {
-                            // string operate1 = data.ToString().Substring(1);
-                            // string operare2 = data.ToString().Substring(data.ToString().Length);
-                            
-                            IQueryable<TEntity> source2 = source;
-                            string predicate = null;
-                            if (property.Name.Equals("StartDate"))
-                            {
-                                predicate = property.Name + " <= @0  &&  EndDate >= @0" ;
-                                DateTime date = DateTime.Today;
-                                object dateRange = (object)date.Date;
-                                date = date.Date;
-                                source = source2.Where<TEntity>(predicate, dateRange);
-                            }
-                            else
-                            {
-                                DateTime date = (DateTime)data;
-                                 predicate = property.Name + " >= @0 && " + property.Name + " =< @1";
-                                object[] dateRange = new object[2]
-                                {
-                                (object) date.Date,
-                                null
-                                };
-                                date = date.Date;
-                                dateRange[1] = date.AddDays(1.0);
-                                source = source2.Where<TEntity>(predicate, dateRange);
-                            }
-                           
-                        }
-                        else if (property.CustomAttributes.Any(
-                                     (Func<CustomAttributeData, bool>)(a => a.AttributeType == typeof(SortAttribute))))
-                        {
-                            string[] sort = data.ToString().Split(", ");
-                            if (sort.Length == 2)
-                            {
-                                if (sort[1].Equals("asc"))
-                                {
-                                    source = source.OrderBy(sort[0]);
-                                }
+                            DateTime date = (DateTime)data;
+                            string predicate = property.Name.Equals("StartDate")
+                                ? $"{property.Name} <= @0"
+                                : $"{property.Name} >= @0 && {property.Name} <= @1";
 
-                                if (sort[1].Equals("desc"))
-                                {
-                                    source = source.OrderBy(sort[0] + " descending");
-                                }
-                            }
-                            else
-                            {
-                                source = source.OrderBy(sort[0]);
-                            }
-                        }
+                            object[] dateRange = property.Name.Equals("StartDate")
+                                ? new object[] { date.Date }
+                                : new object[] { date.Date, date.Date.AddDays(1.0) };
+
+                            source = source.Where<TEntity>(predicate, dateRange);
+
+                        }                      
                     }
                 }
             }

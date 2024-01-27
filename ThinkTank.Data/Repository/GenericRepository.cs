@@ -7,15 +7,16 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
+using ThinkTank.Data.Entities;
 
 namespace ThinkTank.Data.Repository
 {
 
-    /*public class GenericRepository<T> : IGenericRepository<T> where T : class
+    public class GenericRepository<T> : IGenericRepository<T> where T : class
     {
-        private static MutoteContext Context;
+        private static ThinkTankContext Context;
         private static DbSet<T> Table { get; set; }
-        public GenericRepository(MutoteContext context)
+        public GenericRepository(ThinkTankContext context)
         {
             Context = context;
             Table = Context.Set<T>();
@@ -87,6 +88,6 @@ namespace ThinkTank.Data.Repository
             return Table;
         }
     }
-    */
+    
     
 }
