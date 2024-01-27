@@ -22,7 +22,7 @@ namespace ThinkTank.Data.Entities
         public virtual DbSet<AccountInRoom> AccountInRooms { get; set; } = null!;
         public virtual DbSet<Achievement> Achievements { get; set; } = null!;
         public virtual DbSet<AnonymityOfContest> AnonymityOfContests { get; set; } = null!;
-        public virtual DbSet<Anonymou> Anonymous { get; set; } = null!;
+        public virtual DbSet<Anonymous> Anonymous { get; set; } = null!;
         public virtual DbSet<AnswerOfStoryTeller> AnswerOfStoryTellers { get; set; } = null!;
         public virtual DbSet<Badge> Badges { get; set; } = null!;
         public virtual DbSet<Challenge> Challenges { get; set; } = null!;
@@ -188,7 +188,7 @@ namespace ThinkTank.Data.Entities
                     .HasConstraintName("FK__Anonymity__Conte__14270015");
             });
 
-            modelBuilder.Entity<Anonymou>(entity =>
+            modelBuilder.Entity<Anonymous>(entity =>
             {
                 entity.Property(e => e.LinkImg).IsUnicode(false);
 
