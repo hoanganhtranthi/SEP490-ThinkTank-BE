@@ -6,6 +6,8 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using MuTote.API.Mapper;
 using MuTote.API.Utility;
+using StackExchange.Redis;
+using Repository.Extensions;
 using System.Reflection;
 using System.Security.Claims;
 using System.Text;
@@ -24,12 +26,22 @@ builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Services.AddStackExchangeRedisCache(options =>
+{
+    options.Configuration = builder.Configuration.GetConnectionString("RedisConnectionString");
+    options.InstanceName = "SampleInstance";
+});
 builder.Services.AddAutoMapper(typeof(Mapping));
 builder.Services.AddScoped<IFileStorageService, FirebaseStorageService>();
 builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped<IAccountService, AccountService>();
 builder.Services.AddScoped<IFriendService, FriendService>();
+builder.Services.AddScoped<IGameService, GameService>();
+builder.Services.AddScoped<ICacheService, CacheService>();
+builder.Services.AddScoped<IAnonymousResourceService, AnonymousResourceService>();
+builder.Services.AddScoped<IMusicPasswordResourceService, MusicPasswordResourceService>();
+builder.Services.AddScoped<ITopicService, TopicService>();
 builder.Services.AddDbContext<ThinkTankContext>(options =>
 {
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultSQLConnection"));

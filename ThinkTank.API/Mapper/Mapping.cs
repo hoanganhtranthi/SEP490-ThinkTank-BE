@@ -24,6 +24,27 @@ namespace MuTote.API.Mapper
             CreateMap<FriendRequest, FriendResponse>();
             CreateMap<Friend, FriendResponse>();
             CreateMap<CreateFriendRequest, Friend>();
+
+            CreateMap<GameRequest, Game>();
+            CreateMap<GameRequest, GameResponse>();
+            CreateMap<Game, GameResponse>();
+
+            CreateMap<ResourceRequest, Anonymous>();
+            CreateMap<ResourceRequest, AnonymousResponse>();
+            CreateMap<Anonymous, AnonymousResponse>();
+            CreateMap<AnonymousRequest, Anonymous>();
+
+            CreateMap<ResourceRequest, MusicPassword>();
+            CreateMap<ResourceRequest, MusicPasswordResponse>();
+            CreateMap<MusicPassword, MusicPasswordResponse>();
+            CreateMap<MusicPasswordRequest, MusicPassword>();
+
+            CreateMap<TopicRequest, Topic>();
+            CreateMap<TopicRequest, TopicResponse>();
+            CreateMap<Topic, TopicResponse>();
+            CreateMap<CreateTopicOfGameRequest, Topic>();
+
+            CreateMap<TopicOfGame, TopicOfGameResponse>();
         }
 
     }

@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "HbZTRZ8/TmcoE+DgptMOE3D/rt0yNzBjWhEaDLHUgP1Tp0a7HWQrsm+D9lyI1dYrPhTUfn4N4JeIjTeTD3wJyw==",
+  "dgSpecHash": "w6HLRYQ835j7jd/h8bUTUZQeIK39HBRaCPOoRzO8apcMPRWi3D0g8B5bGGSLfMvNg8e9kwz3y3I1Hdhe5YL5kA==",
   "success": true,
   "projectFilePath": "D:\\SEP490-ThinkTank-BE\\ThinkTank.API\\ThinkTank.API.csproj",
   "expectedPackageFiles": [
@@ -24,6 +24,7 @@
     "C:\\Users\\Hoang Anh\\.nuget\\packages\\microsoft.extensions.apidescription.server\\3.0.0\\microsoft.extensions.apidescription.server.3.0.0.nupkg.sha512",
     "C:\\Users\\Hoang Anh\\.nuget\\packages\\microsoft.extensions.caching.abstractions\\6.0.0\\microsoft.extensions.caching.abstractions.6.0.0.nupkg.sha512",
     "C:\\Users\\Hoang Anh\\.nuget\\packages\\microsoft.extensions.caching.memory\\6.0.1\\microsoft.extensions.caching.memory.6.0.1.nupkg.sha512",
+    "C:\\Users\\Hoang Anh\\.nuget\\packages\\microsoft.extensions.caching.stackexchangeredis\\6.0.25\\microsoft.extensions.caching.stackexchangeredis.6.0.25.nupkg.sha512",
     "C:\\Users\\Hoang Anh\\.nuget\\packages\\microsoft.extensions.configuration\\6.0.0\\microsoft.extensions.configuration.6.0.0.nupkg.sha512",
     "C:\\Users\\Hoang Anh\\.nuget\\packages\\microsoft.extensions.configuration.abstractions\\6.0.0\\microsoft.extensions.configuration.abstractions.6.0.0.nupkg.sha512",
     "C:\\Users\\Hoang Anh\\.nuget\\packages\\microsoft.extensions.configuration.fileextensions\\6.0.0\\microsoft.extensions.configuration.fileextensions.6.0.0.nupkg.sha512",

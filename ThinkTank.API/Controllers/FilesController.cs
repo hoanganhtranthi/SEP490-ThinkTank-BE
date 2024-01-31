@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.VisualBasic;
 using ThinkTank.Service.Services.IService;
+using static ThinkTank.Service.Helpers.Enum;
 
 namespace ThinkTank.API.Controllers
 {
@@ -22,6 +23,15 @@ namespace ThinkTank.API.Controllers
             if (file.Length > MAX_UPLOAD_FILE_SIZE)
                 return BadRequest("Exceed 25MB");
             string url = await _fileStorageService.UploadFileToDefaultAsync(file.OpenReadStream(), file.FileName);
+            return Ok(url);
+        }
+
+        [HttpPost("resource")]
+        public async Task<ActionResult<string>> UploadFileResource(IFormFile file,ResourceType type)
+        {
+            if (file.Length > MAX_UPLOAD_FILE_SIZE)
+                return BadRequest("Exceed 25MB");
+            string url = await _fileStorageService.UploadFileResourceAsync(file.OpenReadStream(), file.FileName,type);
             return Ok(url);
         }
     }

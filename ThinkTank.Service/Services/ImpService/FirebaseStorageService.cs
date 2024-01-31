@@ -11,8 +11,8 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using ThinkTank.Service.Services.IService;
+using static ThinkTank.Service.Helpers.Enum;
 using Stream = System.IO.Stream;
-using Task = System.Threading.Tasks.Task;
 
 namespace ThinkTank.Service.ImpService
 {
@@ -55,6 +55,29 @@ namespace ThinkTank.Service.ImpService
                 return null;
             }
         }
-       
+
+        public async Task<string> UploadFileResourceAsync(Stream fileStream, string fileName, ResourceType type)
+        {
+            var auth = new FirebaseAuthProvider(new FirebaseConfig(ApiKey));
+            var a = await auth.SignInWithEmailAndPasswordAsync(AuthEmail, AuthPassword);
+
+            var cancellation = new CancellationTokenSource();
+            var task = new FirebaseStorage(Bucket,
+                new FirebaseStorageOptions
+                {
+                    AuthTokenAsyncFactory = () => Task.FromResult(a.FirebaseToken),
+                    ThrowOnCancel = true
+                }
+                ).Child("resource").Child($"{type}").Child(fileName).PutAsync(fileStream, cancellation.Token);
+            try
+            {
+                string link = await task;
+                return link;
+            }
+            catch (Exception ex)
+            {
+                return null;
+            }
+        }
     }
 }

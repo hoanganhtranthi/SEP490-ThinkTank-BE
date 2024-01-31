@@ -395,7 +395,7 @@ namespace ThinkTank.Service.Services.ImpService
                 if (account == null)
                     throw new CrudException(HttpStatusCode.NotFound, $"Not found account with id{accountId.ToString()}", "");
 
-                if(account.DateOfBirth >= DateTime.Now)
+                if(request.DateOfBirth >= DateTime.Now.AddDays(-1))
                     throw new CrudException(HttpStatusCode.BadRequest, "Date Of Birth is invalid", "");
 
                 var existingUsernameAccount = _unitOfWork.Repository<Account>().GetAll().FirstOrDefault(c => c.UserName.Equals(request.UserName) && c.Id != accountId);

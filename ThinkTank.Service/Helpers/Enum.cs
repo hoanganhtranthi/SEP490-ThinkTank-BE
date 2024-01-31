@@ -8,5 +8,13 @@ namespace ThinkTank.Service.Helpers
 {
     public class Enum
     {      
+        public enum ResourceType
+        {
+            Anonymous=1,
+            MusicPassword=2,
+            FlipCard=3,
+            ImagesWalkthrough=4,
+            StoryTeller=5,
+        }
     }
 }
