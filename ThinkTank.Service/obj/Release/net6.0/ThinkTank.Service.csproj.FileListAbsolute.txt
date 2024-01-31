@@ -1,0 +1,17 @@
+D:\SEP490-ThinkTank-BE\ThinkTank.Service\bin\Release\net6.0\ThinkTank.Service.deps.json
+D:\SEP490-ThinkTank-BE\ThinkTank.Service\bin\Release\net6.0\ThinkTank.Service.runtimeconfig.json
+D:\SEP490-ThinkTank-BE\ThinkTank.Service\bin\Release\net6.0\ThinkTank.Service.dll
+D:\SEP490-ThinkTank-BE\ThinkTank.Service\bin\Release\net6.0\ThinkTank.Service.pdb
+D:\SEP490-ThinkTank-BE\ThinkTank.Service\bin\Release\net6.0\ThinkTank.Data.dll
+D:\SEP490-ThinkTank-BE\ThinkTank.Service\bin\Release\net6.0\ThinkTank.Data.pdb
+D:\SEP490-ThinkTank-BE\ThinkTank.Service\obj\Release\net6.0\ThinkTank.Service.csproj.AssemblyReference.cache
+D:\SEP490-ThinkTank-BE\ThinkTank.Service\obj\Release\net6.0\ThinkTank.Service.GeneratedMSBuildEditorConfig.editorconfig
+D:\SEP490-ThinkTank-BE\ThinkTank.Service\obj\Release\net6.0\ThinkTank.Service.AssemblyInfoInputs.cache
+D:\SEP490-ThinkTank-BE\ThinkTank.Service\obj\Release\net6.0\ThinkTank.Service.AssemblyInfo.cs
+D:\SEP490-ThinkTank-BE\ThinkTank.Service\obj\Release\net6.0\ThinkTank.Service.csproj.CoreCompileInputs.cache
+D:\SEP490-ThinkTank-BE\ThinkTank.Service\obj\Release\net6.0\ThinkTank.Service.csproj.CopyComplete
+D:\SEP490-ThinkTank-BE\ThinkTank.Service\obj\Release\net6.0\ThinkTank.Service.dll
+D:\SEP490-ThinkTank-BE\ThinkTank.Service\obj\Release\net6.0\refint\ThinkTank.Service.dll
+D:\SEP490-ThinkTank-BE\ThinkTank.Service\obj\Release\net6.0\ThinkTank.Service.pdb
+D:\SEP490-ThinkTank-BE\ThinkTank.Service\obj\Release\net6.0\ThinkTank.Service.genruntimeconfig.cache
+D:\SEP490-ThinkTank-BE\ThinkTank.Service\obj\Release\net6.0\ref\ThinkTank.Service.dll

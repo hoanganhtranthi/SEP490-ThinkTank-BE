@@ -20,14 +20,12 @@ namespace Repository.Extensions
    
     public class CacheService : ICacheService
     {
-        private IDistributedCache _distributedCache;
-        private IConfiguration configuration;
+        private IConfiguration _configuration;
         private IDatabase redis;
-        public CacheService(IDistributedCache distributed,IConfiguration configuration)
+        public CacheService(IConfiguration configuration)
         {
-            _distributedCache = distributed;
-            this.configuration = configuration;
-            redis= ConnectionMultiplexer.Connect(configuration["ConnectionStrings:RedisConnectionString"]).GetDatabase();
+            _configuration = configuration;
+            redis= ConnectionMultiplexer.Connect(_configuration["ConnectionStrings:RedisConnectionString"]).GetDatabase();
         }
         public T GetData<T>(string key)
         {

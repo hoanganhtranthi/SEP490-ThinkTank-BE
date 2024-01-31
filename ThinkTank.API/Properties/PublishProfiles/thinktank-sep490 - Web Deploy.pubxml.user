@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+This file is used by the publish/package process of your Web project. You can customize the behavior of this process
+by editing this MSBuild file. In order to learn more about this please visit https://go.microsoft.com/fwlink/?LinkID=208121. 
+-->
+<Project>
+  <PropertyGroup>
+    <TimeStampOfAssociatedLegacyPublishXmlFile />
+    <EncryptedPassword>AQAAANCMnd8BFdERjHoAwE/Cl+sBAAAAASvkDBYgqkynwnbncBZEawAAAAACAAAAAAAQZgAAAAEAACAAAAC790HbAXXoyCTmTWFD8uTWk4Pi6fIiUeB0Q5ldjVozPAAAAAAOgAAAAAIAACAAAACZpbnbZ1iYSop5WfPw1qoljAYHwopBWAMi+urQaf9wSYAAAAAwgQBfrTXSWpqUAqmnrzVZ2voWdMAtxEzUVR4AigYrLgJ8OeFxSakZWUTUogH6dJuP6oW830pjdRacRONTZFcYwAOnf3t/BLZTDpIf5LpQ5iHq4sB6lN9FRpHCpBv0HUvvPAP2sNNlbSQlcnjSV61ZzyFzpknDnQGhzhJCq2PSxkAAAABDjKuKzyePBEJbpn7okgFSF8OvZ9R0kLIH7zZmZ1kIbXSETawyqG9Q/cquKWHEe2gVHFjvU275wW8KZgw2RFVW</EncryptedPassword>
+    <History>True|2024-01-30T14:24:54.8991293Z;True|2024-01-28T18:50:50.5923508+07:00;</History>
+    <LastFailureDetails />
+  </PropertyGroup>
+  <ItemGroup>
+    <DestinationConnectionStrings Include="DefaultSQLConnection">
+      <Value>Server=tcp:thinktank.database.windows.net,1433%3bInitial Catalog=ThinkTank%3bPersist Security Info=False%3bUser ID=adminSQL%3bPassword=ThinkTank_SEP490%3bMultipleActiveResultSets=False%3bEncrypt=True%3bTrustServerCertificate=False%3bConnection Timeout=30%3b</Value>
+    </DestinationConnectionStrings>
+  </ItemGroup>
+</Project>
