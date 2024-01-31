@@ -77,3 +77,6 @@ D:\SEP490-ThinkTank-BE\ThinkTank.API\obj\Release\net6.0\refint\ThinkTank.API.dll
 D:\SEP490-ThinkTank-BE\ThinkTank.API\obj\Release\net6.0\ThinkTank.API.pdb
 D:\SEP490-ThinkTank-BE\ThinkTank.API\obj\Release\net6.0\ThinkTank.API.genruntimeconfig.cache
 D:\SEP490-ThinkTank-BE\ThinkTank.API\obj\Release\net6.0\ref\ThinkTank.API.dll
+D:\SEP490-ThinkTank-BE\ThinkTank.API\bin\Release\net6.0\ThinkTank.API.xml
+D:\SEP490-ThinkTank-BE\ThinkTank.API\bin\Release\net6.0\Microsoft.Extensions.Caching.StackExchangeRedis.dll
+D:\SEP490-ThinkTank-BE\ThinkTank.API\obj\Release\net6.0\ThinkTank.API.xml

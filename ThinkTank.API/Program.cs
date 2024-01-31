@@ -88,9 +88,9 @@ builder.Services.AddSwaggerGen(options =>
         new List<string>()
         }
     });
-   // var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
-    //var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
-    //options.IncludeXmlComments(xmlPath);
+    var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+    var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+    options.IncludeXmlComments(xmlPath);
 });
 //start JWT
 var key = builder.Configuration.GetValue<string>("ApiSetting:Secret");

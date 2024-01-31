@@ -157,3 +157,5 @@ D:\SEP490-ThinkTank-BE\ThinkTank.API\obj\Debug\net6.0\ThinkTank.API.pdb
 D:\SEP490-ThinkTank-BE\ThinkTank.API\obj\Debug\net6.0\ThinkTank.API.genruntimeconfig.cache
 D:\SEP490-ThinkTank-BE\ThinkTank.API\obj\Debug\net6.0\ref\ThinkTank.API.dll
 D:\SEP490-ThinkTank-BE\ThinkTank.API\bin\Debug\net6.0\Microsoft.Extensions.Caching.StackExchangeRedis.dll
+D:\SEP490-ThinkTank-BE\ThinkTank.API\bin\Debug\net6.0\ThinkTank.API.xml
+D:\SEP490-ThinkTank-BE\ThinkTank.API\obj\Debug\net6.0\ThinkTank.API.xml

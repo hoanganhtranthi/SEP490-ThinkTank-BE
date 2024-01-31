@@ -16,6 +16,7 @@ D:\SEP490-ThinkTank-BE\ThinkTank.API\obj\Release\net6.0\PubTmp\Out\Microsoft.Ent
 D:\SEP490-ThinkTank-BE\ThinkTank.API\obj\Release\net6.0\PubTmp\Out\Microsoft.EntityFrameworkCore.Relational.dll
 D:\SEP490-ThinkTank-BE\ThinkTank.API\obj\Release\net6.0\PubTmp\Out\Microsoft.EntityFrameworkCore.SqlServer.dll
 D:\SEP490-ThinkTank-BE\ThinkTank.API\obj\Release\net6.0\PubTmp\Out\Microsoft.Extensions.Caching.Memory.dll
+D:\SEP490-ThinkTank-BE\ThinkTank.API\obj\Release\net6.0\PubTmp\Out\Microsoft.Extensions.Caching.StackExchangeRedis.dll
 D:\SEP490-ThinkTank-BE\ThinkTank.API\obj\Release\net6.0\PubTmp\Out\Microsoft.Extensions.DependencyInjection.dll
 D:\SEP490-ThinkTank-BE\ThinkTank.API\obj\Release\net6.0\PubTmp\Out\Microsoft.Identity.Client.dll
 D:\SEP490-ThinkTank-BE\ThinkTank.API\obj\Release\net6.0\PubTmp\Out\Microsoft.IdentityModel.JsonWebTokens.dll
@@ -58,4 +59,5 @@ D:\SEP490-ThinkTank-BE\ThinkTank.API\obj\Release\net6.0\PubTmp\Out\ThinkTank.Dat
 D:\SEP490-ThinkTank-BE\ThinkTank.API\obj\Release\net6.0\PubTmp\Out\ThinkTank.Service.dll
 D:\SEP490-ThinkTank-BE\ThinkTank.API\obj\Release\net6.0\PubTmp\Out\ThinkTank.Service.pdb
 D:\SEP490-ThinkTank-BE\ThinkTank.API\obj\Release\net6.0\PubTmp\Out\ThinkTank.Data.pdb
+D:\SEP490-ThinkTank-BE\ThinkTank.API\obj\Release\net6.0\PubTmp\Out\ThinkTank.API.xml
 D:\SEP490-ThinkTank-BE\ThinkTank.API\obj\Release\net6.0\PubTmp\Out\ThinkTank.API.deps.json
