@@ -34,24 +34,24 @@ namespace ThinkTank.Service.Services.ImpService
         {
             try
             {
-                var anonymous = _mapper.Map<MusicPasswordRequest, MusicPassword>(createMusicPasswordRequest);
+                var musicPassword = _mapper.Map<MusicPasswordRequest, MusicPassword>(createMusicPasswordRequest);
                 var s = _unitOfWork.Repository<MusicPassword>().Find(s => s.Password == createMusicPasswordRequest.Password);
                 if (s != null)
                     throw new CrudException(HttpStatusCode.BadRequest, "This resource has already !!!", "");
               
-                var topic = _unitOfWork.Repository<Topic>().Find(x => x.Id == anonymous.TopicOfGameId);
+                var topic = _unitOfWork.Repository<Topic>().Find(x => x.Id == musicPassword.TopicOfGameId);
                 if (topic == null)
                     throw new CrudException(HttpStatusCode.NotFound, $"This topic {createMusicPasswordRequest.TopicOfGameId} is not found !!!", "");
 
-                await _unitOfWork.Repository<MusicPassword>().CreateAsync(anonymous);
+                await _unitOfWork.Repository<MusicPassword>().CreateAsync(musicPassword);
                 await _unitOfWork.CommitAsync();
                 var expiryTime = DateTime.MaxValue;
                 var version = _cacheService.GetData<int>("MusicPasswordVersion");
                 if (version != null)
                     _cacheService.SetData<int>("MusicPasswordVersion", version += 1, expiryTime);
                 else version = 1;
-                var rs = _mapper.Map<MusicPasswordResponse>(anonymous);
-                rs.TopicName = _unitOfWork.Repository<Topic>().Find(x => x.Id == rs.TopicOfGameId).Name;
+                var rs = _mapper.Map<MusicPasswordResponse>(musicPassword);
+                rs.TopicName = topic.Name;
                 return rs;
             }
             catch (CrudException ex)
@@ -96,7 +96,7 @@ namespace ThinkTank.Service.Services.ImpService
             }
             catch (Exception ex)
             {
-                throw new CrudException(HttpStatusCode.InternalServerError, "Get Resource By ID Error!!!", ex.InnerException?.Message);
+                throw new CrudException(HttpStatusCode.InternalServerError, "Delete Resource By ID Error!!!", ex.InnerException?.Message);
             }
         }
 
@@ -156,28 +156,28 @@ namespace ThinkTank.Service.Services.ImpService
         {
             try
             {
-                MusicPassword anonymous = _unitOfWork.Repository<MusicPassword>()
+                MusicPassword musicPassword = _unitOfWork.Repository<MusicPassword>()
                       .Find(c => c.Id == id);
 
-                if (anonymous == null)
-                    throw new CrudException(HttpStatusCode.NotFound, $"Not found anonymous resource with id{id.ToString()}", "");
+                if (musicPassword == null)
+                    throw new CrudException(HttpStatusCode.NotFound, $"Not found musicPassword resource with id{id.ToString()}", "");
 
                 var s = _unitOfWork.Repository<MusicPassword>().Find(s => s.Password == request.Password && s.Id != id);
                 if (s != null)
                     throw new CrudException(HttpStatusCode.BadRequest, "This resource has already !!!", "");
 
-                var topic = _unitOfWork.Repository<Topic>().Find(x => x.Id == anonymous.TopicOfGameId);
+                var topic = _unitOfWork.Repository<Topic>().Find(x => x.Id == musicPassword.TopicOfGameId);
                 if (topic == null)
                     throw new CrudException(HttpStatusCode.NotFound, $"This topic {request.TopicOfGameId} is not found !!!", "");
                 var expiryTime = DateTime.MaxValue;
                 var version = _cacheService.GetData<int>("MusicPasswordVersion");
                 if (version != null)
                     _cacheService.SetData<int>("MusicPasswordVersion", version += 1, expiryTime);
-                _mapper.Map<MusicPasswordRequest, MusicPassword>(request, anonymous);
-                await _unitOfWork.Repository<MusicPassword>().Update(anonymous, id);
+                _mapper.Map<MusicPasswordRequest, MusicPassword>(request, musicPassword);
+                await _unitOfWork.Repository<MusicPassword>().Update(musicPassword, id);
                 await _unitOfWork.CommitAsync();
-                var rs = _mapper.Map<MusicPasswordResponse>(anonymous);
-                rs.TopicName = _unitOfWork.Repository<Topic>().Find(x => x.Id == rs.TopicOfGameId).Name;
+                var rs = _mapper.Map<MusicPasswordResponse>(musicPassword);
+                rs.TopicName = topic.Name;
                 return rs;
             }
             catch (CrudException ex)

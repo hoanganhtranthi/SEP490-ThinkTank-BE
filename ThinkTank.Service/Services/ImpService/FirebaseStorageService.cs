@@ -32,7 +32,7 @@ namespace ThinkTank.Service.ImpService
             AuthPassword = _config["EmailPassword"];
         }
 
-        public async Task<string> UploadFileToDefaultAsync(Stream fileStream, string fileName)
+        public async Task<string> UploadFileProfileAsync(Stream fileStream, string fileName,FileType type)
         {
             var auth = new FirebaseAuthProvider(new FirebaseConfig(ApiKey));
             var a = await auth.SignInWithEmailAndPasswordAsync(AuthEmail, AuthPassword);
@@ -44,7 +44,7 @@ namespace ThinkTank.Service.ImpService
                     AuthTokenAsyncFactory = () => Task.FromResult(a.FirebaseToken),
                     ThrowOnCancel = true
                 }
-                ).Child("images").Child(fileName).PutAsync(fileStream, cancellation.Token);
+                ).Child($"{type}").Child(fileName).PutAsync(fileStream, cancellation.Token);
             try
             {
                 string link = await task;

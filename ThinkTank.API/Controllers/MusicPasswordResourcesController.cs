@@ -17,7 +17,7 @@ namespace ThinkTank.API.Controllers
             _musicPasswordResourceService = musicPasswordResourceService;
         }
         /// <summary>
-        /// Get list of musicPassword resources
+        /// Get list of music password resources
         /// </summary>
         /// <param name="pagingRequest"></param>
         /// <param name="musicPasswordRequest"></param>
@@ -30,7 +30,7 @@ namespace ThinkTank.API.Controllers
             return Ok(rs);
         }
         /// <summary>
-        /// Get musicPassword resource by Id
+        /// Get music password resource by Id
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
@@ -42,7 +42,7 @@ namespace ThinkTank.API.Controllers
             return Ok(rs);
         }
         /// <summary>
-        /// Create MusicPassword Resource 
+        /// Create music password Resource 
         /// </summary>
         /// <param name="resource"></param>
         /// <returns></returns>

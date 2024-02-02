@@ -89,7 +89,9 @@ namespace ThinkTank.Service.Services.ImpService
                         {
                             Level = achievement.Level,
                             AmoutPlayer = 1,
-                            GameMode = GetGameMode(achievement)
+                            GameMode = GetGameMode(achievement),
+                            AccountIdsChecked=new List<int>()
+                            
                         };
                         responseLevel.AccountIdsChecked.Add(achievement.AccountId);
                         responseLevels.Add(responseLevel);

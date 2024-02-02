@@ -41,7 +41,11 @@ builder.Services.AddScoped<IGameService, GameService>();
 builder.Services.AddScoped<ICacheService, CacheService>();
 builder.Services.AddScoped<IAnonymousResourceService, AnonymousResourceService>();
 builder.Services.AddScoped<IMusicPasswordResourceService, MusicPasswordResourceService>();
+builder.Services.AddScoped<IFlipCardAndImagesWalkthroughResourceService, FlipCardAndImagesWalkthroughResourceService>();
+builder.Services.AddScoped<IStoryTellerResourceService, StoryTellerResourceService>();
 builder.Services.AddScoped<ITopicService, TopicService>();
+builder.Services.AddScoped<IAchievementService, AchievementService>();
+builder.Services.AddScoped<IVersionOfResourceService, VersionOfResourceService>();
 builder.Services.AddDbContext<ThinkTankContext>(options =>
 {
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultSQLConnection"));
@@ -88,9 +92,9 @@ builder.Services.AddSwaggerGen(options =>
         new List<string>()
         }
     });
-   // var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
-    //var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
-    //options.IncludeXmlComments(xmlPath);
+    var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+    var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+    options.IncludeXmlComments(xmlPath);
 });
 //start JWT
 var key = builder.Configuration.GetValue<string>("ApiSetting:Secret");

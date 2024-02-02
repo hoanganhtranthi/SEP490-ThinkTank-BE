@@ -16,5 +16,10 @@ namespace ThinkTank.Service.Helpers
             ImagesWalkthrough=4,
             StoryTeller=5,
         }
+        public enum FileType
+        {
+            System=1,
+            Player=2
+        }
     }
 }

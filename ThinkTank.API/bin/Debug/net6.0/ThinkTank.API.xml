@@ -1,0 +1,372 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>ThinkTank.API</name>
+    </assembly>
+    <members>
+        <member name="M:ThinkTank.API.Controllers.AccountsController.GetAccounts(ThinkTank.Service.DTO.Request.PagingRequest,ThinkTank.Service.DTO.Request.AccountRequest)">
+            <summary>
+            Get list of accounts
+            </summary>
+            <param name="pagingRequest"></param>
+            <param name="userRequest"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ThinkTank.API.Controllers.AccountsController.GetAccount(System.Int32)">
+            <summary>
+            Get account by Id
+            </summary>
+            <param name="id"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ThinkTank.API.Controllers.AccountsController.UpdateAccount(ThinkTank.Service.DTO.Request.UpdateAccountRequest,System.Int32)">
+            <summary>
+            Update profile of account
+            </summary>
+            <param name="userRequest"></param>
+            <param name="id"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ThinkTank.API.Controllers.AccountsController.GetToUpdateStatus(System.Int32)">
+            <summary>
+            Update Status Of Account (Online/Offline)
+            </summary>
+            <param name="id"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ThinkTank.API.Controllers.AccountsController.GetToBanAccount(System.Int32)">
+            <summary>
+            Ban Account
+            </summary>
+            <param name="id"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ThinkTank.API.Controllers.AccountsController.Verification(System.String)">
+            <summary>
+            Send Verification Code  
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:ThinkTank.API.Controllers.AccountsController.CreateCustomer(ThinkTank.Service.DTO.Request.CreateAccountRequest)">
+            <summary>
+            Sign Up account
+            </summary>
+            <param name="account"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ThinkTank.API.Controllers.AccountsController.Login(ThinkTank.Service.DTO.Request.LoginRequest)">
+            <summary>
+            Login (Username and Password)
+            </summary>
+            <param name="model"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ThinkTank.API.Controllers.AccountsController.ResetPassword(ThinkTank.Service.DTO.Request.ResetPasswordRequest)">
+            <summary>
+            Reset password when forgot password
+            </summary>
+            <param name="resetPassword"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ThinkTank.API.Controllers.AccountsController.VerifyAndGenerateToken(ThinkTank.Service.DTO.Request.TokenRequest)">
+            <summary>
+            Generate new access token and refresh token when they are expired
+            </summary>
+            <param name="request"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ThinkTank.API.Controllers.AccountsController.RevokeRefreshToken(System.String)">
+            <summary>
+            Revoke refresh token when logout 
+            </summary>
+            <param name="userName"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ThinkTank.API.Controllers.AccountsController.LoginGoogle(System.String)">
+            <summary>
+            Login Google 
+            </summary>
+            <param name="request"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ThinkTank.API.Controllers.AchieviementsController.GetAchievements(ThinkTank.Service.DTO.Request.PagingRequest,ThinkTank.Service.DTO.Request.AchievementRequest)">
+            <summary>
+            Get list of achievements
+            </summary>
+            <param name="pagingRequest"></param>
+            <param name="request"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ThinkTank.API.Controllers.AchieviementsController.GetAchievement(System.Int32)">
+            <summary>
+            Get achievement  by Id
+            </summary>
+            <param name="id"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ThinkTank.API.Controllers.AchieviementsController.CreateAchievement(ThinkTank.Service.DTO.Request.CreateAchievementRequest)">
+            <summary>
+            Add achievement
+            </summary>
+            <param name="request"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ThinkTank.API.Controllers.AnonymousResourcesController.GetAnonymousResources(ThinkTank.Service.DTO.Request.PagingRequest,ThinkTank.Service.DTO.Request.ResourceRequest)">
+            <summary>
+            Get list of anonymous resources
+            </summary>
+            <param name="pagingRequest"></param>
+            <param name="anonymousRequest"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ThinkTank.API.Controllers.AnonymousResourcesController.GetAnonymous(System.Int32)">
+            <summary>
+            Get anonymous resource by Id
+            </summary>
+            <param name="id"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ThinkTank.API.Controllers.AnonymousResourcesController.CreateAnonymousResource(ThinkTank.Service.DTO.Request.AnonymousRequest)">
+            <summary>
+            Create Anonymous Resource 
+            </summary>
+            <param name="resource"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ThinkTank.API.Controllers.AnonymousResourcesController.UpdateResource(ThinkTank.Service.DTO.Request.AnonymousRequest,System.Int32)">
+            <summary>
+            Update resource
+            </summary>
+            <param name="request"></param>
+            <param name="id"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ThinkTank.API.Controllers.AnonymousResourcesController.DeleteResource(System.Int32)">
+            <summary>
+            Delete resource
+            </summary>
+            <param name="request"></param>
+            <param name="id"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ThinkTank.API.Controllers.FilesController.UploadFile(Microsoft.AspNetCore.Http.IFormFile,ThinkTank.Service.Helpers.Enum.FileType)">
+            <summary>
+            Upload file (FileType: System=1, Player=2)
+            </summary>
+        </member>
+        <member name="M:ThinkTank.API.Controllers.FilesController.UploadFileResource(Microsoft.AspNetCore.Http.IFormFile,ThinkTank.Service.Helpers.Enum.ResourceType)">
+            <summary>
+            Upload file for resources game ( ResourceType: Anonymous=1,MusicPassword=2,FlipCard=3,ImagesWalkthrough=4,StoryTeller=5)
+            </summary>
+        </member>
+        <member name="M:ThinkTank.API.Controllers.FlipCardAndImagesWalkthroughResourcesController.GetFlipCardAndImagesWalkthroughResources(ThinkTank.Service.DTO.Request.PagingRequest,ThinkTank.Service.DTO.Request.ResourceRequest)">
+            <summary>
+            Get list of flipcard and images walkthrough  resources
+            </summary>
+            <param name="pagingRequest"></param>
+            <param name="musicPasswordRequest"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ThinkTank.API.Controllers.FlipCardAndImagesWalkthroughResourcesController.GetFlipCardAndImagesWalkthrough(System.Int32)">
+            <summary>
+            Get flipcard and images walkthrough resource by Id
+            </summary>
+            <param name="id"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ThinkTank.API.Controllers.FlipCardAndImagesWalkthroughResourcesController.CreateFlipCardAndImagesWalkthroughResource(ThinkTank.Service.DTO.Request.FlipCardAndImagesWalkthroughRequest)">
+            <summary>
+            Create flipcard and images walkthrough resource 
+            </summary>
+            <param name="resource"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ThinkTank.API.Controllers.FlipCardAndImagesWalkthroughResourcesController.UpdateResource(ThinkTank.Service.DTO.Request.FlipCardAndImagesWalkthroughRequest,System.Int32)">
+            <summary>
+            Update resource
+            </summary>
+            <param name="request"></param>
+            <param name="id"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ThinkTank.API.Controllers.FlipCardAndImagesWalkthroughResourcesController.DeleteResource(System.Int32)">
+            <summary>
+            Delete resource
+            </summary>
+            <param name="request"></param>
+            <param name="id"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ThinkTank.API.Controllers.FriendsController.GetFriends(ThinkTank.Service.DTO.Request.PagingRequest,ThinkTank.Service.DTO.Request.FriendRequest)">
+            <summary>
+            Get list of friendships
+            </summary>
+            <param name="pagingRequest"></param>
+            <param name="friendRequest"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ThinkTank.API.Controllers.FriendsController.GetFriend(System.Int32)">
+            <summary>
+            Get friendship by Id
+            </summary>
+            <param name="id"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ThinkTank.API.Controllers.FriendsController.GetToUpdateStatus(System.Int32)">
+            <summary>
+            Accept friend
+            </summary>
+            <param name="friendId"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ThinkTank.API.Controllers.FriendsController.AddFriend(ThinkTank.Service.DTO.Request.CreateFriendRequest)">
+            <summary>
+            Add friend
+            </summary>
+            <param name="friend"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ThinkTank.API.Controllers.FriendsController.DeleteFriendship(System.Int32)">
+            <summary>
+            Accept friend
+            </summary>
+            <param name="id"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ThinkTank.API.Controllers.GamesController.GetGames(ThinkTank.Service.DTO.Request.PagingRequest,ThinkTank.Service.DTO.Request.GameRequest)">
+            <summary>
+            Get list of games
+            </summary>
+            <param name="pagingRequest"></param>
+            <param name="gameRequest"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ThinkTank.API.Controllers.GamesController.GetGame(System.Int32)">
+            <summary>
+            Get game by Id
+            </summary>
+            <param name="id"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ThinkTank.API.Controllers.GamesController.GetGameLevel(System.Int32,ThinkTank.Service.DTO.Request.PagingRequest)">
+            <summary>
+            Get list game level by  game Id
+            </summary>
+            <param name="id"></param>
+            <param name="pagingRequest"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ThinkTank.API.Controllers.MusicPasswordResourcesController.GetMusicPasswordResources(ThinkTank.Service.DTO.Request.PagingRequest,ThinkTank.Service.DTO.Request.ResourceRequest)">
+            <summary>
+            Get list of music password resources
+            </summary>
+            <param name="pagingRequest"></param>
+            <param name="musicPasswordRequest"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ThinkTank.API.Controllers.MusicPasswordResourcesController.GetMusicPassword(System.Int32)">
+            <summary>
+            Get music password resource by Id
+            </summary>
+            <param name="id"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ThinkTank.API.Controllers.MusicPasswordResourcesController.CreateMusicPasswordResource(ThinkTank.Service.DTO.Request.MusicPasswordRequest)">
+            <summary>
+            Create music password Resource 
+            </summary>
+            <param name="resource"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ThinkTank.API.Controllers.MusicPasswordResourcesController.UpdateResource(ThinkTank.Service.DTO.Request.MusicPasswordRequest,System.Int32)">
+            <summary>
+            Update resource
+            </summary>
+            <param name="request"></param>
+            <param name="id"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ThinkTank.API.Controllers.MusicPasswordResourcesController.DeleteResource(System.Int32)">
+            <summary>
+            Delete resource
+            </summary>
+            <param name="request"></param>
+            <param name="id"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ThinkTank.API.Controllers.StoryTellerResourcesController.GetStoryTellerResources(ThinkTank.Service.DTO.Request.PagingRequest,ThinkTank.Service.DTO.Request.ResourceRequest)">
+            <summary>
+            Get list of story teller  resources
+            </summary>
+            <param name="pagingRequest"></param>
+            <param name="musicPasswordRequest"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ThinkTank.API.Controllers.StoryTellerResourcesController.GetStoryTeller(System.Int32)">
+            <summary>
+            Get story teller resource by Id
+            </summary>
+            <param name="id"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ThinkTank.API.Controllers.StoryTellerResourcesController.CreateStoryTellerResource(ThinkTank.Service.DTO.Request.StoryTellerRequest)">
+            <summary>
+            Create story teller resource 
+            </summary>
+            <param name="resource"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ThinkTank.API.Controllers.StoryTellerResourcesController.UpdateResource(ThinkTank.Service.DTO.Request.StoryTellerRequest,System.Int32)">
+            <summary>
+            Update resource
+            </summary>
+            <param name="request"></param>
+            <param name="id"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ThinkTank.API.Controllers.StoryTellerResourcesController.DeleteResource(System.Int32)">
+            <summary>
+            Delete resource
+            </summary>
+            <param name="request"></param>
+            <param name="id"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ThinkTank.API.Controllers.TopicsController.GetTopics(ThinkTank.Service.DTO.Request.PagingRequest,ThinkTank.Service.DTO.Request.TopicRequest)">
+            <summary>
+            Get list of topic
+            </summary>
+            <param name="pagingRequest"></param>
+            <param name="anonymousRequest"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ThinkTank.API.Controllers.TopicsController.GetTopic(System.Int32)">
+            <summary>
+            Get topic by Id
+            </summary>
+            <param name="id"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ThinkTank.API.Controllers.TopicsController.CreateAnonymousResource(ThinkTank.Service.DTO.Request.CreateTopicOfGameRequest)">
+            <summary>
+            Create Topic
+            </summary>
+            <param name="request"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ThinkTank.API.Controllers.TopicsController.UpdateResource(System.String,System.Int32)">
+            <summary>
+            Update topic
+            </summary>
+            <param name="name"></param>
+            <param name="id"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ThinkTank.API.Controllers.VersionResourcesController.GetVersionOfResources">
+            <summary>
+            Get current version of resources
+            </summary>
+            <returns></returns>
+        </member>
+    </members>
+</doc>

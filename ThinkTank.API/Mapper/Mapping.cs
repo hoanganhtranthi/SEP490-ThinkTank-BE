@@ -39,6 +39,25 @@ namespace MuTote.API.Mapper
             CreateMap<MusicPassword, MusicPasswordResponse>();
             CreateMap<MusicPasswordRequest, MusicPassword>();
 
+            CreateMap<ResourceRequest, FlipCardAndImagesWalkthrough>();
+            CreateMap<ResourceRequest, FlipCardAndImagesWalkthroughResponse>();
+            CreateMap<FlipCardAndImagesWalkthrough, FlipCardAndImagesWalkthroughResponse>();
+            CreateMap<FlipCardAndImagesWalkthroughRequest, FlipCardAndImagesWalkthrough>();
+
+            CreateMap<ResourceRequest, StoryTeller>();
+            CreateMap<ResourceRequest, StoryTellerResponse>();
+            CreateMap<StoryTeller, StoryTellerResponse>();
+            CreateMap<StoryTellerRequest, StoryTeller>();
+
+            CreateMap<AnswerOfStoryTeller, AnswerOfStoryTellerRequest>().ReverseMap();
+            CreateMap<AnswerOfStoryTellerRequest, AnswerOfStoryTellerResponse>();
+            CreateMap<AnswerOfStoryTeller, AnswerOfStoryTellerResponse>();
+
+            CreateMap<AchievementRequest, Achievement>();
+            CreateMap<AchievementRequest, AchievementResponse>();
+            CreateMap<Achievement, AchievementResponse>();
+            CreateMap<CreateAchievementRequest, Achievement>();
+
             CreateMap<TopicRequest, Topic>();
             CreateMap<TopicRequest, TopicResponse>();
             CreateMap<Topic, TopicResponse>();
