@@ -238,6 +238,8 @@ namespace ThinkTank.Data.Entities
                 entity.Property(e => e.Description).HasMaxLength(200);
 
                 entity.Property(e => e.Name).HasMaxLength(50);
+
+                entity.Property(e => e.Unit).HasMaxLength(50);
             });
 
             modelBuilder.Entity<Contest>(entity =>

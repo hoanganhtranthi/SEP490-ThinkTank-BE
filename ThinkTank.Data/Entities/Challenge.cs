@@ -15,6 +15,7 @@ namespace ThinkTank.Data.Entities
         public string Avatar { get; set; } = null!;
         public string Description { get; set; } = null!;
         public int CompletedMilestone { get; set; }
+        public string Unit { get; set; } = null!;
         public bool Status { get; set; }
 
         public virtual ICollection<Badge> Badges { get; set; }
