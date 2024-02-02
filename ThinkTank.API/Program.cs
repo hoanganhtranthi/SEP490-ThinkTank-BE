@@ -41,7 +41,11 @@ builder.Services.AddScoped<IGameService, GameService>();
 builder.Services.AddScoped<ICacheService, CacheService>();
 builder.Services.AddScoped<IAnonymousResourceService, AnonymousResourceService>();
 builder.Services.AddScoped<IMusicPasswordResourceService, MusicPasswordResourceService>();
+builder.Services.AddScoped<IFlipCardAndImagesWalkthroughResourceService, FlipCardAndImagesWalkthroughResourceService>();
+builder.Services.AddScoped<IStoryTellerResourceService, StoryTellerResourceService>();
 builder.Services.AddScoped<ITopicService, TopicService>();
+builder.Services.AddScoped<IAchievementService, AchievementService>();
+builder.Services.AddScoped<IVersionOfResourceService, VersionOfResourceService>();
 builder.Services.AddDbContext<ThinkTankContext>(options =>
 {
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultSQLConnection"));

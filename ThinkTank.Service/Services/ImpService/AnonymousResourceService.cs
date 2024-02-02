@@ -53,7 +53,7 @@ namespace ThinkTank.Service.Services.ImpService
                     _cacheService.SetData<int>("AnonymousVersion", version += 1, expiryTime);
                 else version = 1;
                 var rs = _mapper.Map<AnonymousResponse>(anonymous);
-                rs.TopicName = _unitOfWork.Repository<Topic>().Find(x => x.Id == rs.TopicOfGameId).Name;
+                rs.TopicName = topic.Name;
                 return rs;
             }
             catch (CrudException ex)
