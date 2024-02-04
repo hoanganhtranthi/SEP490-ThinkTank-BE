@@ -153,10 +153,16 @@
             <summary>
             Upload file (FileType: System=1, Player=2)
             </summary>
+            <param name="type"></param>
         </member>
         <member name="M:ThinkTank.API.Controllers.FilesController.UploadFileResource(Microsoft.AspNetCore.Http.IFormFile,ThinkTank.Service.Helpers.Enum.ResourceType)">
             <summary>
             Upload file for resources game ( ResourceType: Anonymous=1,MusicPassword=2,FlipCard=3,ImagesWalkthrough=4,StoryTeller=5)
+            </summary>
+        </member>
+        <member name="M:ThinkTank.API.Controllers.FilesController.UploadFileContestResource(Microsoft.AspNetCore.Http.IFormFile,ThinkTank.Service.Helpers.Enum.ResourceType)">
+            <summary>
+            Upload file for contest resources game ( ResourceType: Anonymous=1,MusicPassword=2,FlipCard=3,ImagesWalkthrough=4)
             </summary>
         </member>
         <member name="M:ThinkTank.API.Controllers.FlipCardAndImagesWalkthroughResourcesController.GetFlipCardAndImagesWalkthroughResources(ThinkTank.Service.DTO.Request.PagingRequest,ThinkTank.Service.DTO.Request.ResourceRequest)">
@@ -254,6 +260,42 @@
             </summary>
             <param name="id"></param>
             <param name="pagingRequest"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ThinkTank.API.Controllers.IconsController.GetIcons(ThinkTank.Service.DTO.Request.PagingRequest,ThinkTank.Service.DTO.Request.IconRequest)">
+            <summary>
+            Get list of icons
+            </summary>
+            <param name="pagingRequest"></param>
+            <param name="iconRequest"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ThinkTank.API.Controllers.IconsController.GetIcon(System.Int32)">
+            <summary>
+            Get icon by Id
+            </summary>
+            <param name="id"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ThinkTank.API.Controllers.IconsController.GetToUpdateStatus(System.Int32)">
+            <summary>
+            Update status of icon
+            </summary>
+            <param name="iconId"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ThinkTank.API.Controllers.IconsController.AddIcon(ThinkTank.Service.DTO.Request.CreateIconRequest)">
+            <summary>
+            Add icon
+            </summary>
+            <param name="icon"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ThinkTank.API.Controllers.IconsController.AddIconOfAccount(ThinkTank.Service.DTO.Request.IconOfAccountRequest)">
+            <summary>
+            Buy Icon 
+            </summary>
+            <param name="icon"></param>
             <returns></returns>
         </member>
         <member name="M:ThinkTank.API.Controllers.MusicPasswordResourcesController.GetMusicPasswordResources(ThinkTank.Service.DTO.Request.PagingRequest,ThinkTank.Service.DTO.Request.ResourceRequest)">

@@ -63,6 +63,14 @@ namespace MuTote.API.Mapper
             CreateMap<Topic, TopicResponse>();
             CreateMap<CreateTopicOfGameRequest, Topic>();
 
+            CreateMap<IconRequest, Icon>();
+            CreateMap<IconRequest, IconResponse>();
+            CreateMap<Icon, IconResponse>();
+            CreateMap<CreateIconRequest, Icon>();
+
+            CreateMap<IconOfAccountRequest, IconOfAccount>();
+            CreateMap<IconOfAccount,IconOfAccountResponse>();
+
             CreateMap<TopicOfGame, TopicOfGameResponse>();
         }
 

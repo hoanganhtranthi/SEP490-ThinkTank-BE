@@ -20,6 +20,7 @@ namespace ThinkTank.API.Controllers
         /// <summary>
         /// Upload file (FileType: System=1, Player=2)
         /// </summary>
+        /// <param name="type"></param>
         [HttpPost]
         public async Task<ActionResult<string>> UploadFile(IFormFile file,FileType type)
         {
@@ -31,12 +32,23 @@ namespace ThinkTank.API.Controllers
         /// <summary>
         /// Upload file for resources game ( ResourceType: Anonymous=1,MusicPassword=2,FlipCard=3,ImagesWalkthrough=4,StoryTeller=5)
         /// </summary>
-        [HttpPost("resource")]
+        [HttpPost("resources")]
         public async Task<ActionResult<string>> UploadFileResource(IFormFile file,ResourceType type)
         {
             if (file.Length > MAX_UPLOAD_FILE_SIZE)
                 return BadRequest("Exceed 25MB");
-            string url = await _fileStorageService.UploadFileResourceAsync(file.OpenReadStream(), file.FileName,type);
+            string url = await _fileStorageService.UploadFileResourceAsync(file.OpenReadStream(), file.FileName,type,"Resources");
+            return Ok(url);
+        }
+        /// <summary>
+        /// Upload file for contest resources game ( ResourceType: Anonymous=1,MusicPassword=2,FlipCard=3,ImagesWalkthrough=4)
+        /// </summary>
+        [HttpPost("contests")]
+        public async Task<ActionResult<string>> UploadFileContestResource(IFormFile file, ResourceType type)
+        {
+            if (file.Length > MAX_UPLOAD_FILE_SIZE)
+                return BadRequest("Exceed 25MB");
+            string url = await _fileStorageService.UploadFileResourceAsync(file.OpenReadStream(), file.FileName, type, "Contests");
             return Ok(url);
         }
     }
