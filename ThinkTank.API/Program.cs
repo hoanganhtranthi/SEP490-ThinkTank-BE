@@ -46,6 +46,8 @@ builder.Services.AddScoped<IStoryTellerResourceService, StoryTellerResourceServi
 builder.Services.AddScoped<ITopicService, TopicService>();
 builder.Services.AddScoped<IAchievementService, AchievementService>();
 builder.Services.AddScoped<IVersionOfResourceService, VersionOfResourceService>();
+builder.Services.AddScoped<IIconService, IconService>();
+builder.Services.AddScoped<IAccountIn1vs1Service, AccountIn1vs1Service>();
 builder.Services.AddDbContext<ThinkTankContext>(options =>
 {
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultSQLConnection"));

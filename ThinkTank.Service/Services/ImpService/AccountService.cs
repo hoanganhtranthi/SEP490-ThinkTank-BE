@@ -554,8 +554,7 @@ namespace ThinkTank.Service.Services.ImpService
                 {
                     throw new CrudException(HttpStatusCode.NotFound, $"Not found account with id{id.ToString()}", "");
                 }
-                if (account.IsOnline == true) account.IsOnline = false;
-                else account.IsOnline = true;
+                account.IsOnline = !account.IsOnline;
                 await _unitOfWork.Repository<Account>().Update(account, id);
                 await _unitOfWork.CommitAsync();
                 return _mapper.Map<Account, AccountResponse>(account);

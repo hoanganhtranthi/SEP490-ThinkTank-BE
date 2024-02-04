@@ -10,6 +10,6 @@ namespace ThinkTank.Service.Services.IService
     public interface IFileStorageService
     {
         Task<string> UploadFileProfileAsync(Stream fileStream, string fileName,FileType type);
-        Task<string> UploadFileResourceAsync(Stream fileStream, string fileName, ResourceType type);
+        Task<string> UploadFileResourceAsync(Stream fileStream, string fileName, ResourceType type,string name);
     }
 }

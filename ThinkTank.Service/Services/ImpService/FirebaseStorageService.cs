@@ -56,7 +56,7 @@ namespace ThinkTank.Service.ImpService
             }
         }
 
-        public async Task<string> UploadFileResourceAsync(Stream fileStream, string fileName, ResourceType type)
+        public async Task<string> UploadFileResourceAsync(Stream fileStream, string fileName, ResourceType type, string name)
         {
             var auth = new FirebaseAuthProvider(new FirebaseConfig(ApiKey));
             var a = await auth.SignInWithEmailAndPasswordAsync(AuthEmail, AuthPassword);
@@ -68,7 +68,7 @@ namespace ThinkTank.Service.ImpService
                     AuthTokenAsyncFactory = () => Task.FromResult(a.FirebaseToken),
                     ThrowOnCancel = true
                 }
-                ).Child("resource").Child($"{type}").Child(fileName).PutAsync(fileStream, cancellation.Token);
+                ).Child($"{name}").Child($"{type}").Child(fileName).PutAsync(fileStream, cancellation.Token);
             try
             {
                 string link = await task;
@@ -79,5 +79,6 @@ namespace ThinkTank.Service.ImpService
                 return null;
             }
         }
+       
     }
 }
