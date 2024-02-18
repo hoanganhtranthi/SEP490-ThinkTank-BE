@@ -133,7 +133,7 @@ namespace ThinkTank.API.Controllers
         /// </summary>
         /// <param name="request"></param>
         /// <returns></returns>
-         [Authorize(Policy ="All")]
+         //[Authorize(Policy ="All")]
         [HttpPost("token-verification")]
         public async Task<ActionResult<AccountResponse>> VerifyAndGenerateToken(TokenRequest request)
         {
@@ -146,7 +146,7 @@ namespace ThinkTank.API.Controllers
         /// </summary>
         /// <param name="userName"></param>
         /// <returns></returns>
-        [Authorize(Policy ="All")]
+       // [Authorize(Policy ="All")]
         [HttpPost("token-revoke")]
         public async Task<ActionResult<AccountResponse>> RevokeRefreshToken(string userName)
         {

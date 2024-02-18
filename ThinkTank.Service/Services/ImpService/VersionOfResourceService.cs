@@ -32,7 +32,7 @@ namespace ThinkTank.Service.Services.ImpService
                 var anonymousVersion = _cacheService.GetData<int>("AnonymousVersion");
                 if (anonymousVersion != null)
                 {
-                    sb.Append($"AnonymousVersion{anonymousVersion} ");
+                    sb.Append($"anonymousVersion{anonymousVersion} ");
                 }
 
                 var flipCardAndImagesWalkthroughVersion = _cacheService.GetData<int>("FlipCardAndImagesWalkthroughVersion");
