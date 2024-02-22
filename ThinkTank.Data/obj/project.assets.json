@@ -7522,11 +7522,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\ADMIN\\Downloads\\SEP490-ThinkTank-BE-main\\SEP490-ThinkTank-BE-main\\ThinkTank.Data\\ThinkTank.Data.csproj",
+      "projectUniqueName": "C:\\Users\\ADMIN\\Documents\\GitHub\\SEP490-ThinkTank-BE\\ThinkTank.Data\\ThinkTank.Data.csproj",
       "projectName": "ThinkTank.Data",
-      "projectPath": "C:\\Users\\ADMIN\\Downloads\\SEP490-ThinkTank-BE-main\\SEP490-ThinkTank-BE-main\\ThinkTank.Data\\ThinkTank.Data.csproj",
+      "projectPath": "C:\\Users\\ADMIN\\Documents\\GitHub\\SEP490-ThinkTank-BE\\ThinkTank.Data\\ThinkTank.Data.csproj",
       "packagesPath": "C:\\Users\\ADMIN\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\ADMIN\\Downloads\\SEP490-ThinkTank-BE-main\\SEP490-ThinkTank-BE-main\\ThinkTank.Data\\obj\\",
+      "outputPath": "C:\\Users\\ADMIN\\Documents\\GitHub\\SEP490-ThinkTank-BE\\ThinkTank.Data\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
