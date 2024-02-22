@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "1Lxdc4JmTdtXeXTBDP4DMvr/RZd4ExVFpclNaIfbpYPDLXCblLmQveAAm0dU6euF2xjtOaFpNUoKRX8xvMWDgw==",
+  "dgSpecHash": "MdBgluxQDFAmxaSdlY65GwYwzB1ZKJVyjxxFIuGiuCvC8p7HQt5kJ4mF2Mf//J+g8+qOchFDa75kONHwgAM5KA==",
   "success": true,
-  "projectFilePath": "C:\\Users\\ADMIN\\Downloads\\SEP490-ThinkTank-BE-main\\SEP490-ThinkTank-BE-main\\ThinkTank.Service\\ThinkTank.Service.csproj",
+  "projectFilePath": "C:\\Users\\ADMIN\\Documents\\GitHub\\SEP490-ThinkTank-BE\\ThinkTank.Service\\ThinkTank.Service.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\ADMIN\\.nuget\\packages\\automapper\\12.0.1\\automapper.12.0.1.nupkg.sha512",
     "C:\\Users\\ADMIN\\.nuget\\packages\\automapper.extensions.microsoft.dependencyinjection\\12.0.1\\automapper.extensions.microsoft.dependencyinjection.12.0.1.nupkg.sha512",
