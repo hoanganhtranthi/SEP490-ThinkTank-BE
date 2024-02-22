@@ -279,7 +279,7 @@ namespace ThinkTank.Service.Services.ImpService
                 new Claim("version", BitConverter.ToString(customer.Version).Replace("-", "")),
                 new Claim(ClaimTypes.Email , customer.Email),
                  });
-                tokenDescriptor.Expires = DateTime.Now.AddMinutes(2);
+                tokenDescriptor.Expires = DateTime.Now.AddMinutes(20);
                 tokenDescriptor.SigningCredentials = new(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature);
                 var token = tokenHandler.CreateToken(tokenDescriptor);
                 var rs = tokenHandler.WriteToken(token);
@@ -299,7 +299,7 @@ namespace ThinkTank.Service.Services.ImpService
                 new Claim("version",t.ToString()),
                 });
                 var refreshToken = GenerateRefreshToken(customer);
-                tokenDescriptor.Expires = DateTime.Now.AddMinutes(1);
+                tokenDescriptor.Expires = DateTime.Now.AddMinutes(20);
                 tokenDescriptor.SigningCredentials = new(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature);
                 var token = tokenHandler.CreateToken(tokenDescriptor);
                 var rs = tokenHandler.WriteToken(token);
@@ -551,9 +551,15 @@ namespace ThinkTank.Service.Services.ImpService
         {
             try
             {
-              Account account = _unitOfWork.Repository<Account>()
+                if (id <= 0)
+                {
+                    throw new CrudException(HttpStatusCode.BadRequest, "Id Account Invalid", "");
+                }
+                Account account = _unitOfWork.Repository<Account>()
                     .Find(c => c.Id == id);
 
+                if (account.Status == false)
+                    throw new CrudException(HttpStatusCode.BadRequest, $"Account {account.UserName} has been banned", "");
                 if (account == null)
                 {
                     throw new CrudException(HttpStatusCode.NotFound, $"Not found account with id{id.ToString()}", "");
@@ -576,6 +582,10 @@ namespace ThinkTank.Service.Services.ImpService
         {
             try
             {
+                if (id <= 0)
+                {
+                    throw new CrudException(HttpStatusCode.BadRequest, "Id Account Invalid", "");
+                }
                 Account account = _unitOfWork.Repository<Account>()
                       .Find(c => c.Id == id);
 

@@ -157,6 +157,10 @@ namespace ThinkTank.Service.Services.ImpService
         {
             try
             {
+                if (id <= 0)
+                {
+                    throw new CrudException(HttpStatusCode.BadRequest, "Id Friendship Invalid", "");
+                }
                 Friend friend = _unitOfWork.Repository<Friend>().GetAll().Include(x => x.AccountId1Navigation).Include(x => x.AccountId2Navigation).FirstOrDefault(u => u.Id == id);
 
                 if (friend == null)

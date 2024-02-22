@@ -141,6 +141,10 @@ namespace ThinkTank.Service.Services.ImpService
         {
             try
             {
+                if (id <= 0)
+                {
+                    throw new CrudException(HttpStatusCode.BadRequest, "Id Icon Invalid", "");
+                }
                 Icon icon = _unitOfWork.Repository<Icon>()
                       .Find(c => c.Id == id);
 
