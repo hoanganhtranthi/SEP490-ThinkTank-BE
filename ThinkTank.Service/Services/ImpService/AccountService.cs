@@ -5,7 +5,6 @@ using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Configuration.Json;
 using Microsoft.IdentityModel.Tokens;
-using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using OpenAI_API.Completions;
 using OpenAI_API.Moderation;
@@ -15,7 +14,6 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
-using System.Linq.Dynamic.Core.Tokenizer;
 using System.Net;
 using System.Net.Mail;
 using System.Security.Claims;
@@ -40,12 +38,10 @@ namespace ThinkTank.Service.Services.ImpService
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
         private readonly IConfiguration _config;
-        private readonly ICacheService _cacheService;
-        public AccountService(IUnitOfWork unitOfWork, IMapper mapper,IConfiguration configuration,ICacheService cacheService)
+        public AccountService(IUnitOfWork unitOfWork, IMapper mapper,IConfiguration configuration)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
-            _cacheService = cacheService;
             _config = configuration;    
         }
 
@@ -64,12 +60,9 @@ namespace ThinkTank.Service.Services.ImpService
                 {
                     throw new CrudException(HttpStatusCode.BadRequest, "Username has already !!!", "");
                 }
-                if (createAccountRequest.GoogleId != null && createAccountRequest.GoogleId != "")
-                {
-                    var acc = _unitOfWork.Repository<Account>().Find(x => x.GoogleId == createAccountRequest.GoogleId);
-                    if (acc != null)
-                        throw new CrudException(HttpStatusCode.BadRequest, "GoogleId has already !!!", "");
-                }
+                var acc = _unitOfWork.Repository<Account>().Find(x => x.GoogleId == createAccountRequest.GoogleId);
+                if(acc != null)
+                    throw new CrudException(HttpStatusCode.BadRequest, "GoogleId has already !!!", "");
                 CreatPasswordHash(createAccountRequest.Password, out byte[] passwordHash, out byte[] passwordSalt);
                 customer.PasswordHash = passwordHash;
                 customer.PasswordSalt = passwordSalt;
@@ -189,7 +182,15 @@ namespace ThinkTank.Service.Services.ImpService
             {
                 throw new CrudException(HttpStatusCode.InternalServerError, "Get account list error!!!!!", ex.Message);
             }
-        }       
+        }
+        private void SetAppSettingValue(string key, string value, string appSettingsJsonFilePath = null)
+        {
+            var configJson = File.ReadAllText("appsettings.json");
+            var config = JsonSerializer.Deserialize<Dictionary<string, object>>(configJson);
+            config[key] = value;
+            var updatedConfigJson = JsonSerializer.Serialize(config, new JsonSerializerOptions { WriteIndented = true });
+            File.WriteAllText("appsettings.json", updatedConfigJson);
+        }
         public async Task<AccountResponse> Login(LoginRequest request)
         {
             try
@@ -200,26 +201,13 @@ namespace ThinkTank.Service.Services.ImpService
                 {
                     if (!request.Password.Equals(_config["PasswordAdmin"]))
                         throw new CrudException(HttpStatusCode.BadRequest, "Password is incorrect", "");
-                    user.FullName = "Admin";                  
+                    user.FullName = "Admin";
+                    SetAppSettingValue("AdminAccount:VersionTokenAdmin", (int.Parse(_config["AdminAccount:VersionTokenAdmin"].ToString()) + 1).ToString());
                     var token = GenerateRefreshToken(user);
+                    SetAppSettingValue("AdminAccount:RefreshTokenAdmin",token );
                     rs = _mapper.Map<Account, AccountResponse>(user);
                     rs.AccessToken = GenerateJwtToken(user);
-                    rs.RefreshToken = token;
-                    var expiryTime = DateTime.MaxValue;
-                    var adminAccount = _cacheService.GetData<AdminAccountResponse>("AdminAccount");
-                    if (adminAccount != null)
-                    {
-                        adminAccount.VersionTokenAdmin += 1;
-                        adminAccount.RefreshTokenAdmin = token;
-                        _cacheService.SetData<AdminAccountResponse>("AdminAccount",adminAccount, expiryTime);
-                    }
-                    else
-                    {
-                        adminAccount = new AdminAccountResponse();
-                        adminAccount.VersionTokenAdmin = 1;
-                        adminAccount.RefreshTokenAdmin = token;
-                        _cacheService.SetData<AdminAccountResponse>("AdminAccount", adminAccount, expiryTime);
-                    }
+                    rs.RefreshToken = token;                   
                 }
                 else
                 {
@@ -287,18 +275,15 @@ namespace ThinkTank.Service.Services.ImpService
             }
             else
             {
-                  var adminAccountResponse = _cacheService.GetData<AdminAccountResponse>("AdminAccount");
-                  var t = 0;
-                if (adminAccountResponse != null)
-                    t = adminAccountResponse.VersionTokenAdmin + 1;
-                else t = 1;
+                var t = (int.Parse(_config["AdminAccount:VersionTokenAdmin"].ToString()) + 1).ToString();
                 tokenDescriptor.Subject = new ClaimsIdentity(new Claim[]
                 {
                 new Claim(ClaimTypes.NameIdentifier, customer.Id.ToString()),
                 new Claim(ClaimTypes.Role, "Admin"),
-                new Claim("version",t.ToString()),
+                new Claim("version",t),
                 });
                 var refreshToken = GenerateRefreshToken(customer);
+                SetAppSettingValue("AdminAccount:RefreshTokenAdmin", refreshToken);
                 tokenDescriptor.Expires = DateTime.Now.AddMinutes(1);
                 tokenDescriptor.SigningCredentials = new(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature);
                 var token = tokenHandler.CreateToken(tokenDescriptor);
@@ -325,16 +310,12 @@ namespace ThinkTank.Service.Services.ImpService
             }
             else
             {
-                var adminAccountResponse = _cacheService.GetData<AdminAccountResponse>("AdminAccount");
-                var t = 0;
-                if (adminAccountResponse != null)
-                    t = adminAccountResponse.VersionTokenAdmin + 1;
-                else t = 1;
+                var t = (int.Parse(_config["AdminAccount:VersionTokenAdmin"].ToString()) + 1).ToString();
                 tokenDescriptor.Subject = new ClaimsIdentity(new Claim[]
                 {
                 new Claim(ClaimTypes.NameIdentifier, customer.Id.ToString()),
                 new Claim(ClaimTypes.Role, "Admin"),
-                 new Claim("version", t.ToString()),
+                 new Claim("version", t),
                 });
             }
             tokenDescriptor.Expires = DateTime.Now.AddMonths(6);
@@ -376,15 +357,9 @@ namespace ThinkTank.Service.Services.ImpService
                 AccountResponse rs = new AccountResponse();
                 if (userName.Equals(_config["UsernameAdmin"]))
                 {
-                    var expiryTime = DateTime.MaxValue;
-                    var adminAccountResponse = _cacheService.GetData<AdminAccountResponse>("AdminAccount");
-                    if (adminAccountResponse != null)
-                    {
-                        adminAccountResponse.VersionTokenAdmin += 1;
-                        adminAccountResponse.RefreshTokenAdmin = null;
-                        _cacheService.SetData<AdminAccountResponse>("AdminAccount", adminAccountResponse, expiryTime);
-                    }
+                    SetAppSettingValue("AdminAccount:RefreshTokenAdmin", null);
                     rs.UserName = "Admin";
+                    SetAppSettingValue("AdminAccount:VersionTokenAdmin", (int.Parse(_config["AdminAccount:VersionTokenAdmin"].ToString()) + 1).ToString());
                 }
                 else
                 {
@@ -509,19 +484,15 @@ namespace ThinkTank.Service.Services.ImpService
                 if (expiredDate.AddMinutes(-5) > DateTime.UtcNow) throw new CrudException(HttpStatusCode.BadRequest, "Access Token is not expried", "");
                 if (tokenInVerification.Claims.FirstOrDefault(x => x.Type == ClaimTypes.Role).Value.Equals("Admin"))
                 {
-                    var adminAccountResponse = _cacheService.GetData<AdminAccountResponse>("AdminAccount");
-                    if (adminAccountResponse != null)
-                    {
-                        if (!request.RefreshToken.Equals(adminAccountResponse.RefreshTokenAdmin))
-                            throw new CrudException(HttpStatusCode.BadRequest, "Invalid Refresh Token", "");
-                    }
-                   
+                    if (!request.RefreshToken.Equals(_config["AdminAccount:RefreshTokenAdmin"]))
+                        throw new CrudException(HttpStatusCode.BadRequest, "Invalid Refresh Token", "");
                     acc.FullName = "Admin";
                     var token = GenerateJwtToken(acc);
                     cus = _mapper.Map<Account, AccountResponse>(acc);
                     cus.AccessToken = token;
                     cus.RefreshToken = GenerateRefreshToken(acc);
-                    
+                    SetAppSettingValue("AdminAccount:RefreshTokenAdmin", token);
+                    SetAppSettingValue("AdminAccount:VersionTokenAdmin", (int.Parse(_config["AdminAccount:VersionTokenAdmin"].ToString()) + 1).ToString());
                 }
                 else
                 {
