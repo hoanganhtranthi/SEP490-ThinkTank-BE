@@ -16,6 +16,7 @@ namespace ThinkTank.Data.Repository
         Task<T> GetAsync(Expression<Func<T, bool>>? filter = null);
         DbSet<T> GetAll();
         Task CreateAsync(T entity);
+        Task RemoveAsync(T entity);
         EntityEntry<T> Delete(T entity);
         IQueryable<T> FindAll(Func<T, bool> predicate);
         T Find(Func<T, bool> predicate);

@@ -23,7 +23,8 @@ namespace ThinkTank.API.Controllers
         /// <param name="pagingRequest"></param>
         /// <param name="userRequest"></param>
         /// <returns></returns>
-        [Authorize(Policy = "Admin")]
+        
+        //[Authorize(Policy = "Admin")]
         [HttpGet]
         public async Task<ActionResult<List<AccountResponse>>> GetAccounts([FromQuery] PagingRequest pagingRequest, [FromQuery] AccountRequest accountRequest)
         {
