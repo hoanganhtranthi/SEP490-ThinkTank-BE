@@ -72,6 +72,44 @@ namespace MuTote.API.Mapper
             CreateMap<IconOfAccount,IconOfAccountResponse>();
 
             CreateMap<TopicOfGame, TopicOfGameResponse>();
+
+            //
+            CreateMap<CreateContestRequest, Contest>();
+            CreateMap<Contest, ContestResponse>();
+            CreateMap<CreateContestRequest, ContestResponse>();
+
+            CreateMap<CreatePrizeOfContestRequest, PrizeOfContest>();
+            CreateMap<PrizeOfContest, PrizeOfContestResponse>();
+            CreateMap<CreatePrizeOfContestRequest, PrizeOfContestResponse>();
+
+            CreateMap<ChallengeRequest, ChallengeResponse>();
+            CreateMap<ChallengeRequest, Challenge>();
+            CreateMap<Challenge, ChallengeResponse>();
+
+            CreateMap<BadgeRequest, Badge>();
+            CreateMap<BadgeRequest, BadgeResponse>();
+            CreateMap<Badge, BadgeResponse>();
+            CreateMap<CreateBadgeRequest, Badge>();
+
+            CreateMap<AccountInContestRequest, AccountInContest>();
+            CreateMap<AccountInContest, AccountInContestResponse>();
+            CreateMap<AccountInContestRequest, AccountInContestResponse>();
+            CreateMap<CreateAccountInContestRequest, AccountInContest>();
+            CreateMap<UpdateAccountInContestRequest, AccountInContest>();
+
+            CreateMap<FlipCardAndImagesWalkthroughOfContestRequest, FlipCardAndImagesWalkthroughOfContest>();
+            CreateMap<FlipCardAndImagesWalkthroughOfContest, FlipCardAndImagesWalkthroughOfContestResponse>();
+
+            CreateMap<AnonymityOfContestRequest, AnonymityOfContest>();
+            CreateMap<AnonymityOfContest, AnonymityOfContestResponse>();
+
+            CreateMap<MusicPasswordOfContestRequest, MusicPasswordOfContest>();
+            CreateMap<MusicPasswordOfContest,  MusicPasswordOfContestResponse>();
+
+            CreateMap<ResourceOfContestRequest, AnonymityOfContestResponse>();
+            CreateMap<ResourceOfContestRequest, FlipCardAndImagesWalkthroughOfContestResponse>();
+            CreateMap<ResourceOfContestRequest, MusicPasswordOfContestResponse>();
+            CreateMap<ResourceOfContestRequest, PrizeOfContestResponse>();
         }
 
     }

@@ -48,6 +48,14 @@ builder.Services.AddScoped<IAchievementService, AchievementService>();
 builder.Services.AddScoped<IVersionOfResourceService, VersionOfResourceService>();
 builder.Services.AddScoped<IIconService, IconService>();
 builder.Services.AddScoped<IAccountIn1vs1Service, AccountIn1vs1Service>();
+builder.Services.AddScoped<IContestService, ContestService>();
+builder.Services.AddScoped<IPrizeOfContestService, PrizeOfContestService>();
+builder.Services.AddScoped<IChallengeService, ChallengeService>();
+builder.Services.AddScoped<IBadgeService, BadgeService>();
+builder.Services.AddScoped<IAccountInContestService, AccountInContestService>();
+builder.Services.AddScoped<IFlipCardAndImagesWalkthroughResourceOfContestService, FlipCardAndImagesWalkthroughResourceOfContestService>();
+builder.Services.AddScoped<IMusicPasswordResourceOfContestService,  MusicPasswordResourceOfContestService>();
+builder.Services.AddScoped<IAnonymousResourceOfContestService, AnonymousResourceOfContestService>();
 builder.Services.AddDbContext<ThinkTankContext>(options =>
 {
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultSQLConnection"));
