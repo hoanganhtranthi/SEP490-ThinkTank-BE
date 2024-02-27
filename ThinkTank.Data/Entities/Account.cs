@@ -16,6 +16,7 @@ namespace ThinkTank.Data.Entities
             FriendAccountId1Navigations = new HashSet<Friend>();
             FriendAccountId2Navigations = new HashSet<Friend>();
             IconOfAccounts = new HashSet<IconOfAccount>();
+            Notifications = new HashSet<Notification>();
         }
 
         public int Id { get; set; }
@@ -45,5 +46,6 @@ namespace ThinkTank.Data.Entities
         public virtual ICollection<Friend> FriendAccountId1Navigations { get; set; }
         public virtual ICollection<Friend> FriendAccountId2Navigations { get; set; }
         public virtual ICollection<IconOfAccount> IconOfAccounts { get; set; }
+        public virtual ICollection<Notification> Notifications { get; set; }
     }
 }

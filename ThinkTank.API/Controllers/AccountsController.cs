@@ -15,7 +15,7 @@ namespace ThinkTank.API.Controllers
 
         public AccountsController(IAccountService accountService)
         {
-            _accountService=accountService;
+            _accountService = accountService;
         }
         /// <summary>
         /// Get list of accounts
@@ -23,12 +23,11 @@ namespace ThinkTank.API.Controllers
         /// <param name="pagingRequest"></param>
         /// <param name="userRequest"></param>
         /// <returns></returns>
-        
-        //[Authorize(Policy = "Admin")]
+        [Authorize(Policy = "Admin")]
         [HttpGet]
         public async Task<ActionResult<List<AccountResponse>>> GetAccounts([FromQuery] PagingRequest pagingRequest, [FromQuery] AccountRequest accountRequest)
         {
-            var rs = await _accountService.GetAccounts(accountRequest,pagingRequest);
+            var rs = await _accountService.GetAccounts(accountRequest, pagingRequest);
             return Ok(rs);
         }
         /// <summary>

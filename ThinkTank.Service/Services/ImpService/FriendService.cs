@@ -1,6 +1,8 @@
 ﻿using AutoMapper;
 using AutoMapper.QueryableExtensions;
 using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json.Serialization;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -22,11 +24,13 @@ namespace ThinkTank.Service.Services.ImpService
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
+        private readonly IFirebaseMessagingService _firebaseMessagingService;
 
-        public FriendService(IUnitOfWork unitOfWork, IMapper mapper)
+        public FriendService(IUnitOfWork unitOfWork, IMapper mapper, IFirebaseMessagingService firebaseMessagingService)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
+            _firebaseMessagingService = firebaseMessagingService;
         }
 
         public async Task<FriendResponse> CreateFriend(CreateFriendRequest createFriendRequest)
@@ -54,8 +58,39 @@ namespace ThinkTank.Service.Services.ImpService
 
                 friend.Status = false;
                 await _unitOfWork.Repository<Friend>().CreateAsync(friend);
+                #region send noti for account
+                List<string> fcmTokens = new List<string>();
+                fcmTokens.Add(cus.Fcm);
+                var data = new Dictionary<string, string>()
+                {
+                    ["click_action"] = "FLUTTER_NOTIFICATION_CLICK",
+                    ["Action"] = "home",
+                    ["Argument"] = JsonConvert.SerializeObject(new JsonSerializerSettings
+                    {
+                        ContractResolver = new DefaultContractResolver
+                        {
+                            NamingStrategy = new SnakeCaseNamingStrategy()
+                        }
+                    }),
+                };
+                if (fcmTokens.Any())
+                    _firebaseMessagingService.SendToDevices(fcmTokens,
+                                                           new FirebaseAdmin.Messaging.Notification() { Title = "ThinkTank Community", Body = $"{s.FullName} sent you a friend request.", ImageUrl = s.Avatar }, data);
+                #endregion
+                if (s.Avatar == null)
+                    s.Avatar = "https://firebasestorage.googleapis.com/v0/b/thinktank-79ead.appspot.com/o/System%2Favatar-trang-4.jpg?alt=media&token=2ab24327-c484-485a-938a-ed30dc3b1688";
+                Notification notification = new Notification
+                {
+                    AccountId = cus.Id,
+                    Avatar = s.Avatar,
+                    DateTime = DateTime.Now,
+                    Description = $"{s.FullName} sent you a friend request.",
+                    Status = false,
+                    Titile= "ThinkTank Community"
+                };
+               await _unitOfWork.Repository<Notification>().CreateAsync(notification);
                 await _unitOfWork.CommitAsync();
-                var rs= _mapper.Map<FriendResponse>(friend);
+                var rs = _mapper.Map<FriendResponse>(friend);
                 rs.UserName1 = s.UserName;
                 rs.UserName2 = cus.UserName;
                 return rs;
@@ -169,6 +204,37 @@ namespace ThinkTank.Service.Services.ImpService
                 }
                 friend.Status = true;
                 await _unitOfWork.Repository<Friend>().Update(friend, id);
+                if (friend.AccountId2Navigation.Avatar == null)
+                    friend.AccountId2Navigation.Avatar = "https://firebasestorage.googleapis.com/v0/b/thinktank-79ead.appspot.com/o/System%2Favatar-trang-4.jpg?alt=media&token=2ab24327-c484-485a-938a-ed30dc3b1688";
+                #region send noti for account
+                List<string> fcmTokens = new List<string>();
+                fcmTokens.Add(friend.AccountId2Navigation.Fcm);
+                var data = new Dictionary<string, string>()
+                {
+                    ["click_action"] = "FLUTTER_NOTIFICATION_CLICK",
+                    ["Action"] = "home",
+                    ["Argument"] = JsonConvert.SerializeObject(new JsonSerializerSettings
+                    {
+                        ContractResolver = new DefaultContractResolver
+                        {
+                            NamingStrategy = new SnakeCaseNamingStrategy()
+                        }
+                    }),
+                };
+                if (fcmTokens.Any())
+                    _firebaseMessagingService.SendToDevices(fcmTokens,
+                                                           new FirebaseAdmin.Messaging.Notification() { Title = "ThinkTank Community", Body = $"{friend.AccountId2Navigation.FullName}  has agreed to be friends. ", ImageUrl = friend.AccountId2Navigation.Avatar }, data);
+                #endregion          
+                Notification notification = new Notification
+                {
+                    AccountId = friend.AccountId1,
+                    Avatar = friend.AccountId2Navigation.Avatar,
+                    DateTime = DateTime.Now,
+                    Description = $"{friend.AccountId2Navigation.FullName}  has agreed to be friends. ",
+                    Status = false,
+                    Titile = "ThinkTank Community"
+                };
+                await _unitOfWork.Repository<Notification>().CreateAsync(notification);
                 await _unitOfWork.CommitAsync();
                 var rs = _mapper.Map<FriendResponse>(friend);
                 rs.UserName1 = friend.AccountId1Navigation.UserName;

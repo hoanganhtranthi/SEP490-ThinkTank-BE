@@ -35,6 +35,7 @@ namespace ThinkTank.Data.Entities
         public virtual DbSet<IconOfAccount> IconOfAccounts { get; set; } = null!;
         public virtual DbSet<MusicPassword> MusicPasswords { get; set; } = null!;
         public virtual DbSet<MusicPasswordOfContest> MusicPasswordOfContests { get; set; } = null!;
+        public virtual DbSet<Notification> Notifications { get; set; } = null!;
         public virtual DbSet<PrizeOfContest> PrizeOfContests { get; set; } = null!;
         public virtual DbSet<Room> Rooms { get; set; } = null!;
         public virtual DbSet<StoryTeller> StoryTellers { get; set; } = null!;
@@ -355,6 +356,25 @@ namespace ThinkTank.Data.Entities
                     .HasForeignKey(d => d.ContestId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("FK__MusicPass__Conte__17036CC0");
+            });
+
+            modelBuilder.Entity<Notification>(entity =>
+            {
+                entity.ToTable("Notification");
+
+                entity.Property(e => e.Avatar).IsUnicode(false);
+
+                entity.Property(e => e.DateTime).HasColumnType("datetime");
+
+                entity.Property(e => e.Description).HasMaxLength(500);
+
+                entity.Property(e => e.Titile).HasMaxLength(300);
+
+                entity.HasOne(d => d.Account)
+                    .WithMany(p => p.Notifications)
+                    .HasForeignKey(d => d.AccountId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("FK__Notificat__Accou__2B0A656D");
             });
 
             modelBuilder.Entity<PrizeOfContest>(entity =>
