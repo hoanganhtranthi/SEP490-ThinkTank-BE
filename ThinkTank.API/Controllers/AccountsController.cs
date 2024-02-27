@@ -15,7 +15,7 @@ namespace ThinkTank.API.Controllers
 
         public AccountsController(IAccountService accountService)
         {
-            _accountService=accountService;
+            _accountService = accountService;
         }
         /// <summary>
         /// Get list of accounts
@@ -23,12 +23,11 @@ namespace ThinkTank.API.Controllers
         /// <param name="pagingRequest"></param>
         /// <param name="userRequest"></param>
         /// <returns></returns>
-        
-        //[Authorize(Policy = "Admin")]
+        [Authorize(Policy = "Admin")]
         [HttpGet]
         public async Task<ActionResult<List<AccountResponse>>> GetAccounts([FromQuery] PagingRequest pagingRequest, [FromQuery] AccountRequest accountRequest)
         {
-            var rs = await _accountService.GetAccounts(accountRequest,pagingRequest);
+            var rs = await _accountService.GetAccounts(accountRequest, pagingRequest);
             return Ok(rs);
         }
         /// <summary>
@@ -134,7 +133,7 @@ namespace ThinkTank.API.Controllers
         /// </summary>
         /// <param name="request"></param>
         /// <returns></returns>
-         [Authorize(Policy ="All")]
+        [AllowAnonymous]
         [HttpPost("token-verification")]
         public async Task<ActionResult<AccountResponse>> VerifyAndGenerateToken(TokenRequest request)
         {
@@ -147,7 +146,7 @@ namespace ThinkTank.API.Controllers
         /// </summary>
         /// <param name="userName"></param>
         /// <returns></returns>
-        [Authorize(Policy ="All")]
+        [AllowAnonymous]
         [HttpPost("token-revoke")]
         public async Task<ActionResult<AccountResponse>> RevokeRefreshToken(string userName)
         {

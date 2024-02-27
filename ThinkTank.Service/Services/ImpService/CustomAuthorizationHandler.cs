@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using Repository.Extensions;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -9,6 +10,7 @@ using System.Net;
 using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
+using ThinkTank.Service.DTO.Response;
 using ThinkTank.Service.Exceptions;
 using ThinkTank.Service.Services.IService;
 
@@ -17,12 +19,12 @@ namespace ThinkTank.Service.Services.ImpService
     public class CustomAuthorizationHandler : AuthorizationHandler<CustomRequirement>
     {
         private readonly IAccountService _accountRepository;
-        private readonly IConfiguration _config;
+        private readonly ICacheService _cacheService;
 
-        public CustomAuthorizationHandler(IAccountService accountRepository,IConfiguration configuration)
+        public CustomAuthorizationHandler(IAccountService accountRepository,ICacheService cacheService)
         {
             _accountRepository = accountRepository;
-            _config = configuration;
+            _cacheService = cacheService;
         }
 
         protected override async Task HandleRequirementAsync(AuthorizationHandlerContext context, CustomRequirement requirement)
@@ -46,16 +48,20 @@ namespace ThinkTank.Service.Services.ImpService
                 }
                 if (role.Equals("Admin"))
                 {
-                    if (versionClaimValue == _config["AdminAccount:VersionTokenAdmin"])
-                        context.Succeed(requirement);
-                    else context.Fail();
+                    var adminAccountResponse = _cacheService.GetData<AdminAccountResponse>("AdminAccount");
+                    if(adminAccountResponse != null)
+                    {
+                        if(Int32.Parse(versionClaimValue)==adminAccountResponse.VersionTokenAdmin)
+                            context.Succeed(requirement);
+                        else context.Fail();
+                    }                      
                 }
                 else
                 {
                     var accountId = int.Parse(idClaimValue);
                     var account = await _accountRepository.GetAccountById(accountId);
 
-                    var versionCheck = BitConverter.ToString(account.Version).Replace("-", ""); 
+                    var versionCheck = BitConverter.ToString(account.Version).Replace("-", "");
                     if (versionClaimValue.SequenceEqual(versionCheck.ToString()))
                     {
                         context.Succeed(requirement);
@@ -71,7 +77,7 @@ namespace ThinkTank.Service.Services.ImpService
                 throw new CrudException(HttpStatusCode.BadRequest, "Progress Error!!!", ex.InnerException?.Message);
             }
 
-}
+        }
     }
 
     public class CustomRequirement : IAuthorizationRequirement

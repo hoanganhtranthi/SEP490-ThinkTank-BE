@@ -17,6 +17,9 @@ using ThinkTank.Data.UnitOfWork;
 using ThinkTank.Service.ImpService;
 using ThinkTank.Service.Services.ImpService;
 using ThinkTank.Service.Services.IService;
+using Microsoft.AspNetCore.Builder.Extensions;
+using FirebaseAdmin;
+using Google.Apis.Auth.OAuth2;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -52,10 +55,18 @@ builder.Services.AddScoped<IContestService, ContestService>();
 builder.Services.AddScoped<IPrizeOfContestService, PrizeOfContestService>();
 builder.Services.AddScoped<IChallengeService, ChallengeService>();
 builder.Services.AddScoped<IBadgeService, BadgeService>();
+builder.Services.AddScoped<IFirebaseMessagingService, FirebaseMessagingService>();
 builder.Services.AddScoped<IAccountInContestService, AccountInContestService>();
 builder.Services.AddScoped<IFlipCardAndImagesWalkthroughResourceOfContestService, FlipCardAndImagesWalkthroughResourceOfContestService>();
 builder.Services.AddScoped<IMusicPasswordResourceOfContestService,  MusicPasswordResourceOfContestService>();
 builder.Services.AddScoped<IAnonymousResourceOfContestService, AnonymousResourceOfContestService>();
+builder.Services.AddScoped<INotificationService, NotificationService>();
+System.Environment.SetEnvironmentVariable("GOOGLE_APPLICATION_CREDENTIALS", "thinktank-ad0b3-45e7681d45c6.json");
+FirebaseApp.Create(new AppOptions()
+{
+    Credential = GoogleCredential.GetApplicationDefault(),
+    ProjectId = builder.Configuration.GetValue<string>("Firebase:ProjectId")
+});
 builder.Services.AddDbContext<ThinkTankContext>(options =>
 {
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultSQLConnection"));
