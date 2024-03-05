@@ -29,7 +29,10 @@ namespace ThinkTank.Service.DTO.Response
         public string? Fcm { get; set; }
         public bool? Status { get; set; }
         public string? GoogleId { get; set; }
+        public DateTime? RegistrationDate { get; set; }
         public string? AccessToken { get; set; }
+        public int? AmountReport { get; set; }
         public byte[] Version { get; set; } 
+        public ICollection<FriendResponse> FriendResponses { get; set; }
     }
 }

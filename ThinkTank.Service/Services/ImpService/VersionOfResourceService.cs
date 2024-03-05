@@ -23,37 +23,17 @@ namespace ThinkTank.Service.Services.ImpService
             _cacheService = cacheService;
         }
 
-        public async Task<string> GetCurrentVersionOfResource()
+        public async Task<dynamic> GetCurrentVersionOfResource()
         {
             try
             {
-                var sb = new StringBuilder();
-
-                var anonymousVersion = _cacheService.GetData<int>("AnonymousVersion");
-                if (anonymousVersion != null)
+                return new
                 {
-                    sb.Append($"AnonymousVersion{anonymousVersion} ");
-                }
-
-                var flipCardAndImagesWalkthroughVersion = _cacheService.GetData<int>("FlipCardAndImagesWalkthroughVersion");
-                if (flipCardAndImagesWalkthroughVersion != null)
-                {
-                    sb.Append($"flipCardAndImagesWalkthroughVersion{flipCardAndImagesWalkthroughVersion} ");
-                }
-
-                var musicPasswordVersion = _cacheService.GetData<int>("MusicPasswordVersion");
-                if (musicPasswordVersion != null)
-                {
-                    sb.Append($"musicPasswordVersion{musicPasswordVersion}  ");
-                }
-
-                var storyTellerVersion = _cacheService.GetData<int>("StoryTellerVersion");
-                if (storyTellerVersion != null)
-                {
-                    sb.Append($"storyTellerVersion{storyTellerVersion}");
-                }
-
-                return sb.ToString();
+                    AnonymousVersion = _cacheService.GetData<int>("AnonymousVersion"),
+                    FlipCardAndImagesWalkthroughVersion = _cacheService.GetData<int>("FlipCardAndImagesWalkthroughVersion"),
+                    MusicPasswordVersion = _cacheService.GetData<int>("MusicPasswordVersion"),
+                    StoryTellerVersion = _cacheService.GetData<int>("StoryTellerVersion")
+                };
             }
             catch (CrudException ex)
             {

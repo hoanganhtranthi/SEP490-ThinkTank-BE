@@ -8,6 +8,6 @@ namespace ThinkTank.Service.Services.IService
 {
     public interface IVersionOfResourceService
     {
-        Task<string> GetCurrentVersionOfResource();
+        Task<dynamic> GetCurrentVersionOfResource();
     }
 }

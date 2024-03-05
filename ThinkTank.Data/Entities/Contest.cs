@@ -19,7 +19,7 @@ namespace ThinkTank.Data.Entities
         public string Thumbnail { get; set; } = null!;
         public DateTime StartTime { get; set; }
         public DateTime EndTime { get; set; }
-        public bool Status { get; set; }
+        public bool? Status { get; set; }
 
         public virtual ICollection<AccountInContest> AccountInContests { get; set; }
         public virtual ICollection<AnonymityOfContest> AnonymityOfContests { get; set; }

@@ -15,6 +15,8 @@ namespace ThinkTank.Service.DTO.Response
         public string? Password { get; set; }
         [IntAttribute]
         public int? TopicOfGameId { get; set; }
+        public string? SoundLink { get; set; } = null!;
+
         public string? TopicName { get; set; }
     }
 }

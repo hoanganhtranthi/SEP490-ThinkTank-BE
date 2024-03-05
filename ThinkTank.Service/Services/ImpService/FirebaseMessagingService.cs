@@ -17,38 +17,6 @@ namespace ThinkTank.Service.Services.ImpService
     public class FirebaseMessagingService : IFirebaseMessagingService
     {
         private readonly static FirebaseMessaging _fm = FirebaseMessaging.DefaultInstance;
-        public async  Task SendNotificationAsync(string FcmToken, Notification notification)
-        {
-            var googleCredential = (ServiceAccountCredential)GoogleCredential.GetApplicationDefaultAsync().Result.CreateScoped("https://www.googleapis.com/auth/firebase.messaging").UnderlyingCredential;
-            try
-            {
-                var data = new
-                {
-                    message = new
-                    {
-                        token = FcmToken,
-                        notification = notification
-                    }
-                };
-                var jsonBody = JsonConvert.SerializeObject(data);
-                using (var client = new HttpClient())
-                {
-                    var requestUri = $"https://fcm.googleapis.com/v1/projects/thinktank-ad0b3/messages:send";
-                    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", await googleCredential.GetAccessTokenForRequestAsync());
-                    client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-
-                    var content = new StringContent(jsonBody, Encoding.UTF8, "application/json");
-                    var response = await client.PostAsync(requestUri, content);
-
-                    Console.WriteLine($"{await response.Content.ReadAsStringAsync()} messages were sent successfully"); 
-                }
-            }
-            catch (Exception ex)
-            {
-                throw;
-            }
-
-        }
         public async void SendToDevices(List<string> tokens, Notification notification, Dictionary<string, string> data)
         {
             var message = new MulticastMessage()
@@ -75,7 +43,18 @@ namespace ThinkTank.Service.Services.ImpService
 
             // Send a message to the devices subscribed to the provided topic.
             var response = await _fm.SendAsync(message);
-            Console.WriteLine($"Successfully send message to topic '{topic}': {response}");
+        }
+
+        public async void Subcribe(IReadOnlyList<string> tokens, string topic)
+        {
+            var response = await _fm.SubscribeToTopicAsync(tokens, topic);
+            Console.WriteLine($"Successfully subcribe users to topic '{topic}': {response.SuccessCount} sent");
+        }
+
+        public async void Unsubcribe(IReadOnlyList<string> tokens, string topic)
+        {
+            var response = await _fm.UnsubscribeFromTopicAsync(tokens, topic);
+            Console.WriteLine($"Successfully unsubcribe users from topic '{topic}': {response.SuccessCount} sent");
         }
 
         public async Task<bool> ValidToken(string fcmToken)

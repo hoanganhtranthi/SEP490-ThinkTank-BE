@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "YTsjz5IKDfExVD+MOVwnbFnEdqT/nnmSmhjzk5ruKzH2VbuyXg6v/4GQkUrC0DJxEy9KG41d4GoTuxjoRvye1g==",
+  "dgSpecHash": "T8xkiQMMgK1sXINPbdOaR7MnpaE9+RWkaYLcOy3Uc32gm8Z7feP6S4HYvfQ+Zb4GhBzPm2IietylEtMyfIs6nQ==",
   "success": true,
   "projectFilePath": "D:\\SEP490-ThinkTank-BE\\ThinkTank.Data\\ThinkTank.Data.csproj",
   "expectedPackageFiles": [
@@ -14,6 +14,12 @@
     "C:\\Users\\Hoang Anh\\.nuget\\packages\\google.apis\\1.49.0\\google.apis.1.49.0.nupkg.sha512",
     "C:\\Users\\Hoang Anh\\.nuget\\packages\\google.apis.auth\\1.49.0\\google.apis.auth.1.49.0.nupkg.sha512",
     "C:\\Users\\Hoang Anh\\.nuget\\packages\\google.apis.core\\1.49.0\\google.apis.core.1.49.0.nupkg.sha512",
+    "C:\\Users\\Hoang Anh\\.nuget\\packages\\hangfire\\1.8.11\\hangfire.1.8.11.nupkg.sha512",
+    "C:\\Users\\Hoang Anh\\.nuget\\packages\\hangfire.aspnetcore\\1.8.11\\hangfire.aspnetcore.1.8.11.nupkg.sha512",
+    "C:\\Users\\Hoang Anh\\.nuget\\packages\\hangfire.core\\1.8.11\\hangfire.core.1.8.11.nupkg.sha512",
+    "C:\\Users\\Hoang Anh\\.nuget\\packages\\hangfire.memorystorage\\1.8.0\\hangfire.memorystorage.1.8.0.nupkg.sha512",
+    "C:\\Users\\Hoang Anh\\.nuget\\packages\\hangfire.netcore\\1.8.11\\hangfire.netcore.1.8.11.nupkg.sha512",
+    "C:\\Users\\Hoang Anh\\.nuget\\packages\\hangfire.sqlserver\\1.8.11\\hangfire.sqlserver.1.8.11.nupkg.sha512",
     "C:\\Users\\Hoang Anh\\.nuget\\packages\\humanizer.core\\2.8.26\\humanizer.core.2.8.26.nupkg.sha512",
     "C:\\Users\\Hoang Anh\\.nuget\\packages\\microsoft.aspnetcore.authentication.jwtbearer\\6.0.25\\microsoft.aspnetcore.authentication.jwtbearer.6.0.25.nupkg.sha512",
     "C:\\Users\\Hoang Anh\\.nuget\\packages\\microsoft.bcl.asyncinterfaces\\1.1.1\\microsoft.bcl.asyncinterfaces.1.1.1.nupkg.sha512",
@@ -39,6 +45,7 @@
     "C:\\Users\\Hoang Anh\\.nuget\\packages\\microsoft.extensions.fileproviders.abstractions\\6.0.0\\microsoft.extensions.fileproviders.abstractions.6.0.0.nupkg.sha512",
     "C:\\Users\\Hoang Anh\\.nuget\\packages\\microsoft.extensions.fileproviders.physical\\6.0.0\\microsoft.extensions.fileproviders.physical.6.0.0.nupkg.sha512",
     "C:\\Users\\Hoang Anh\\.nuget\\packages\\microsoft.extensions.filesystemglobbing\\6.0.0\\microsoft.extensions.filesystemglobbing.6.0.0.nupkg.sha512",
+    "C:\\Users\\Hoang Anh\\.nuget\\packages\\microsoft.extensions.hosting.abstractions\\3.0.0\\microsoft.extensions.hosting.abstractions.3.0.0.nupkg.sha512",
     "C:\\Users\\Hoang Anh\\.nuget\\packages\\microsoft.extensions.http\\2.1.0\\microsoft.extensions.http.2.1.0.nupkg.sha512",
     "C:\\Users\\Hoang Anh\\.nuget\\packages\\microsoft.extensions.logging\\6.0.0\\microsoft.extensions.logging.6.0.0.nupkg.sha512",
     "C:\\Users\\Hoang Anh\\.nuget\\packages\\microsoft.extensions.logging.abstractions\\6.0.0\\microsoft.extensions.logging.abstractions.6.0.0.nupkg.sha512",

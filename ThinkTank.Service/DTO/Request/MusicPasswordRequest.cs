@@ -9,6 +9,8 @@ namespace ThinkTank.Service.DTO.Request
     public class MusicPasswordRequest
     {
         public string Password { get; set; } = null!;
+        public string SoundLink { get; set; } = null!;
+
         public int TopicOfGameId { get; set; }
     }
 }

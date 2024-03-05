@@ -12,7 +12,8 @@ namespace ThinkTank.Service.DTO.Response
     {
         [Key]
         public int Id { get; set; }
-        public string Password { get; set; } = null!;
+        public string? Password { get; set; } = null!;
+        public string? SoundLink { get; set; } = null!;
         [IntAttribute]
         public int ContestId { get; set; }
     }

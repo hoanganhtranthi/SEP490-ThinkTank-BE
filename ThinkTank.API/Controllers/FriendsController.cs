@@ -23,7 +23,7 @@ namespace ThinkTank.API.Controllers
         /// <param name="pagingRequest"></param>
         /// <param name="friendRequest"></param>
         /// <returns></returns>
-       [Authorize(Policy = "All")]
+        [Authorize(Policy = "All")]
         [HttpGet]
         public async Task<ActionResult<List<FriendResponse>>> GetFriends([FromQuery] PagingRequest pagingRequest, [FromQuery] FriendRequest friendRequest)
         {
@@ -67,7 +67,7 @@ namespace ThinkTank.API.Controllers
             return Ok(rs);
         }
         /// <summary>
-        /// Accept friend
+        /// Unaccept friend
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>

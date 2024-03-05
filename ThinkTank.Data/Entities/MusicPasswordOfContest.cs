@@ -8,6 +8,7 @@ namespace ThinkTank.Data.Entities
         public int Id { get; set; }
         public string Password { get; set; } = null!;
         public int ContestId { get; set; }
+        public string? SoundLink { get; set; }
 
         public virtual Contest Contest { get; set; } = null!;
     }

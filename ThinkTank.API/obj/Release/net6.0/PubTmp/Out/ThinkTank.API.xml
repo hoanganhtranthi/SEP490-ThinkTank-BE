@@ -54,9 +54,16 @@
             <param name="account"></param>
             <returns></returns>
         </member>
-        <member name="M:ThinkTank.API.Controllers.AccountsController.Login(ThinkTank.Service.DTO.Request.LoginRequest)">
+        <member name="M:ThinkTank.API.Controllers.AccountsController.LoginPlayer(ThinkTank.Service.DTO.Request.LoginRequest)">
             <summary>
-            Login (Username and Password)
+            Login for role player (Username and Password)
+            </summary>
+            <param name="model"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ThinkTank.API.Controllers.AccountsController.LoginAdmin(ThinkTank.Service.DTO.Request.LoginRequest)">
+            <summary>
+            Login for role admin (Username and Password)
             </summary>
             <param name="model"></param>
             <returns></returns>
@@ -75,18 +82,25 @@
             <param name="request"></param>
             <returns></returns>
         </member>
-        <member name="M:ThinkTank.API.Controllers.AccountsController.RevokeRefreshToken(System.String)">
+        <member name="M:ThinkTank.API.Controllers.AccountsController.RevokeRefreshToken(System.Int32)">
             <summary>
             Revoke refresh token when logout 
             </summary>
-            <param name="userName"></param>
+            <param name="userId"></param>
             <returns></returns>
         </member>
-        <member name="M:ThinkTank.API.Controllers.AccountsController.LoginGoogle(System.String)">
+        <member name="M:ThinkTank.API.Controllers.AccountsController.LoginGoogle(System.String,System.String)">
             <summary>
             Login Google 
             </summary>
             <param name="request"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ThinkTank.API.Controllers.AccountsController.GetGameLevelByAccountId(System.Int32)">
+            <summary>
+            Get current game level of account
+            </summary>
+            <param name="accountId"></param>
             <returns></returns>
         </member>
         <member name="M:ThinkTank.API.Controllers.AchieviementsController.GetAchievements(ThinkTank.Service.DTO.Request.PagingRequest,ThinkTank.Service.DTO.Request.AchievementRequest)">
@@ -146,6 +160,50 @@
             Delete resource
             </summary>
             <param name="request"></param>
+            <param name="id"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ThinkTank.API.Controllers.ContestController.GetContests(ThinkTank.Service.DTO.Request.PagingRequest,ThinkTank.Service.DTO.Request.CreateContestRequest)">
+            <summary>
+            Get list of contest
+            </summary>
+            <param name="pagingRequest"></param>
+            <param name="contestRequest"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ThinkTank.API.Controllers.ContestController.GetLeaderboardOfContest(System.Int32)">
+            <summary>
+            Get lederboard of contest
+            </summary>
+            <param name="id"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ThinkTank.API.Controllers.ContestController.GetContest(System.Int32)">
+            <summary>
+            Get contest by id
+            </summary>
+            <param name="id"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ThinkTank.API.Controllers.ContestController.CreateContest(ThinkTank.Service.DTO.Request.CreateContestRequest)">
+            <summary>
+            Create Contest
+            </summary>
+            <param name="contestRequest"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ThinkTank.API.Controllers.ContestController.UpdateContest(ThinkTank.Service.DTO.Request.CreateContestRequest,System.Int32)">
+            <summary>
+            Update contest
+            </summary>
+            <param name="contestRequest"></param>
+            <param name="id"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ThinkTank.API.Controllers.ContestController.DeleteContest(System.Int32)">
+            <summary>
+            Delete contest
+            </summary>
             <param name="id"></param>
             <returns></returns>
         </member>
@@ -234,7 +292,7 @@
         </member>
         <member name="M:ThinkTank.API.Controllers.FriendsController.DeleteFriendship(System.Int32)">
             <summary>
-            Accept friend
+            Unaccept friend
             </summary>
             <param name="id"></param>
             <returns></returns>
@@ -334,6 +392,50 @@
             </summary>
             <param name="request"></param>
             <param name="id"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ThinkTank.API.Controllers.NotificationsController.GetNotifications(ThinkTank.Service.DTO.Request.PagingRequest,ThinkTank.Service.DTO.Request.NotificationRequest)">
+            <summary>
+            Get list of notification
+            </summary>
+            <param name="pagingRequest"></param>
+            <param name="notificationRequest"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ThinkTank.API.Controllers.NotificationsController.GetNotification(System.Int32)">
+            <summary>
+            Get notification by Id
+            </summary>
+            <param name="id"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ThinkTank.API.Controllers.NotificationsController.GetToUpdateStatus(System.Int32)">
+            <summary>
+            Update status notification
+            </summary>
+            <param name="notificationId"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ThinkTank.API.Controllers.ReportsController.GetReports(ThinkTank.Service.DTO.Request.PagingRequest,ThinkTank.Service.DTO.Request.ReportRequest)">
+            <summary>
+            Get list of reports
+            </summary>
+            <param name="pagingRequest"></param>
+            <param name="reportRequest"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ThinkTank.API.Controllers.ReportsController.GetReport(System.Int32)">
+            <summary>
+            Get report by Id
+            </summary>
+            <param name="id"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ThinkTank.API.Controllers.ReportsController.AddReport(ThinkTank.Service.DTO.Request.CreateReportRequest)">
+            <summary>
+            Create report
+            </summary>
+            <param name="report"></param>
             <returns></returns>
         </member>
         <member name="M:ThinkTank.API.Controllers.StoryTellerResourcesController.GetStoryTellerResources(ThinkTank.Service.DTO.Request.PagingRequest,ThinkTank.Service.DTO.Request.ResourceRequest)">

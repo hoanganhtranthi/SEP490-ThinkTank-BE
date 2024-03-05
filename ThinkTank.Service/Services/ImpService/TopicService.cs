@@ -32,27 +32,27 @@ namespace ThinkTank.Service.Services.ImpService
         {
             try
             {
-              
+
                 var topic = _mapper.Map<CreateTopicOfGameRequest, Topic>(request);
                 var s = _unitOfWork.Repository<Topic>().Find(s => s.Name == request.Name);
                 if (s != null)
                 {
                     throw new CrudException(HttpStatusCode.BadRequest, $" Topic Name {request.Name} has already !!!", "");
-                }      
-                
+                }
+
                 List<TopicOfGameResponse> response = new List<TopicOfGameResponse>();
                 List<TopicOfGame> topics = new List<TopicOfGame>();
-                foreach (var game in request.TopicOfGamesId)
+                foreach (var game in request.GamesId)
                 {
                     var g = _unitOfWork.Repository<Game>().Find(x => x.Id == game);
-                    if(g == null)
+                    if (g == null)
                         throw new CrudException(HttpStatusCode.BadRequest, $" Game Id {game} is not found !!!", "");
-                    TopicOfGame topicOfGame=new TopicOfGame();
-                    TopicOfGameResponse topicOfGameResponse=new TopicOfGameResponse();
+                    TopicOfGame topicOfGame = new TopicOfGame();
+                    TopicOfGameResponse topicOfGameResponse = new TopicOfGameResponse();
                     topicOfGame.GameId = game;
                     topicOfGame.Game = g;
                     await _unitOfWork.Repository<TopicOfGame>().CreateAsync(topicOfGame);
-                    topicOfGameResponse=_mapper.Map<TopicOfGameResponse>(topicOfGame);
+                    topicOfGameResponse = _mapper.Map<TopicOfGameResponse>(topicOfGame);
                     topicOfGameResponse.GameName = g.Name;
                     response.Add(topicOfGameResponse);
                     topics.Add(topicOfGame);
@@ -160,7 +160,7 @@ namespace ThinkTank.Service.Services.ImpService
             {
 
                 var filter = _mapper.Map<TopicResponse>(request);
-                var friends = _unitOfWork.Repository<Topic>().GetAll().Include(a => a.TopicOfGames)
+                var topics = _unitOfWork.Repository<Topic>().GetAll().Include(a => a.TopicOfGames)
                     .Select(a => new TopicResponse
                     {
                         Id = a.Id,
@@ -173,7 +173,21 @@ namespace ThinkTank.Service.Services.ImpService
                         GameName = x.Game.Name
                     }))
                     }).DynamicFilter(filter).ToList();
-                var sort = PageHelper<TopicResponse>.Sorting(paging.SortType, friends, paging.ColName);
+                if(request.GameId != null)
+                {
+                    List<TopicResponse> topicResponse = new List<TopicResponse>();
+                    foreach (var topic in topics)
+                    {
+                        if (topic.TopicOfGames != null)
+                        {
+                            var t = topic.TopicOfGames.SingleOrDefault(x => x.GameId == request.GameId);
+                            if (t != null)
+                                topicResponse.Add(topic);
+                        }
+                    }
+                    topics = topicResponse;
+                }
+                var sort = PageHelper<TopicResponse>.Sorting(paging.SortType, topics, paging.ColName);
                 var result = PageHelper<TopicResponse>.Paging(sort, paging.Page, paging.PageSize);
                 return result;
             }
