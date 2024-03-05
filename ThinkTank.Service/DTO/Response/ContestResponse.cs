@@ -14,9 +14,10 @@ namespace ThinkTank.Service.DTO.Response
         public int Id { get; set; }
         [StringAttribute]
         public string? Name { get; set; }
-        [StringAttribute]
         public string? Thumbnail { get; set; }
+        [DateRangeAttribute]
         public DateTime? StartTime { get; set; }
+        [DateRangeAttribute]
         public DateTime? EndTime { get; set; }
         public bool? Status { get; set; }
     }

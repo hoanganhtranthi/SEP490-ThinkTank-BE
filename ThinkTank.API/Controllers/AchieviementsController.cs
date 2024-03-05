@@ -53,5 +53,18 @@ namespace ThinkTank.API.Controllers
             var rs = await _achievementService.CreateAchievement(request);
             return Ok(rs);
         }
+        /// <summary>
+        /// Get lederboard of a level of the game
+        /// </summary>
+        /// <param name="gameId"></param>
+        /// <param name="gameLevel"></param>
+        /// <returns></returns>
+        [Authorize(Policy = "All")]
+        [HttpGet("{gameId:int},{gameLevel:int}")]
+        public async Task<ActionResult<List<ContestResponse>>> GetLeaderboard(int gameId, int gameLevel)
+        {
+            var rs = await _achievementService.GetLeaderboard(gameId,gameLevel);
+            return Ok(rs);
+        }
     }
 }

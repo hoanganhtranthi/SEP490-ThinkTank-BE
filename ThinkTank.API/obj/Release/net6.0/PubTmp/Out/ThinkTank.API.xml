@@ -125,6 +125,13 @@
             <param name="request"></param>
             <returns></returns>
         </member>
+        <member name="M:ThinkTank.API.Controllers.AchieviementsController.GetLeaderboardOfContest(System.Int32)">
+            <summary>
+            Get lederboard 
+            </summary>
+            <param name="id"></param>
+            <returns></returns>
+        </member>
         <member name="M:ThinkTank.API.Controllers.AnonymousResourcesController.GetAnonymousResources(ThinkTank.Service.DTO.Request.PagingRequest,ThinkTank.Service.DTO.Request.ResourceRequest)">
             <summary>
             Get list of anonymous resources
@@ -163,9 +170,9 @@
             <param name="id"></param>
             <returns></returns>
         </member>
-        <member name="M:ThinkTank.API.Controllers.ContestController.GetContests(ThinkTank.Service.DTO.Request.PagingRequest,ThinkTank.Service.DTO.Request.CreateContestRequest)">
+        <member name="M:ThinkTank.API.Controllers.ContestController.GetContests(ThinkTank.Service.DTO.Request.PagingRequest,ThinkTank.Service.DTO.Request.ContestRequest)">
             <summary>
-            Get list of contest
+            Get list of contest (1: All, 2 : True, 3:False, 4: Null)
             </summary>
             <param name="pagingRequest"></param>
             <param name="contestRequest"></param>
@@ -263,7 +270,7 @@
         </member>
         <member name="M:ThinkTank.API.Controllers.FriendsController.GetFriends(ThinkTank.Service.DTO.Request.PagingRequest,ThinkTank.Service.DTO.Request.FriendRequest)">
             <summary>
-            Get list of friendships
+            Get list of friendships (1: All, 2 : True, 3:False, 4: Null)
             </summary>
             <param name="pagingRequest"></param>
             <param name="friendRequest"></param>

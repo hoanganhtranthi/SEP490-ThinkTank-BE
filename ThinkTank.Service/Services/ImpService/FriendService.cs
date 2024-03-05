@@ -62,8 +62,6 @@ namespace ThinkTank.Service.Services.ImpService
                     throw new CrudException(HttpStatusCode.BadRequest, $"Account Id {createFriendRequest.AccountId1} is full of friends !!!", "");
                 friend.Status = false;
                 await _unitOfWork.Repository<Friend>().CreateAsync(friend);
-                if (s.Avatar == null)
-                    s.Avatar = "https://firebasestorage.googleapis.com/v0/b/thinktank-79ead.appspot.com/o/System%2Favatar-trang-4.jpg?alt=media&token=2ab24327-c484-485a-938a-ed30dc3b1688";
                 #region send noti for account
                 List<string> fcmTokens = new List<string>();
                 if(cus.Fcm != null)
@@ -205,7 +203,7 @@ namespace ThinkTank.Service.Services.ImpService
                                                 (string.IsNullOrEmpty(request.UserName) ||
                                                 ((!string.IsNullOrEmpty(a.UserName1) && a.UserName1.Contains(request.UserName)) ||
                                                 (!string.IsNullOrEmpty(a.UserName2) && a.UserName2.Contains(request.UserName))))).ToList();
-                if (request.Status != Helpers.Enum.FriendType.All)
+                if (request.Status != Helpers.Enum.StatusType.All)
                 {
                     bool? status = null;
                     if (request.Status.ToString().ToLower() != "null")
@@ -237,6 +235,7 @@ namespace ThinkTank.Service.Services.ImpService
                     var friend = _unitOfWork.Repository<Friend>().Find(x => x.AccountId1 == request.AccountId && x.AccountId2 == acc.Id
                     || x.AccountId1 == acc.Id && x.AccountId2 == request.AccountId);
                     FriendResponse friendResponse = new FriendResponse();
+                    friendResponse.Id = friend?.Id??0;
                     if (account.FriendAccountId2Navigations.SingleOrDefault(a => a.AccountId1 == acc.Id) != null)
                     {
                         friendResponse.AccountId1 = acc.Id;

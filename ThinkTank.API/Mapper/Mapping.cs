@@ -82,10 +82,10 @@ namespace MuTote.API.Mapper
 
             CreateMap<TopicOfGame, TopicOfGameResponse>();
 
-            //
             CreateMap<CreateContestRequest, Contest>();
             CreateMap<Contest, ContestResponse>();
-            CreateMap<CreateContestRequest, ContestResponse>();
+            CreateMap<ContestRequest, ContestResponse>();
+            CreateMap<ContestRequest, Contest>();
 
             CreateMap<CreatePrizeOfContestRequest, PrizeOfContest>();
             CreateMap<PrizeOfContest, PrizeOfContestResponse>();

@@ -18,7 +18,7 @@ namespace ThinkTank.API.Controllers
             _friendService = friendService;
         }
         /// <summary>
-        /// Get list of friendships
+        /// Get list of friendships (1: All, 2 : True, 3:False, 4: Null)
         /// </summary>
         /// <param name="pagingRequest"></param>
         /// <param name="friendRequest"></param>

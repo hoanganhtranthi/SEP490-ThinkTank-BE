@@ -47,6 +47,7 @@ namespace ThinkTank.Service.Services.ImpService
                 else level = 0;
                 if (createAchievementRequest.Level > level + 1 || createAchievementRequest.Level <= 0)
                         throw new CrudException(HttpStatusCode.BadRequest, "Invalid Level", "");
+
                 achievement.CompletedTime = DateTime.Now;
                 await _unitOfWork.Repository<Achievement>().CreateAsync(achievement);
                 await _unitOfWork.CommitAsync();
@@ -120,6 +121,66 @@ namespace ThinkTank.Service.Services.ImpService
             {
                 throw new CrudException(HttpStatusCode.InternalServerError, "Get achievement list error!!!!!", ex.Message);
             }
-        }       
+        }
+
+        public async Task<List<LeaderboardResponse>> GetLeaderboard(int id, int level)
+        {
+            try
+            {
+                var achievements = _unitOfWork.Repository<Achievement>().GetAll().Include(c => c.Account).Include(c => c.Game)
+                    .Where(x=>x.GameId==id && x.Level==level).ToList();
+
+                IList<LeaderboardResponse> responses = new List<LeaderboardResponse>();
+                if (achievements.Count() > 0)
+                {
+                    var orderedAccounts = achievements.OrderByDescending(x => x.Mark).ThenBy(x => x.Duration);
+                    var rank = 1;
+
+                    foreach (var achievement in orderedAccounts)
+                    {
+                        if (responses.SingleOrDefault(a => a.AccountId == achievement.AccountId) == null)
+                        {
+                            var achievementOfAccount = achievements.LastOrDefault(x => x.AccountId == achievement.AccountId);
+                            if (achievementOfAccount != null)
+                            {
+                                var leaderboardContestResponse = new LeaderboardResponse
+                                {
+                                    AccountId = achievement.AccountId,
+                                    Mark = achievementOfAccount.Mark,
+                                    Avatar = achievement.Account.Avatar,
+                                    FullName = achievement.Account.FullName
+                                };
+
+                                var mark = achievements
+                                    .Where(x => x.Mark == achievementOfAccount.Mark && x.Duration == achievementOfAccount.Duration && x.AccountId != achievementOfAccount.AccountId)
+                                    .ToList();
+
+                                if (mark.Any())
+                                {
+                                    var a = responses.SingleOrDefault(a => a.AccountId == mark.First().AccountId);
+                                    leaderboardContestResponse.Rank = a?.Rank ?? rank;// a != null: leaderboardContestResponse.Rank = a.Rank va nguoc lai a==null : leaderboardContestResponse.Rank = rank
+                                }
+                                else
+                                {
+                                    leaderboardContestResponse.Rank = rank;
+                                }
+                                responses.Add(leaderboardContestResponse);
+                                rank++;
+                            }
+                        }
+                    }
+
+                }
+                return responses.ToList();
+            }
+            catch (CrudException ex)
+            {
+                throw ex;
+            }
+            catch (Exception ex)
+            {
+                throw new CrudException(HttpStatusCode.InternalServerError, "Get leaderboard of contest error!!!!!", ex.Message);
+            }
+        }
     }
 }
