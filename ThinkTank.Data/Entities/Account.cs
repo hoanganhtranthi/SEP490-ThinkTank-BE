@@ -17,6 +17,8 @@ namespace ThinkTank.Data.Entities
             FriendAccountId2Navigations = new HashSet<Friend>();
             IconOfAccounts = new HashSet<IconOfAccount>();
             Notifications = new HashSet<Notification>();
+            ReportAccountId1Navigations = new HashSet<Report>();
+            ReportAccountId2Navigations = new HashSet<Report>();
         }
 
         public int Id { get; set; }
@@ -36,7 +38,7 @@ namespace ThinkTank.Data.Entities
         public string? Fcm { get; set; }
         public bool? Status { get; set; }
         public string? GoogleId { get; set; }
-
+        public DateTime RegistrationDate { get; set; }
         public virtual ICollection<AccountIn1vs1> AccountIn1vs1AccountId1Navigations { get; set; }
         public virtual ICollection<AccountIn1vs1> AccountIn1vs1AccountId2Navigations { get; set; }
         public virtual ICollection<AccountInContest> AccountInContests { get; set; }
@@ -47,5 +49,7 @@ namespace ThinkTank.Data.Entities
         public virtual ICollection<Friend> FriendAccountId2Navigations { get; set; }
         public virtual ICollection<IconOfAccount> IconOfAccounts { get; set; }
         public virtual ICollection<Notification> Notifications { get; set; }
+        public virtual ICollection<Report> ReportAccountId1Navigations { get; set; }
+        public virtual ICollection<Report> ReportAccountId2Navigations { get; set; }
     }
 }

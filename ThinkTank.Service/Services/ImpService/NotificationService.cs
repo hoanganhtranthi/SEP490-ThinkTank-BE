@@ -44,6 +44,7 @@ namespace ThinkTank.Service.Services.ImpService
                 }
 
                 var rs = _mapper.Map<NotificationResponse>(response);
+                rs.Username = response.Account.UserName;
                 return rs;
             }
             catch (CrudException ex)
@@ -62,8 +63,17 @@ namespace ThinkTank.Service.Services.ImpService
             {
 
                 var filter = _mapper.Map<NotificationResponse>(request);
-                var notifications = _unitOfWork.Repository<Notification>().GetAll().Include(a => a.Account)
-                    .ProjectTo<NotificationResponse>(_mapper.ConfigurationProvider)
+                var notifications = _unitOfWork.Repository<Notification>().GetAll().Include(a => a.Account).Select(x=>new NotificationResponse
+                {
+                    AccountId=x.AccountId,
+                    Titile=x.Titile,
+                    Status=x.Status,
+                    DateTime=x.DateTime,
+                    Description = x.Description,
+                    Id = x.Id,
+                    Avatar=x.Avatar,
+                    Username=x.Account.UserName
+                })     
                     .DynamicFilter(filter).ToList();
                 var sort = PageHelper<NotificationResponse>.Sorting(paging.SortType, notifications, paging.ColName);
                 var result = PageHelper<NotificationResponse>.Paging(sort, paging.Page, paging.PageSize);
@@ -93,6 +103,7 @@ namespace ThinkTank.Service.Services.ImpService
                 await _unitOfWork.Repository<Notification>().Update(notification, id);
                 await _unitOfWork.CommitAsync();
                 var rs = _mapper.Map<NotificationResponse>(notification);
+                rs.Username=notification.Account.UserName;
                 return rs;
             }
             catch (CrudException ex)

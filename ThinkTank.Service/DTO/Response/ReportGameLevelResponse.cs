@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace ThinkTank.Service.DTO.Response
 {
-    public class GameLevelResponse
+    public class ReportGameLevelResponse
     {
         public int Level { get; set; }
         public int AmoutPlayer { get; set; }

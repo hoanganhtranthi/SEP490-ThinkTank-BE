@@ -37,9 +37,9 @@ namespace ThinkTank.Service.Services.ImpService
             {
                 var flipCardAndImagesWalkthrough = _mapper.Map<FlipCardAndImagesWalkthroughRequest, FlipCardAndImagesWalkthrough>(createFlipCardAndImagesWalkthroughRequest);
                
-                var topic = _unitOfWork.Repository<Topic>().Find(x => x.Id == flipCardAndImagesWalkthrough.TopicOfGameId);
+                var topic = _unitOfWork.Repository<TopicOfGame>().GetAll().Include(x=>x.Topic).SingleOrDefault(x => x.Id == flipCardAndImagesWalkthrough.TopicOfGameId);
                 if (topic == null)
-                    throw new CrudException(HttpStatusCode.NotFound, $"This topic {createFlipCardAndImagesWalkthroughRequest.TopicOfGameId} is not found !!!", "");
+                    throw new CrudException(HttpStatusCode.NotFound, $"This topic of game {createFlipCardAndImagesWalkthroughRequest.TopicOfGameId} is not found !!!", "");
 
                 await _unitOfWork.Repository<FlipCardAndImagesWalkthrough>().CreateAsync(flipCardAndImagesWalkthrough);
                 await _unitOfWork.CommitAsync();
@@ -49,7 +49,7 @@ namespace ThinkTank.Service.Services.ImpService
                     _cacheService.SetData<int>("FlipCardAndImagesWalkthroughVersion", version += 1, expiryTime);
                 else version = 1;
                 var rs = _mapper.Map<FlipCardAndImagesWalkthroughResponse>(flipCardAndImagesWalkthrough);
-                rs.TopicName = topic.Name;
+                rs.TopicName = topic.Topic.Name;
                 return rs;
             }
             catch (CrudException ex)
@@ -70,7 +70,7 @@ namespace ThinkTank.Service.Services.ImpService
                 {
                     throw new CrudException(HttpStatusCode.BadRequest, "Id Resource Invalid", "");
                 }
-                var response = _unitOfWork.Repository<FlipCardAndImagesWalkthrough>().Find(x => x.Id == id);
+                var response = _unitOfWork.Repository<FlipCardAndImagesWalkthrough>().GetAll().Include(x=>x.TopicOfGame.Topic).SingleOrDefault(x => x.Id == id);
 
                 if (response == null)
                 {
@@ -85,7 +85,7 @@ namespace ThinkTank.Service.Services.ImpService
                     _cacheService.SetData<int>("FlipCardAndImagesWalkthroughVersion", version += 1, expiryTime);
 
                 var rs = _mapper.Map<FlipCardAndImagesWalkthroughResponse>(response);
-                rs.TopicName = _unitOfWork.Repository<Topic>().Find(x => x.Id == rs.TopicOfGameId).Name;
+                rs.TopicName = response.TopicOfGame.Topic.Name;
                 return rs;
             }
             catch (CrudException ex)
@@ -106,14 +106,14 @@ namespace ThinkTank.Service.Services.ImpService
                 {
                     throw new CrudException(HttpStatusCode.BadRequest, "Id Resource Invalid", "");
                 }
-                var response = _unitOfWork.Repository<FlipCardAndImagesWalkthrough>().Find(x => x.Id == id);
+                var response = _unitOfWork.Repository<FlipCardAndImagesWalkthrough>().GetAll().Include(x=>x.TopicOfGame).SingleOrDefault(x => x.Id == id);
 
                 if (response == null)
                 {
                     throw new CrudException(HttpStatusCode.NotFound, $"Not found resource with id {id.ToString()}", "");
                 }
                 var rs = _mapper.Map<FlipCardAndImagesWalkthroughResponse>(response);
-                rs.TopicName = _unitOfWork.Repository<Topic>().Find(x => x.Id == rs.TopicOfGameId).Name;
+                rs.TopicName = response.TopicOfGame.Topic.Name;
                 return rs;
             }
             catch (CrudException ex)
@@ -160,9 +160,9 @@ namespace ThinkTank.Service.Services.ImpService
                 if (flipCardAndImagesWalkthrough == null)
                     throw new CrudException(HttpStatusCode.NotFound, $"Not found flipCardAndImagesWalkthrough resource with id{id.ToString()}", "");
 
-                var topic = _unitOfWork.Repository<Topic>().Find(x => x.Id == flipCardAndImagesWalkthrough.TopicOfGameId);
+                var topic = _unitOfWork.Repository<TopicOfGame>().GetAll().Include(x => x.Topic).SingleOrDefault(x => x.Id == flipCardAndImagesWalkthrough.TopicOfGameId);
                 if (topic == null)
-                    throw new CrudException(HttpStatusCode.NotFound, $"This topic {request.TopicOfGameId} is not found !!!", "");
+                    throw new CrudException(HttpStatusCode.NotFound, $"This topic of game {request.TopicOfGameId} is not found !!!", "");
                 
                 var expiryTime = DateTime.MaxValue;
                 var version = _cacheService.GetData<int>("FlipCardAndImagesWalkthroughVersion");
@@ -173,7 +173,7 @@ namespace ThinkTank.Service.Services.ImpService
                 await _unitOfWork.Repository<FlipCardAndImagesWalkthrough>().Update(flipCardAndImagesWalkthrough, id);
                 await _unitOfWork.CommitAsync();
                 var rs = _mapper.Map<FlipCardAndImagesWalkthroughResponse>(flipCardAndImagesWalkthrough);
-                rs.TopicName = topic.Name;
+                rs.TopicName = topic.Topic.Name;
                 return rs;
             }
             catch (CrudException ex)

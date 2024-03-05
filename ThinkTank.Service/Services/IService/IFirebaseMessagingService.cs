@@ -9,7 +9,8 @@ namespace ThinkTank.Service.Services.IService
 {
     public interface IFirebaseMessagingService
     {
-        Task SendNotificationAsync(string FcmToken, Notification notification);
+        void Subcribe(IReadOnlyList<string> tokens, string topic);
+        void Unsubcribe(IReadOnlyList<string> tokens, string topic);
         void SendToDevices(List<string> tokens, Notification notification, Dictionary<string, string> data);
         Task<bool> ValidToken(string fcmToken);
         void SendToTopic(string topic, Notification notification, Dictionary<string, string> data);

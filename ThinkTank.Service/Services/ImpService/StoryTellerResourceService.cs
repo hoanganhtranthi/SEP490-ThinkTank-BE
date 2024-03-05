@@ -39,9 +39,9 @@ namespace ThinkTank.Service.Services.ImpService
                 if (s != null)
                     throw new CrudException(HttpStatusCode.BadRequest, "This resource has already !!!", "");
 
-                var topic = _unitOfWork.Repository<Topic>().Find(x => x.Id == storyTeller.TopicOfGameId);
+                var topic = _unitOfWork.Repository<TopicOfGame>().GetAll().Include(x => x.Topic).SingleOrDefault(x => x.Id == storyTeller.TopicOfGameId);
                 if (topic == null)
-                    throw new CrudException(HttpStatusCode.NotFound, $"This topic {createStoryTellerRequest.TopicOfGameId} is not found !!!", "");
+                    throw new CrudException(HttpStatusCode.NotFound, $"This topic of game {createStoryTellerRequest.TopicOfGameId} is not found !!!", "");
 
                 List<AnswerOfStoryTeller> answerOfStoryTellers = new List<AnswerOfStoryTeller>();
                 foreach(var item in createStoryTellerRequest.AnswerOfStoryTellers)
@@ -64,7 +64,7 @@ namespace ThinkTank.Service.Services.ImpService
                 else version = 1;
                 var rs = _mapper.Map<StoryTellerResponse>(storyTeller);
                 rs.AnswerOfStoryTellers = _mapper.Map<List<AnswerOfStoryTellerResponse>>(answerOfStoryTellers);
-                rs.TopicName = topic.Name;
+                rs.TopicName = topic.Topic.Name;
                 return rs;
             }
             catch (CrudException ex)
@@ -85,7 +85,8 @@ namespace ThinkTank.Service.Services.ImpService
                 {
                     throw new CrudException(HttpStatusCode.BadRequest, "Id Resource Invalid", "");
                 }
-                var response = _unitOfWork.Repository<StoryTeller>().GetAll().Include(x => x.AnswerOfStoryTellers).SingleOrDefault(x => x.Id == id);
+                var response = _unitOfWork.Repository<StoryTeller>().GetAll().Include(x => x.AnswerOfStoryTellers).Include(x=>x.TopicOfGame.Topic)
+                    .SingleOrDefault(x => x.Id == id);
 
                 if (response == null)
                 {
@@ -101,7 +102,7 @@ namespace ThinkTank.Service.Services.ImpService
                     _cacheService.SetData<int>("StoryTellerVersion", version += 1, expiryTime);
 
                 var rs = _mapper.Map<StoryTellerResponse>(response);
-                rs.TopicName = _unitOfWork.Repository<Topic>().Find(x => x.Id == rs.TopicOfGameId).Name;
+                rs.TopicName = response.TopicOfGame.Topic.Name;
                 return rs;
             }
             catch (CrudException ex)
@@ -122,14 +123,15 @@ namespace ThinkTank.Service.Services.ImpService
                 {
                     throw new CrudException(HttpStatusCode.BadRequest, "Id Resource Invalid", "");
                 }
-                var response = _unitOfWork.Repository<StoryTeller>().GetAll().Include(x => x.AnswerOfStoryTellers).SingleOrDefault(x => x.Id == id);
+                var response = _unitOfWork.Repository<StoryTeller>().GetAll().Include(x => x.AnswerOfStoryTellers).Include(x => x.TopicOfGame.Topic)
+                    .SingleOrDefault(x => x.Id == id);
 
                 if (response == null)
                 {
                     throw new CrudException(HttpStatusCode.NotFound, $"Not found resource with id {id.ToString()}", "");
                 }
                 var rs = _mapper.Map<StoryTellerResponse>(response);
-                rs.TopicName = _unitOfWork.Repository<Topic>().Find(x => x.Id == rs.TopicOfGameId).Name;
+                rs.TopicName = response.TopicOfGame.Topic.Name;
                 return rs;
             }
             catch (CrudException ex)
@@ -181,9 +183,9 @@ namespace ThinkTank.Service.Services.ImpService
                 if (s != null)
                     throw new CrudException(HttpStatusCode.BadRequest, "This resource has already !!!", "");
 
-                var topic = _unitOfWork.Repository<Topic>().Find(x => x.Id == storyTeller.TopicOfGameId);
+                var topic = _unitOfWork.Repository<TopicOfGame>().GetAll().Include(x=>x.Topic).SingleOrDefault(x => x.Id == storyTeller.TopicOfGameId);
                 if (topic == null)
-                    throw new CrudException(HttpStatusCode.NotFound, $"This topic {request.TopicOfGameId} is not found !!!", "");
+                    throw new CrudException(HttpStatusCode.NotFound, $"This topic of game {request.TopicOfGameId} is not found !!!", "");
 
                 _unitOfWork.Repository<AnswerOfStoryTeller>().DeleteRange(storyTeller.AnswerOfStoryTellers.ToArray());
 
@@ -208,7 +210,7 @@ namespace ThinkTank.Service.Services.ImpService
                 await _unitOfWork.Repository<StoryTeller>().Update(storyTeller, id);
                 await _unitOfWork.CommitAsync();
                 var rs = _mapper.Map<StoryTellerResponse>(storyTeller);
-                rs.TopicName = topic.Name;
+                rs.TopicName = topic.Topic.Name;
                 return rs;
             }
             catch (CrudException ex)

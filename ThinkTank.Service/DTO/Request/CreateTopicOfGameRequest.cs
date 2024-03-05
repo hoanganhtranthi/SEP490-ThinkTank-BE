@@ -10,6 +10,6 @@ namespace ThinkTank.Service.DTO.Request
     public class CreateTopicOfGameRequest
     {
         public string Name { get; set; } = null!;
-        public virtual ICollection<int> TopicOfGamesId { get; set; }
+        public virtual ICollection<int> GamesId { get; set; }
     }
 }

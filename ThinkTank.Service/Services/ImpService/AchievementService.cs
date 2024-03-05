@@ -98,9 +98,8 @@ namespace ThinkTank.Service.Services.ImpService
         {
             try
             {
-
                 var filter = _mapper.Map<AchievementResponse>(request);
-                var friends = _unitOfWork.Repository<Achievement>().GetAll().Include(x => x.Account).Include(x => x.Game)
+                var achievements = _unitOfWork.Repository<Achievement>().GetAll().Include(x => x.Account).Include(x => x.Game)
                     .Select(x => new AchievementResponse
                     {
                         Id = x.Id,
@@ -113,7 +112,7 @@ namespace ThinkTank.Service.Services.ImpService
                         Mark=x.Mark,
                         Username=x.Account.UserName
                     }).DynamicFilter(filter).ToList();
-                var sort = PageHelper<AchievementResponse>.Sorting(paging.SortType, friends, paging.ColName);
+                var sort = PageHelper<AchievementResponse>.Sorting(paging.SortType, achievements, paging.ColName);
                 var result = PageHelper<AchievementResponse>.Paging(sort, paging.Page, paging.PageSize);
                 return result;
             }
@@ -121,6 +120,6 @@ namespace ThinkTank.Service.Services.ImpService
             {
                 throw new CrudException(HttpStatusCode.InternalServerError, "Get achievement list error!!!!!", ex.Message);
             }
-        }
+        }       
     }
 }

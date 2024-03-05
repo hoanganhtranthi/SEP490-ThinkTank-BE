@@ -60,12 +60,12 @@ namespace ThinkTank.Service.Utilities
                         {
                             DateTime date = (DateTime)data;
                             string predicate = property.Name.Equals("StartDate")
-                                ? $"{property.Name} <= @0"
-                                : $"{property.Name} >= @0 && {property.Name} <= @1";
+                                ? $"{property.Name} >= @0"
+                                : $"{property.Name} <= @0";
 
                             object[] dateRange = property.Name.Equals("StartDate")
                                 ? new object[] { date.Date }
-                                : new object[] { date.Date, date.Date.AddDays(1.0) };
+                                : new object[] { date.Date };
 
                             source = source.Where<TEntity>(predicate, dateRange);
 

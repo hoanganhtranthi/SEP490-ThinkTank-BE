@@ -37,6 +37,7 @@ namespace ThinkTank.Data.Entities
         public virtual DbSet<MusicPasswordOfContest> MusicPasswordOfContests { get; set; } = null!;
         public virtual DbSet<Notification> Notifications { get; set; } = null!;
         public virtual DbSet<PrizeOfContest> PrizeOfContests { get; set; } = null!;
+        public virtual DbSet<Report> Reports { get; set; } = null!;
         public virtual DbSet<Room> Rooms { get; set; } = null!;
         public virtual DbSet<StoryTeller> StoryTellers { get; set; } = null!;
         public virtual DbSet<Topic> Topics { get; set; } = null!;
@@ -76,7 +77,7 @@ namespace ThinkTank.Data.Entities
                 entity.Property(e => e.Gender)
                     .HasMaxLength(10)
                     .IsUnicode(false);
-
+                entity.Property(e => e.RegistrationDate).HasColumnType("datetime");
                 entity.Property(e => e.GoogleId).IsUnicode(false);
 
                 entity.Property(e => e.RefreshToken).IsUnicode(false);
@@ -330,13 +331,14 @@ namespace ThinkTank.Data.Entities
                     .HasForeignKey(d => d.IconId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("FK__IconOfAcc__IconI__6754599E");
-            });
-
+            });         
             modelBuilder.Entity<MusicPassword>(entity =>
             {
                 entity.ToTable("MusicPassword");
 
                 entity.Property(e => e.Password).IsUnicode(false);
+
+                entity.Property(e => e.SoundLink).IsUnicode(false);
 
                 entity.HasOne(d => d.TopicOfGame)
                     .WithMany(p => p.MusicPasswords)
@@ -350,6 +352,8 @@ namespace ThinkTank.Data.Entities
                 entity.ToTable("MusicPasswordOfContest");
 
                 entity.Property(e => e.Password).IsUnicode(false);
+
+                entity.Property(e => e.SoundLink).IsUnicode(false);
 
                 entity.HasOne(d => d.Contest)
                     .WithMany(p => p.MusicPasswordOfContests)
@@ -388,6 +392,27 @@ namespace ThinkTank.Data.Entities
                     .HasConstraintName("FK__PrizeOfCo__Conte__114A936A");
             });
 
+            modelBuilder.Entity<Report>(entity =>
+            {
+                entity.ToTable("Report");
+                entity.Property(e => e.DateTime).HasColumnType("datetime");
+                entity.Property(e => e.Description).HasMaxLength(500);
+
+                entity.Property(e => e.Titile).HasMaxLength(200);
+
+                entity.HasOne(d => d.AccountId1Navigation)
+                    .WithMany(p => p.ReportAccountId1Navigations)
+                    .HasForeignKey(d => d.AccountId1)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("FK__Report__AccountI__607251E5");
+
+                entity.HasOne(d => d.AccountId2Navigation)
+                    .WithMany(p => p.ReportAccountId2Navigations)
+                    .HasForeignKey(d => d.AccountId2)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("FK__Report__AccountI__6166761E");
+            });
+
             modelBuilder.Entity<Room>(entity =>
             {
                 entity.ToTable("Room");
@@ -411,8 +436,7 @@ namespace ThinkTank.Data.Entities
                     .HasForeignKey(d => d.TopicId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("FK__Room__TopicId__05D8E0BE");
-            });
-
+            });         
             modelBuilder.Entity<StoryTeller>(entity =>
             {
                 entity.ToTable("StoryTeller");

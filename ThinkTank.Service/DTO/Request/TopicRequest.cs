@@ -9,5 +9,6 @@ namespace ThinkTank.Service.DTO.Request
     public class TopicRequest
     {
         public string? Name { get; set; }
+        public int? GameId { get; set; }
     }
 }

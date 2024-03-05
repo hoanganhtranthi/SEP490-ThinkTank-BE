@@ -57,7 +57,7 @@ namespace ThinkTank.Service.Services.ImpService
             }
         }
 
-        public async Task<PagedResults<GameLevelResponse>> GetGameLevelById(int id, PagingRequest paging)
+        public async Task<PagedResults<ReportGameLevelResponse>> GetGameLevelById(int id, PagingRequest paging)
         {
             try
             {
@@ -73,7 +73,7 @@ namespace ThinkTank.Service.Services.ImpService
                     throw new CrudException(HttpStatusCode.NotFound, $"Not found game with id {id}", "");
                 }
 
-                var responseLevels = new List<GameLevelResponse>();
+                var responseLevels = new List<ReportGameLevelResponse>();
 
                 var achievements = _unitOfWork.Repository<Achievement>()
                     .GetAll()
@@ -85,7 +85,7 @@ namespace ThinkTank.Service.Services.ImpService
                     var existingResponseLevel = responseLevels.FirstOrDefault(a => a.Level == achievement.Level);
                     if (existingResponseLevel == null)
                     {
-                        var responseLevel = new GameLevelResponse
+                        var responseLevel = new ReportGameLevelResponse
                         {
                             Level = achievement.Level,
                             AmoutPlayer = 1,
@@ -107,8 +107,8 @@ namespace ThinkTank.Service.Services.ImpService
                             existingResponseLevel.GameMode += ", " + GetGameMode(achievement);
                     }
                 }
-                var sort = PageHelper<GameLevelResponse>.Sorting(paging.SortType, responseLevels, paging.ColName);
-                var result = PageHelper<GameLevelResponse>.Paging(sort, paging.Page, paging.PageSize);
+                var sort = PageHelper<ReportGameLevelResponse>.Sorting(paging.SortType, responseLevels, "Level");
+                var result = PageHelper<ReportGameLevelResponse>.Paging(sort, paging.Page, paging.PageSize);
                 return result;
             }
             catch (CrudException ex)

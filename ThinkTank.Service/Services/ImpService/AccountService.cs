@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using AutoMapper.QueryableExtensions;
 using Firebase.Auth;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Configuration.Json;
@@ -74,6 +75,10 @@ namespace ThinkTank.Service.Services.ImpService
                 customer.PasswordHash = passwordHash;
                 customer.PasswordSalt = passwordSalt;
                 customer.Status = true;
+                customer.Avatar = "https://firebasestorage.googleapis.com/v0/b/thinktank-79ead.appspot.com/o/System%2Favatar-trang-4.jpg?alt=media&token=2ab24327-c484-485a-938a-ed30dc3b1688";
+                customer.RegistrationDate = DateTime.Now;
+                if (createAccountRequest.Fcm == null || createAccountRequest.Fcm == "")
+                    customer.Fcm = null;
                 Guid id = Guid.NewGuid();
                 customer.Code = id.ToString().Substring(0, 8).ToUpper();
                 await _unitOfWork.Repository<Account>().CreateAsync(customer);
@@ -181,6 +186,10 @@ namespace ThinkTank.Service.Services.ImpService
                                            .ProjectTo<AccountResponse>(_mapper.ConfigurationProvider)
                                            .DynamicFilter(filter)
                                            .ToList();
+                foreach (var customer in customers)
+                {
+                    customer.AmountReport = _unitOfWork.Repository<Report>().GetAll().Where(x => x.AccountId2 == customer.Id).ToList().Count();
+                }
                 var sort = PageHelper<AccountResponse>.Sorting(paging.SortType, customers, paging.ColName);
                 var result = PageHelper<AccountResponse>.Paging(sort, paging.Page, paging.PageSize);
                 return result;
@@ -190,7 +199,36 @@ namespace ThinkTank.Service.Services.ImpService
                 throw new CrudException(HttpStatusCode.InternalServerError, "Get account list error!!!!!", ex.Message);
             }
         }
-        public async Task<AccountResponse> Login(LoginRequest request)
+        public async Task<AccountResponse> LoginPlayer(LoginRequest request)
+        {
+            try
+            {
+                Account user = _unitOfWork.Repository<Account>().GetAll()
+                  .FirstOrDefault(u => u.UserName.Equals(request.UserName));
+                    if (user == null) throw new CrudException(HttpStatusCode.BadRequest, "Account Not Found", "");
+                    if (!VerifyPasswordHash(request.Password.Trim(), user.PasswordHash, user.PasswordSalt))
+                        throw new CrudException(HttpStatusCode.BadRequest, "Password is incorrect", "");
+                    if (user.Status == false) throw new CrudException(HttpStatusCode.BadRequest, "Your account is block", "");
+                    var token = GenerateRefreshToken(user);
+                    user.RefreshToken = token;
+                    if(request.Fcm != null && request.Fcm != "")
+                    user.Fcm = request.Fcm;
+                    await _unitOfWork.Repository<Account>().Update(user, user.Id);
+                    await _unitOfWork.CommitAsync();
+                    var rs = _mapper.Map<Account, AccountResponse>(user);
+                    rs.AccessToken = GenerateJwtToken(user);
+                return rs;
+            }
+            catch (CrudException ex)
+            {
+                throw ex;
+            }
+            catch (Exception ex)
+            {
+                throw new CrudException(HttpStatusCode.InternalServerError, "Login  Fail", ex.InnerException?.Message);
+            }
+        }
+        public async Task<AccountResponse> LoginAdmin(LoginRequest request)
         {
             try
             {
@@ -202,7 +240,8 @@ namespace ThinkTank.Service.Services.ImpService
                         throw new CrudException(HttpStatusCode.BadRequest, "Password is incorrect", "");
                     user.FullName = "Admin";
                     var token = GenerateRefreshToken(user);
-                    rs = _mapper.Map<Account, AccountResponse>(user);
+                   rs = _mapper.Map<Account, AccountResponse>(user);
+                    rs.UserName = "Admin";
                     rs.AccessToken = GenerateJwtToken(user);
                     rs.RefreshToken = token;
                     var expiryTime = DateTime.MaxValue;
@@ -221,22 +260,7 @@ namespace ThinkTank.Service.Services.ImpService
                         _cacheService.SetData<AdminAccountResponse>("AdminAccount", adminAccount, expiryTime);
                     }
                 }
-                else
-                {
-                    user = _unitOfWork.Repository<Account>().GetAll()
-                  .FirstOrDefault(u => u.UserName.Equals(request.UserName));
-
-                    if (user == null) throw new CrudException(HttpStatusCode.BadRequest, "Account Not Found", "");
-                    if (!VerifyPasswordHash(request.Password.Trim(), user.PasswordHash, user.PasswordSalt))
-                        throw new CrudException(HttpStatusCode.BadRequest, "Password is incorrect", "");
-                    if (user.Status == false) throw new CrudException(HttpStatusCode.BadRequest, "Your account is block", "");
-                    var token = GenerateRefreshToken(user);
-                    user.RefreshToken = token;
-                    await _unitOfWork.Repository<Account>().Update(user, user.Id);
-                    await _unitOfWork.CommitAsync();
-                    rs = _mapper.Map<Account, AccountResponse>(user);
-                    rs.AccessToken = GenerateJwtToken(user);
-                }
+                else throw new CrudException(HttpStatusCode.BadRequest, "Account Not Found", "");
                 return rs;
             }
             catch (CrudException ex)
@@ -245,10 +269,9 @@ namespace ThinkTank.Service.Services.ImpService
             }
             catch (Exception ex)
             {
-                throw new CrudException(HttpStatusCode.InternalServerError, "Login Username Fail", ex.InnerException?.Message);
+                throw new CrudException(HttpStatusCode.InternalServerError, "Login  Fail", ex.InnerException?.Message);
             }
         }
-
         private void CreatPasswordHash(string password, out byte[] passwordHash, out byte[] passwordSalt)
         {
             using (var hmac = new HMACSHA512())
@@ -341,7 +364,7 @@ namespace ThinkTank.Service.Services.ImpService
             var token = tokenHandler.CreateToken(tokenDescriptor);
             return tokenHandler.WriteToken(token);
         }
-        public async Task<AccountResponse> LoginGoogle(string data)
+        public async Task<AccountResponse> LoginGoogle(string data, string fcm)
         {
             try
             {
@@ -352,6 +375,7 @@ namespace ThinkTank.Service.Services.ImpService
                 if (user.Status == false) throw new CrudException(HttpStatusCode.BadRequest, "Your account is block", "");
                 var token = GenerateRefreshToken(user);
                 user.RefreshToken = token;
+                user.Fcm = fcm;
                 await _unitOfWork.Repository<Account>().Update(user, user.Id);
                 await _unitOfWork.CommitAsync();
                 var rs = _mapper.Map<Account, AccountResponse>(user);
@@ -368,12 +392,12 @@ namespace ThinkTank.Service.Services.ImpService
             }
         }
 
-        public async Task<AccountResponse> RevokeRefreshToken(string userName)
+        public async Task<AccountResponse> RevokeRefreshToken(int userId)
         {
             try
             {
                 AccountResponse rs = new AccountResponse();
-                if (userName.Equals(_config["UsernameAdmin"]))
+                if (userId==0)
                 {
                     var expiryTime = DateTime.MaxValue;
                     var adminAccountResponse = _cacheService.GetData<AdminAccountResponse>("AdminAccount");
@@ -387,13 +411,14 @@ namespace ThinkTank.Service.Services.ImpService
                 }
                 else
                 {
-                    Account customer = _unitOfWork.Repository<Account>().GetAsync(a => a.UserName.Equals(userName)).Result;
+                    Account customer = _unitOfWork.Repository<Account>().GetAsync(a => a.Id==userId).Result;
                     if (customer == null)
                     {
-                        throw new CrudException(HttpStatusCode.NotFound, $"Not found account with username {userName}", "");
+                        throw new CrudException(HttpStatusCode.NotFound, $"Not found account with id {userId}", "");
                     }
                     if (customer.Status == false) throw new CrudException(HttpStatusCode.BadRequest, "Your account is block", "");
                     customer.RefreshToken = null;
+                    customer.Fcm = null;
                     await _unitOfWork.Repository<Account>().Update(customer, customer.Id);
                     await _unitOfWork.CommitAsync();
                     rs = _mapper.Map<Account, AccountResponse>(customer);
@@ -563,6 +588,8 @@ namespace ThinkTank.Service.Services.ImpService
                 {
                     throw new CrudException(HttpStatusCode.NotFound, $"Not found account with id{id.ToString()}", "");
                 }
+                if(_unitOfWork.Repository<Report>().GetAll().Where(x=>x.AccountId2==id).ToList().Count() <=0)
+                    throw new CrudException(HttpStatusCode.BadRequest, $"Id Account {id} has not been reported by anyone", "");
                 account.Status = !account.Status;
                 await _unitOfWork.Repository<Account>().Update(account, id);
                 await _unitOfWork.CommitAsync();
@@ -605,6 +632,39 @@ namespace ThinkTank.Service.Services.ImpService
             catch (Exception ex)
             {
                 throw new CrudException(HttpStatusCode.InternalServerError, "Update status account error!!!!!", ex.Message);
+            }
+        }
+        public async Task<List<GameLevelOfAccountResponse>> GetGameLevelByAccountId(int accountId)
+        {
+            try
+            {
+                var account = _unitOfWork.Repository<Account>().Find(x => x.Id == accountId);
+                if (account == null)
+                    throw new CrudException(HttpStatusCode.NotFound, $"Account Id {accountId} not found ", "");
+                var achievements = _unitOfWork.Repository<Achievement>().GetAll().Include(x => x.Account).Include(x => x.Game)
+                    .Where(x => x.AccountId == accountId).ToList();
+                var result = new List<GameLevelOfAccountResponse>();
+                foreach (var achievement in achievements)
+                {
+                    GameLevelOfAccountResponse gameLevelOfAccountResponse = new GameLevelOfAccountResponse();
+                    var game = result.SingleOrDefault(a => a.GameId == achievement.GameId);
+                    if (game == null)
+                    {
+                        gameLevelOfAccountResponse.GameId = achievement.GameId;
+                        gameLevelOfAccountResponse.GameName = achievement.Game.Name;
+                        gameLevelOfAccountResponse.Level = achievements.LastOrDefault(a => a.GameId == achievement.GameId).Level;
+                        result.Add(gameLevelOfAccountResponse);
+                    }
+                }
+                return result;
+            }
+            catch (CrudException ex)
+            {
+                throw ex;
+            }
+            catch (Exception ex)
+            {
+                throw new CrudException(HttpStatusCode.InternalServerError, "Get game level of account error!!!!!", ex.Message);
             }
         }
     }

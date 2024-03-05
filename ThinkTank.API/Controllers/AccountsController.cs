@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using ThinkTank.Service.DTO.Request;
 using ThinkTank.Service.DTO.Response;
+using ThinkTank.Service.Services.ImpService;
 using ThinkTank.Service.Services.IService;
 using static ThinkTank.Service.Helpers.Enum;
 
@@ -23,7 +24,7 @@ namespace ThinkTank.API.Controllers
         /// <param name="pagingRequest"></param>
         /// <param name="userRequest"></param>
         /// <returns></returns>
-        [Authorize(Policy = "Admin")]
+        [Authorize(Policy = "All")]
         [HttpGet]
         public async Task<ActionResult<List<AccountResponse>>> GetAccounts([FromQuery] PagingRequest pagingRequest, [FromQuery] AccountRequest accountRequest)
         {
@@ -104,15 +105,27 @@ namespace ThinkTank.API.Controllers
             return Ok(rs);
         }
         /// <summary>
-        /// Login (Username and Password)
+        /// Login for role player (Username and Password)
         /// </summary>
         /// <param name="model"></param>
         /// <returns></returns>
         [AllowAnonymous]
-        [HttpPost("authentication")]
-        public async Task<ActionResult<AccountResponse>> Login([FromBody] LoginRequest model)
+        [HttpPost("authentication-player")]
+        public async Task<ActionResult<AccountResponse>> LoginPlayer([FromBody] LoginRequest model)
         {
-            var rs = await _accountService.Login(model);
+            var rs = await _accountService.LoginPlayer(model);
+            return Ok(rs);
+        }
+        /// <summary>
+        /// Login for role admin (Username and Password)
+        /// </summary>
+        /// <param name="model"></param>
+        /// <returns></returns>
+        [AllowAnonymous]
+        [HttpPost("authentication-admin")]
+        public async Task<ActionResult<AccountResponse>> LoginAdmin([FromBody] LoginRequest model)
+        {
+            var rs = await _accountService.LoginAdmin(model);
             return Ok(rs);
         }
         /// <summary>
@@ -144,13 +157,13 @@ namespace ThinkTank.API.Controllers
         /// <summary>
         /// Revoke refresh token when logout 
         /// </summary>
-        /// <param name="userName"></param>
+        /// <param name="userId"></param>
         /// <returns></returns>
         [AllowAnonymous]
         [HttpPost("token-revoke")]
-        public async Task<ActionResult<AccountResponse>> RevokeRefreshToken(string userName)
+        public async Task<ActionResult<AccountResponse>> RevokeRefreshToken(int userId)
         {
-            var rs = await _accountService.RevokeRefreshToken(userName);
+            var rs = await _accountService.RevokeRefreshToken(userId);
             return Ok(rs);
         }
 
@@ -161,9 +174,21 @@ namespace ThinkTank.API.Controllers
         /// <returns></returns>
         [AllowAnonymous]
         [HttpPost("google-authentication")]
-        public async Task<ActionResult<AccountResponse>> LoginGoogle([FromQuery] string googleId)
+        public async Task<ActionResult<AccountResponse>> LoginGoogle([FromQuery] string googleId, [FromQuery] string fcm)
         {
-            var rs = await _accountService.LoginGoogle(googleId);
+            var rs = await _accountService.LoginGoogle(googleId,fcm);
+            return Ok(rs);
+        }
+        /// <summary>
+        /// Get current game level of account
+        /// </summary>
+        /// <param name="accountId"></param>
+        /// <returns></returns>
+        [Authorize(Policy = "All")]
+        [HttpGet("game-level-of-account")]
+        public async Task<ActionResult<List<GameLevelOfAccountResponse>>> GetGameLevelByAccountId([FromQuery] int accountId)
+        {
+            var rs = await _accountService.GetGameLevelByAccountId(accountId);
             return Ok(rs);
         }
     }

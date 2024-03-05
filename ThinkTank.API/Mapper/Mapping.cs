@@ -25,6 +25,11 @@ namespace MuTote.API.Mapper
             CreateMap<Friend, FriendResponse>();
             CreateMap<CreateFriendRequest, Friend>();
 
+            CreateMap<ReportRequest, Report>();
+            CreateMap<ReportRequest, ReportResponse>();
+            CreateMap<Report, ReportResponse>();
+            CreateMap<CreateReportRequest, Report>();
+
             CreateMap<NotificationRequest, Notification>();
             CreateMap<NotificationRequest, NotificationResponse>();
             CreateMap<Notification, NotificationResponse>();

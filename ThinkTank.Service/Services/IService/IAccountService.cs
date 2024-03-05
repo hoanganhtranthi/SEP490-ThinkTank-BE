@@ -14,15 +14,18 @@ namespace ThinkTank.Service.Services.IService
     {
         Task<PagedResults<AccountResponse>> GetAccounts(AccountRequest request, PagingRequest paging);
         Task<dynamic> CreateMailMessage(string email);
-        Task<AccountResponse> Login(LoginRequest request);
+        Task<AccountResponse> LoginPlayer(LoginRequest request);
+        Task<AccountResponse> LoginAdmin(LoginRequest request);
         Task<AccountResponse> CreateAccount(CreateAccountRequest createAccountRequest);
-        Task<AccountResponse> RevokeRefreshToken(string userName);
+        Task<AccountResponse> RevokeRefreshToken(int userId);
         Task<AccountResponse> GetAccountById(int id);
-        Task<AccountResponse> LoginGoogle(string data);
+        Task<AccountResponse> LoginGoogle(string data,string fcm);
         Task<AccountResponse> VerifyAndGenerateToken(TokenRequest request);
         Task<AccountResponse> UpdatePass(ResetPasswordRequest request);
         Task<AccountResponse> UpdateAccount(int accountId, UpdateAccountRequest request);
         Task<AccountResponse> GetToUpdateStatus(int id);
         Task<AccountResponse> GetToBanAccount(int id);
+        Task<List<GameLevelOfAccountResponse>> GetGameLevelByAccountId(int accountId);
+
     }
 }

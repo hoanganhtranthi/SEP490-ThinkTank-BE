@@ -20,6 +20,8 @@ using ThinkTank.Service.Services.IService;
 using Microsoft.AspNetCore.Builder.Extensions;
 using FirebaseAdmin;
 using Google.Apis.Auth.OAuth2;
+using Hangfire;
+using ThinkTank.API.AppStart;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -57,6 +59,7 @@ builder.Services.AddScoped<IChallengeService, ChallengeService>();
 builder.Services.AddScoped<IBadgeService, BadgeService>();
 builder.Services.AddScoped<IFirebaseMessagingService, FirebaseMessagingService>();
 builder.Services.AddScoped<IAccountInContestService, AccountInContestService>();
+builder.Services.AddScoped<IReportService, ReportService>();
 builder.Services.AddScoped<IFlipCardAndImagesWalkthroughResourceOfContestService, FlipCardAndImagesWalkthroughResourceOfContestService>();
 builder.Services.AddScoped<IMusicPasswordResourceOfContestService,  MusicPasswordResourceOfContestService>();
 builder.Services.AddScoped<IAnonymousResourceOfContestService, AnonymousResourceOfContestService>();
@@ -83,6 +86,10 @@ builder.Services.AddCors(options =>
             .AllowAnyMethod();
         });
 });
+
+//use hangfire
+builder.Services.ConfigureHangfireServices(builder.Configuration);
+
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
 {
@@ -178,7 +185,7 @@ else
         options.RoutePrefix = String.Empty;
     });
 }
-
+app.UseHangfireDashboard();
 app.UseMiddleware(typeof(GlobalErrorHandlingMiddleware));
 app.UseHttpsRedirection();
 app.UseCors("_myAllowSpecificOrigins");

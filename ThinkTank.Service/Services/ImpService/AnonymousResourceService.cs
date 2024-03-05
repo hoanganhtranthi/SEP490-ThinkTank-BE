@@ -41,9 +41,9 @@ namespace ThinkTank.Service.Services.ImpService
                 if (createAnonymousRequest.Characteristic <= 0)
                     throw new CrudException(HttpStatusCode.BadRequest, "Characteristic is invalid", "");
 
-                var topic = _unitOfWork.Repository<Topic>().Find(x => x.Id == anonymous.TopicOfGameId);
+                var topic = _unitOfWork.Repository<TopicOfGame>().GetAll().Include(x => x.Topic).SingleOrDefault(x => x.Id == anonymous.TopicOfGameId);
                 if(topic== null)
-                    throw new CrudException(HttpStatusCode.NotFound, $"This topic {createAnonymousRequest.TopicOfGameId} is not found !!!", "");
+                    throw new CrudException(HttpStatusCode.NotFound, $"This topic of game {createAnonymousRequest.TopicOfGameId} is not found !!!", "");
 
                 await _unitOfWork.Repository<Anonymous>().CreateAsync(anonymous);
                 await _unitOfWork.CommitAsync();
@@ -53,7 +53,7 @@ namespace ThinkTank.Service.Services.ImpService
                     _cacheService.SetData<int>("AnonymousVersion", version += 1, expiryTime);
                 else version = 1;
                 var rs = _mapper.Map<AnonymousResponse>(anonymous);
-                rs.TopicName = topic.Name;
+                rs.TopicName = topic.Topic.Name;
                 return rs;
             }
             catch (CrudException ex)
@@ -74,14 +74,14 @@ namespace ThinkTank.Service.Services.ImpService
                 {
                     throw new CrudException(HttpStatusCode.BadRequest, "Id Resource Invalid", "");
                 }
-                var response = _unitOfWork.Repository<Anonymous>().Find(x=>x.Id==id);
+                var response = _unitOfWork.Repository<Anonymous>().GetAll().Include(x=>x.TopicOfGame.Topic).SingleOrDefault(x=>x.Id==id);
 
                 if (response == null)
                 {
                     throw new CrudException(HttpStatusCode.NotFound, $"Not found resource with id {id.ToString()}", "");
                 }
                 var rs = _mapper.Map<AnonymousResponse>(response);
-                rs.TopicName = _unitOfWork.Repository<Topic>().Find(x => x.Id == rs.TopicOfGameId).Name;
+                rs.TopicName = response.TopicOfGame.Topic.Name;
                 return rs;
             }
             catch (CrudException ex)
@@ -137,9 +137,9 @@ namespace ThinkTank.Service.Services.ImpService
                 if (s != null)
                     throw new CrudException(HttpStatusCode.BadRequest, "This resource has already !!!", "");
 
-                var topic = _unitOfWork.Repository<Topic>().Find(x => x.Id == anonymous.TopicOfGameId);
+                var topic = _unitOfWork.Repository<TopicOfGame>().Find(x => x.Id == anonymous.TopicOfGameId);
                 if (topic == null)
-                    throw new CrudException(HttpStatusCode.NotFound, $"This topic {request.TopicOfGameId} is not found !!!", "");
+                    throw new CrudException(HttpStatusCode.NotFound, $"This topic of game {request.TopicOfGameId} is not found !!!", "");
                 var expiryTime = DateTime.MaxValue;
                 var version = _cacheService.GetData<int>("AnonymousVersion");
                 if (version != null)
@@ -168,7 +168,7 @@ namespace ThinkTank.Service.Services.ImpService
                 {
                     throw new CrudException(HttpStatusCode.BadRequest, "Id Resource Invalid", "");
                 }
-                var response = _unitOfWork.Repository<Anonymous>().Find(x => x.Id == id);
+                var response = _unitOfWork.Repository<Anonymous>().GetAll().Include(x=>x.TopicOfGame.Topic).SingleOrDefault(x => x.Id == id);
 
                 if (response == null)
                 {
@@ -183,7 +183,7 @@ namespace ThinkTank.Service.Services.ImpService
                     _cacheService.SetData<int>("AnonymousVersion", version += 1, expiryTime);
 
                 var rs = _mapper.Map<AnonymousResponse>(response);
-                rs.TopicName = _unitOfWork.Repository<Topic>().Find(x => x.Id == rs.TopicOfGameId).Name;
+                rs.TopicName = response.TopicOfGame.Topic.Name;
                 return rs;
             }
             catch (CrudException ex)

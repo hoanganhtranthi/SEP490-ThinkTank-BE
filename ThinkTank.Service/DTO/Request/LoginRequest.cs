@@ -10,5 +10,6 @@ namespace ThinkTank.Service.DTO.Request
     {
         public string UserName { get; set; } = null!;
         public string Password { get; set; } = null!;
+        public string Fcm { get; set; } = null!;
     }
 }

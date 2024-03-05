@@ -2,6 +2,8 @@
 using AutoMapper.QueryableExtensions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using Newtonsoft.Json.Serialization;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -16,6 +18,7 @@ using ThinkTank.Service.Exceptions;
 using ThinkTank.Service.Helpers;
 using ThinkTank.Service.Services.IService;
 using ThinkTank.Service.Utilities;
+using System.Security.Principal;
 
 namespace ThinkTank.Service.Services.ImpService
 {
@@ -23,12 +26,14 @@ namespace ThinkTank.Service.Services.ImpService
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
-        private readonly IConfiguration _config;
-        public AccountInContestService(IUnitOfWork unitOfWork, IMapper mapper, IConfiguration configuration)
+        private readonly IFirebaseMessagingService _firebaseMessagingService;
+        private readonly IContestService _contestService;
+        public AccountInContestService(IUnitOfWork unitOfWork, IMapper mapper, IFirebaseMessagingService firebaseMessagingService,IContestService contestService)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
-            _config = configuration;
+            _firebaseMessagingService = firebaseMessagingService;
+            _contestService = contestService;
         }
 
         public async Task<AccountInContestResponse> CreateAccountInContest(CreateAccountInContestRequest request)
@@ -63,14 +68,28 @@ namespace ThinkTank.Service.Services.ImpService
                     throw new CrudException(HttpStatusCode.InternalServerError, "Contest Not Available!!!!!", "");
                 }
                 acc.ContestId = c.Id;
-                acc.CompletedTime = request.CompletedTime;
+                acc.CompletedTime = DateTime.Now;
                 acc.Duration = request.Duration;
                 acc.Mark = request.Mark;
-                acc.Prize = request.Prize;
-
                 await _unitOfWork.Repository<AccountInContest>().CreateAsync(acc);
+                var leaderboardResult = await _contestService.GetLeaderboardOfContest(acc.ContestId);
+                if (leaderboardResult.Any())
+                {
+                    var leaderboard = leaderboardResult.SingleOrDefault(a => a.AccountId == request.AccountId);
+                    if (leaderboard != null)
+                    {
+                        var prize = _unitOfWork.Repository<PrizeOfContest>()
+                            .GetAll()
+                            .SingleOrDefault(x => x.ContestId == request.ContestId && x.FromRank <= leaderboard.Rank && x.ToRank >= leaderboard.Rank);
+                        if (prize != null)
+                            acc.Prize = prize.Prize;
+                    }
+                }
+                List<string> fcmTokens = new List<string>();
+                fcmTokens.Add(a.Fcm);
+                if (fcmTokens.Any())
+                    _firebaseMessagingService.Subcribe(fcmTokens, $"/topics/contestId{c.Id}");
                 await _unitOfWork.CommitAsync();
-
                 var rs = _mapper.Map<AccountInContestResponse>(acc);
                 rs.ContestName = c.Name;
                 rs.UserName = a.UserName;
@@ -86,7 +105,6 @@ namespace ThinkTank.Service.Services.ImpService
                 throw new CrudException(HttpStatusCode.InternalServerError, "Create Account In Contest Error!!!", ex?.Message);
             }
         }
-
         public async Task<AccountInContestResponse> GetAccountInContest(AccountInContestRequest account)
         {
             try
@@ -161,10 +179,8 @@ namespace ThinkTank.Service.Services.ImpService
 
                 if (acc == null)
                     throw new CrudException(HttpStatusCode.NotFound, $"Not found account in contest with id {accountInContestId.ToString()}", "");
-
                 _mapper.Map<UpdateAccountInContestRequest, AccountInContest>(request, acc);
 
-                await _unitOfWork.Repository<AccountInContest>().Update(acc, accountInContestId);
                 await _unitOfWork.CommitAsync();
                 var rs = _mapper.Map<AccountInContestResponse>(acc);
                 rs.ContestName = acc.Contest.Name;

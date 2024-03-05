@@ -38,10 +38,9 @@ namespace ThinkTank.Service.Services.ImpService
                 var s = _unitOfWork.Repository<MusicPassword>().Find(s => s.Password == createMusicPasswordRequest.Password);
                 if (s != null)
                     throw new CrudException(HttpStatusCode.BadRequest, "This resource has already !!!", "");
-              
-                var topic = _unitOfWork.Repository<Topic>().Find(x => x.Id == musicPassword.TopicOfGameId);
+                var topic = _unitOfWork.Repository<TopicOfGame>().GetAll().Include(x=>x.Topic).SingleOrDefault(x => x.Id == musicPassword.TopicOfGameId);
                 if (topic == null)
-                    throw new CrudException(HttpStatusCode.NotFound, $"This topic {createMusicPasswordRequest.TopicOfGameId} is not found !!!", "");
+                    throw new CrudException(HttpStatusCode.NotFound, $"This topic of game {createMusicPasswordRequest.TopicOfGameId} is not found !!!", "");
 
                 await _unitOfWork.Repository<MusicPassword>().CreateAsync(musicPassword);
                 await _unitOfWork.CommitAsync();
@@ -51,7 +50,7 @@ namespace ThinkTank.Service.Services.ImpService
                     _cacheService.SetData<int>("MusicPasswordVersion", version += 1, expiryTime);
                 else version = 1;
                 var rs = _mapper.Map<MusicPasswordResponse>(musicPassword);
-                rs.TopicName = topic.Name;
+                rs.TopicName = topic.Topic.Name;
                 return rs;
             }
             catch (CrudException ex)
@@ -72,7 +71,7 @@ namespace ThinkTank.Service.Services.ImpService
                 {
                     throw new CrudException(HttpStatusCode.BadRequest, "Id Resource Invalid", "");
                 }
-                var response = _unitOfWork.Repository<MusicPassword>().Find(x => x.Id == id);
+                var response = _unitOfWork.Repository<MusicPassword>().GetAll().Include(x => x.TopicOfGame.Topic).SingleOrDefault(x => x.Id == id);
 
                 if (response == null)
                 {
@@ -87,7 +86,7 @@ namespace ThinkTank.Service.Services.ImpService
                     _cacheService.SetData<int>("MusicPasswordVersion", version += 1, expiryTime);
 
                 var rs = _mapper.Map<MusicPasswordResponse>(response);
-                rs.TopicName = _unitOfWork.Repository<Topic>().Find(x => x.Id == rs.TopicOfGameId).Name;
+                rs.TopicName = response.TopicOfGame.Topic.Name;
                 return rs;
             }
             catch (CrudException ex)
@@ -108,14 +107,14 @@ namespace ThinkTank.Service.Services.ImpService
                 {
                     throw new CrudException(HttpStatusCode.BadRequest, "Id Resource Invalid", "");
                 }
-                var response = _unitOfWork.Repository<MusicPassword>().Find(x => x.Id == id);
+                var response = _unitOfWork.Repository<MusicPassword>().GetAll().Include(x => x.TopicOfGame.Topic).SingleOrDefault(x => x.Id == id);
 
                 if (response == null)
                 {
                     throw new CrudException(HttpStatusCode.NotFound, $"Not found resource with id {id.ToString()}", "");
                 }
                 var rs = _mapper.Map<MusicPasswordResponse>(response);
-                rs.TopicName = _unitOfWork.Repository<Topic>().Find(x => x.Id == rs.TopicOfGameId).Name;
+                rs.TopicName =response.TopicOfGame.Topic.Name;
                 return rs;
             }
             catch (CrudException ex)
@@ -140,6 +139,7 @@ namespace ThinkTank.Service.Services.ImpService
                         Id = x.Id,
                         TopicOfGameId = x.TopicOfGameId,
                         Password=x.Password,
+                        SoundLink=x.SoundLink,
                         TopicName = x.TopicOfGame.Topic.Name,
                     }).DynamicFilter(filter).ToList();
                 var sort = PageHelper<MusicPasswordResponse>.Sorting(paging.SortType, friends, paging.ColName);
@@ -166,9 +166,9 @@ namespace ThinkTank.Service.Services.ImpService
                 if (s != null)
                     throw new CrudException(HttpStatusCode.BadRequest, "This resource has already !!!", "");
 
-                var topic = _unitOfWork.Repository<Topic>().Find(x => x.Id == musicPassword.TopicOfGameId);
+                var topic = _unitOfWork.Repository<TopicOfGame>().GetAll().Include(x => x.Topic).SingleOrDefault(x => x.Id == musicPassword.TopicOfGameId);
                 if (topic == null)
-                    throw new CrudException(HttpStatusCode.NotFound, $"This topic {request.TopicOfGameId} is not found !!!", "");
+                    throw new CrudException(HttpStatusCode.NotFound, $"This topic of game {request.TopicOfGameId} is not found !!!", "");
                 var expiryTime = DateTime.MaxValue;
                 var version = _cacheService.GetData<int>("MusicPasswordVersion");
                 if (version != null)
@@ -177,7 +177,7 @@ namespace ThinkTank.Service.Services.ImpService
                 await _unitOfWork.Repository<MusicPassword>().Update(musicPassword, id);
                 await _unitOfWork.CommitAsync();
                 var rs = _mapper.Map<MusicPasswordResponse>(musicPassword);
-                rs.TopicName = topic.Name;
+                rs.TopicName = topic.Topic.Name;
                 return rs;
             }
             catch (CrudException ex)
