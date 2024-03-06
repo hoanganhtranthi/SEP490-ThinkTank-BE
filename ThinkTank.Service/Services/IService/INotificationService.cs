@@ -12,6 +12,5 @@ namespace ThinkTank.Service.Services.IService
     {
         Task<PagedResults<NotificationResponse>> GetNotifications(NotificationRequest request, PagingRequest paging);
         Task<NotificationResponse> GetNotificationById(int id);
-        Task<NotificationResponse> GetToUpdateStatus(int id);
     }
 }

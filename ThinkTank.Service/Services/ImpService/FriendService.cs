@@ -88,7 +88,6 @@ namespace ThinkTank.Service.Services.ImpService
                     Avatar = s.Avatar,
                     DateTime = DateTime.Now,
                     Description = $"{s.FullName} sent you a friend request.",
-                    Status = false,
                     Titile= "ThinkTank Community"
                 };
                await _unitOfWork.Repository<Notification>().CreateAsync(notification);
@@ -305,7 +304,6 @@ namespace ThinkTank.Service.Services.ImpService
                     Avatar = friend.AccountId2Navigation.Avatar,
                     DateTime = DateTime.Now,
                     Description = $"{friend.AccountId2Navigation.FullName}  has agreed to be friends. ",
-                    Status = false,
                     Titile = "ThinkTank Community"
                 };
                 await _unitOfWork.Repository<Notification>().CreateAsync(notification);

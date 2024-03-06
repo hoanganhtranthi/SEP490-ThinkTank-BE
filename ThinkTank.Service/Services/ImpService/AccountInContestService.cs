@@ -19,6 +19,7 @@ using ThinkTank.Service.Helpers;
 using ThinkTank.Service.Services.IService;
 using ThinkTank.Service.Utilities;
 using System.Security.Principal;
+using Firebase.Auth;
 
 namespace ThinkTank.Service.Services.ImpService
 {
@@ -78,17 +79,67 @@ namespace ThinkTank.Service.Services.ImpService
                     var leaderboard = leaderboardResult.SingleOrDefault(a => a.AccountId == request.AccountId);
                     if (leaderboard != null)
                     {
-                        var prize = _unitOfWork.Repository<PrizeOfContest>()
+                       /* var prize = _unitOfWork.Repository<PrizeOfContest>()
                             .GetAll()
                             .SingleOrDefault(x => x.ContestId == request.ContestId && x.FromRank <= leaderboard.Rank && x.ToRank >= leaderboard.Rank);
                         if (prize != null)
-                            acc.Prize = prize.Prize;
+                            acc.Prize = prize.Prize;*/
                     }
                 }
                 List<string> fcmTokens = new List<string>();
                 fcmTokens.Add(a.Fcm);
                 if (fcmTokens.Any())
                     _firebaseMessagingService.Subcribe(fcmTokens, $"/topics/contestId{c.Id}");
+                if(a.AccountInContests.Count()>2)
+                {
+                    var badge = _unitOfWork.Repository<Badge>().GetAll().Include(x => x.Challenge).SingleOrDefault(x => x.AccountId == a.Id && x.Challenge.Name.Equals("Super enthusiastic"));
+                    var challage = _unitOfWork.Repository<Challenge>().Find(x => x.Name.Equals("Super enthusiastic"));
+                    if (badge != null)
+                    {
+                        if (badge.CompletedLevel != challage.CompletedMilestone)
+                            badge.CompletedLevel += 1;
+                        if (badge.CompletedLevel == challage.CompletedMilestone)
+                        {
+                            badge.Status = true;
+                            await _unitOfWork.Repository<Badge>().Update(badge, badge.Id);
+                            #region send noti for account
+                            var data = new Dictionary<string, string>()
+                            {
+                                ["click_action"] = "FLUTTER_NOTIFICATION_CLICK",
+                                ["Action"] = "home",
+                                ["Argument"] = JsonConvert.SerializeObject(new JsonSerializerSettings
+                                {
+                                    ContractResolver = new DefaultContractResolver
+                                    {
+                                        NamingStrategy = new SnakeCaseNamingStrategy()
+                                    }
+                                }),
+                            };
+                            if (fcmTokens.Any())
+                                _firebaseMessagingService.SendToDevices(fcmTokens,
+                                                                       new FirebaseAdmin.Messaging.Notification() { Title = "ThinkTank", Body = $"You have received {challage.Name} badge.", ImageUrl = challage.Avatar }, data);
+                            #endregion
+                            Notification notification = new Notification
+                            {
+                                AccountId = a.Id,
+                                Avatar = challage.Avatar,
+                                DateTime = DateTime.Now,
+                                Description = $"You have received {challage.Name} badge.",
+                                Titile = "ThinkTank"
+                            };
+                            await _unitOfWork.Repository<Notification>().CreateAsync(notification);
+                        }
+                    }
+                    else
+                    {
+                        CreateBadgeRequest createBadgeRequest = new CreateBadgeRequest();
+                        createBadgeRequest.AccountId = acc.Id;
+                        createBadgeRequest.CompletedLevel = 1;
+                        createBadgeRequest.ChallengeId = challage.Id;
+                        var b = _mapper.Map<CreateBadgeRequest, Badge>(createBadgeRequest);
+                        await _unitOfWork.Repository<Badge>().CreateAsync(b);
+                    }
+                }
                 await _unitOfWork.CommitAsync();
                 var rs = _mapper.Map<AccountInContestResponse>(acc);
                 rs.ContestName = c.Name;

@@ -46,7 +46,7 @@ namespace ThinkTank.API.Controllers
         /// </summary>
         /// <param name="request"></param>
         /// <returns></returns>
-        [Authorize(Policy = "Player")]
+       // [Authorize(Policy = "Player")]
         [HttpPost()]
         public async Task<ActionResult<AchievementResponse>> CreateAchievement([FromBody] CreateAchievementRequest request)
         {
@@ -57,13 +57,12 @@ namespace ThinkTank.API.Controllers
         /// Get lederboard of a level of the game
         /// </summary>
         /// <param name="gameId"></param>
-        /// <param name="gameLevel"></param>
         /// <returns></returns>
-        [Authorize(Policy = "All")]
-        [HttpGet("{gameId:int},{gameLevel:int}")]
-        public async Task<ActionResult<List<ContestResponse>>> GetLeaderboard(int gameId, int gameLevel)
+       // [Authorize(Policy = "All")]
+        [HttpGet("{gameId:int}/leaderboard")]
+        public async Task<ActionResult<List<ContestResponse>>> GetLeaderboard(int gameId)
         {
-            var rs = await _achievementService.GetLeaderboard(gameId,gameLevel);
+            var rs = await _achievementService.GetLeaderboard(gameId);
             return Ok(rs);
         }
     }

@@ -8,6 +8,7 @@ using Microsoft.Extensions.Configuration.Json;
 using Microsoft.IdentityModel.Tokens;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using Newtonsoft.Json.Serialization;
 using OpenAI_API.Completions;
 using OpenAI_API.Moderation;
 using Repository.Extensions;
@@ -42,12 +43,14 @@ namespace ThinkTank.Service.Services.ImpService
         private readonly IMapper _mapper;
         private readonly IConfiguration _config;
         private readonly ICacheService _cacheService;
-        public AccountService(IUnitOfWork unitOfWork, IMapper mapper, IConfiguration configuration, ICacheService cacheService)
+        private readonly IFirebaseMessagingService _firebaseMessagingService;
+        public AccountService(IUnitOfWork unitOfWork, IMapper mapper, IConfiguration configuration, ICacheService cacheService, IFirebaseMessagingService firebaseMessagingService)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
             _cacheService = cacheService;
             _config = configuration;
+            _firebaseMessagingService = firebaseMessagingService;
         }
 
         public async Task<AccountResponse> CreateAccount(CreateAccountRequest createAccountRequest)
@@ -214,8 +217,63 @@ namespace ThinkTank.Service.Services.ImpService
                     if(request.Fcm != null && request.Fcm != "")
                     user.Fcm = request.Fcm;
                     await _unitOfWork.Repository<Account>().Update(user, user.Id);
-                    await _unitOfWork.CommitAsync();
-                    var rs = _mapper.Map<Account, AccountResponse>(user);
+                    DateTime newDateTime = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day, 21, 0, 0);
+                    if (DateTime.Now > newDateTime)
+                {
+                    var badge = _unitOfWork.Repository<Badge>().GetAll().Include(x => x.Challenge).SingleOrDefault(x => x.AccountId == user.Id && x.Challenge.Name.Equals("Nocturnal"));
+                    var challage = _unitOfWork.Repository<Challenge>().Find(x => x.Name.Equals("Nocturnal"));
+                    if (badge != null)
+                    {
+                        if(badge.CompletedLevel != challage.CompletedMilestone)
+                        badge.CompletedLevel += 1;
+                        if(badge.CompletedLevel==challage.CompletedMilestone)
+                        {
+                            badge.Status = true;
+                            await _unitOfWork.Repository<Badge>().Update(badge, badge.Id);
+                            #region send noti for account
+                            List<string> fcmTokens = new List<string>();
+                            if (user.Fcm != null)
+                                fcmTokens.Add(user.Fcm);
+                            var data = new Dictionary<string, string>()
+                            {
+                                ["click_action"] = "FLUTTER_NOTIFICATION_CLICK",
+                                ["Action"] = "home",
+                                ["Argument"] = JsonConvert.SerializeObject(new JsonSerializerSettings
+                                {
+                                    ContractResolver = new DefaultContractResolver
+                                    {
+                                        NamingStrategy = new SnakeCaseNamingStrategy()
+                                    }
+                                }),
+                            };
+                            if (fcmTokens.Any())
+                                _firebaseMessagingService.SendToDevices(fcmTokens,
+                                                                       new FirebaseAdmin.Messaging.Notification() { Title = "ThinkTank", Body = $"You have received {challage.Name} badge.", ImageUrl = challage.Avatar }, data);
+                            #endregion
+                                Notification notification = new Notification
+                                {
+                                    AccountId = user.Id,
+                                    Avatar = challage.Avatar,
+                                    DateTime = DateTime.Now,
+                                    Description = $"You have received {challage.Name} badge.",
+                                    Titile = "ThinkTank"
+                                };
+                                await _unitOfWork.Repository<Notification>().CreateAsync(notification);
+                        }
+                    }
+                    else
+                    {
+                        CreateBadgeRequest createBadgeRequest = new CreateBadgeRequest();
+                        createBadgeRequest.AccountId = user.Id;
+                        createBadgeRequest.CompletedLevel = 1;
+                        createBadgeRequest.ChallengeId = challage.Id;
+                       var b= _mapper.Map<CreateBadgeRequest, Badge>(createBadgeRequest);
+                       await _unitOfWork.Repository<Badge>().CreateAsync(b);
+                    }
+
+                }
+                await _unitOfWork.CommitAsync();
+                var rs = _mapper.Map<Account, AccountResponse>(user);
                     rs.AccessToken = GenerateJwtToken(user);
                 return rs;
             }
@@ -226,6 +284,18 @@ namespace ThinkTank.Service.Services.ImpService
             catch (Exception ex)
             {
                 throw new CrudException(HttpStatusCode.InternalServerError, "Login  Fail", ex.InnerException?.Message);
+            }
+        }
+        public async Task SendNotification(Contest contest)
+        {
+            try
+            {
+                
+                await _unitOfWork.CommitAsync();
+            }
+            catch (CrudException ex)
+            {
+                throw ex;
             }
         }
         public async Task<AccountResponse> LoginAdmin(LoginRequest request)
@@ -641,7 +711,7 @@ namespace ThinkTank.Service.Services.ImpService
                 var account = _unitOfWork.Repository<Account>().Find(x => x.Id == accountId);
                 if (account == null)
                     throw new CrudException(HttpStatusCode.NotFound, $"Account Id {accountId} not found ", "");
-                var achievements = _unitOfWork.Repository<Achievement>().GetAll().Include(x => x.Account).Include(x => x.Game)
+                var achievements = _unitOfWork.Repository<Achievement>().GetAll().Include(x => x.Account).Include(x => x.Topic.Game)
                     .Where(x => x.AccountId == accountId).ToList();
                 var result = new List<GameLevelOfAccountResponse>();
                 foreach (var achievement in achievements)
@@ -651,7 +721,7 @@ namespace ThinkTank.Service.Services.ImpService
                     if (game == null)
                     {
                         gameLevelOfAccountResponse.GameId = achievement.GameId;
-                        gameLevelOfAccountResponse.GameName = achievement.Game.Name;
+                        gameLevelOfAccountResponse.GameName = achievement.Topic.Game.Name;
                         gameLevelOfAccountResponse.Level = achievements.LastOrDefault(a => a.GameId == achievement.GameId).Level;
                         result.Add(gameLevelOfAccountResponse);
                     }

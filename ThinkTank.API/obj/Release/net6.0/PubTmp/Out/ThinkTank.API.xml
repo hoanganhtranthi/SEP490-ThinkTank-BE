@@ -125,11 +125,12 @@
             <param name="request"></param>
             <returns></returns>
         </member>
-        <member name="M:ThinkTank.API.Controllers.AchieviementsController.GetLeaderboardOfContest(System.Int32)">
+        <member name="M:ThinkTank.API.Controllers.AchieviementsController.GetLeaderboard(System.Int32,System.Int32)">
             <summary>
-            Get lederboard 
+            Get lederboard of a level of the game
             </summary>
-            <param name="id"></param>
+            <param name="gameId"></param>
+            <param name="gameLevel"></param>
             <returns></returns>
         </member>
         <member name="M:ThinkTank.API.Controllers.AnonymousResourcesController.GetAnonymousResources(ThinkTank.Service.DTO.Request.PagingRequest,ThinkTank.Service.DTO.Request.ResourceRequest)">

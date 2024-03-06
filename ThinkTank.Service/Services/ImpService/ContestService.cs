@@ -119,7 +119,6 @@ namespace ThinkTank.Service.Services.ImpService
                         Avatar = contest.Thumbnail,
                         DateTime = DateTime.Now,
                         Description = $"\"{contest.Name}\"” is opened. Join now.",
-                        Status = false,
                         Titile = "ThinkTank Contest"
                     };
 
@@ -174,7 +173,6 @@ namespace ThinkTank.Service.Services.ImpService
                             Avatar = contest.Thumbnail,
                             DateTime = DateTime.Now,
                             Description = $"\"{contest.Name}\"” is closed. You have received {account.Prize}.",
-                            Status = false,
                             Titile = "ThinkTank Contest"
                         };
 
@@ -292,8 +290,7 @@ namespace ThinkTank.Service.Services.ImpService
             try
             {
                 var filter = _mapper.Map<ContestResponse>(request);
-                var contests = _unitOfWork.Repository<Contest>().GetAll().Include(x=>x.FlipCardAndImagesWalkthroughOfContests)
-                    .Include(x=>x.AnonymityOfContests).Include(x=>x.MusicPasswordOfContests)
+                var contests = _unitOfWork.Repository<Contest>().GetAll().Include(x=>x.AssetOfContests)
                                            .ProjectTo<ContestResponse>(_mapper.ConfigurationProvider)
                                            .DynamicFilter(filter)
                                            .ToList();

@@ -78,7 +78,6 @@ namespace ThinkTank.Service.Services.ImpService
                     Avatar = s.Avatar,
                     DateTime = DateTime.Now,
                     Description = $"You have a report for acting {createReportRequest.Titile}.",
-                    Status = false,
                     Titile = "ThinkTank Report"
                 };
                 await _unitOfWork.Repository<Notification>().CreateAsync(notification);

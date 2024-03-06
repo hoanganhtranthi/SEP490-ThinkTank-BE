@@ -323,7 +323,6 @@ C:\Users\ADMIN\Documents\GitHub\SEP490-ThinkTank-BE\ThinkTank.API\obj\Debug\net6
 C:\Users\ADMIN\Documents\GitHub\SEP490-ThinkTank-BE\ThinkTank.API\obj\Debug\net6.0\ThinkTank.API.pdb
 C:\Users\ADMIN\Documents\GitHub\SEP490-ThinkTank-BE\ThinkTank.API\obj\Debug\net6.0\ThinkTank.API.genruntimeconfig.cache
 C:\Users\ADMIN\Documents\GitHub\SEP490-ThinkTank-BE\ThinkTank.API\obj\Debug\net6.0\ref\ThinkTank.API.dll
-D:\SEP490-ThinkTank-BE\ThinkTank.API\bin\Debug\net6.0\thinktank-ad0b3-45e7681d45c6.json
 D:\SEP490-ThinkTank-BE\ThinkTank.API\bin\Debug\net6.0\FirebaseAdmin.dll
 D:\SEP490-ThinkTank-BE\ThinkTank.API\bin\Debug\net6.0\Google.Api.Gax.dll
 D:\SEP490-ThinkTank-BE\ThinkTank.API\bin\Debug\net6.0\Google.Api.Gax.Rest.dll
@@ -350,3 +349,4 @@ D:\SEP490-ThinkTank-BE\ThinkTank.API\bin\Debug\net6.0\sv\Hangfire.Core.resources
 D:\SEP490-ThinkTank-BE\ThinkTank.API\bin\Debug\net6.0\tr-TR\Hangfire.Core.resources.dll
 D:\SEP490-ThinkTank-BE\ThinkTank.API\bin\Debug\net6.0\zh-TW\Hangfire.Core.resources.dll
 D:\SEP490-ThinkTank-BE\ThinkTank.API\bin\Debug\net6.0\zh\Hangfire.Core.resources.dll
+D:\SEP490-ThinkTank-BE\ThinkTank.API\bin\Debug\net6.0\thinktank-ad0b3-45e7681d45c6.json

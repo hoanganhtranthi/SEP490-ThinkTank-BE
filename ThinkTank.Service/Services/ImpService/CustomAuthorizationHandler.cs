@@ -60,7 +60,6 @@ namespace ThinkTank.Service.Services.ImpService
                 {
                     var accountId = int.Parse(idClaimValue);
                     var account = await _accountRepository.GetAccountById(accountId);
-
                     var versionCheck = BitConverter.ToString(account.Version).Replace("-", "");
                     if (versionClaimValue.SequenceEqual(versionCheck.ToString()))
                     {

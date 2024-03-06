@@ -38,7 +38,8 @@ namespace ThinkTank.Data.Entities
         public string? Fcm { get; set; }
         public bool? Status { get; set; }
         public string? GoogleId { get; set; }
-        public DateTime RegistrationDate { get; set; }
+        public DateTime? RegistrationDate { get; set; }
+
         public virtual ICollection<AccountIn1vs1> AccountIn1vs1AccountId1Navigations { get; set; }
         public virtual ICollection<AccountIn1vs1> AccountIn1vs1AccountId2Navigations { get; set; }
         public virtual ICollection<AccountInContest> AccountInContests { get; set; }
