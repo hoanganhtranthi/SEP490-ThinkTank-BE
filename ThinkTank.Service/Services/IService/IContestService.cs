@@ -10,12 +10,12 @@ namespace ThinkTank.Service.Services.IService
 {
     public interface IContestService
     {
-        Task<PagedResults<ContestResponse>> GetContests(CreateContestRequest request, PagingRequest paging);
+        Task<PagedResults<ContestResponse>> GetContests(ContestRequest request, PagingRequest paging);
         Task<ContestResponse> CreateContest(CreateContestRequest createContestRequest);
         Task<ContestResponse> GetContestById(int id);
         Task<ContestResponse> UpdateContest(int contestId, CreateContestRequest request);
         Task<ContestResponse> UpdateStateContest(int id);
         Task<dynamic> DeleteContest(int id);
-        Task<List<LeaderboardContestResponse>> GetLeaderboardOfContest(int id);
+        Task<List<LeaderboardResponse>> GetLeaderboardOfContest(int id);
     }
 }

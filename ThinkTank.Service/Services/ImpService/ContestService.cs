@@ -119,7 +119,6 @@ namespace ThinkTank.Service.Services.ImpService
                         Avatar = contest.Thumbnail,
                         DateTime = DateTime.Now,
                         Description = $"\"{contest.Name}\"” is opened. Join now.",
-                        Status = false,
                         Titile = "ThinkTank Contest"
                     };
 
@@ -174,7 +173,6 @@ namespace ThinkTank.Service.Services.ImpService
                             Avatar = contest.Thumbnail,
                             DateTime = DateTime.Now,
                             Description = $"\"{contest.Name}\"” is closed. You have received {account.Prize}.",
-                            Status = false,
                             Titile = "ThinkTank Contest"
                         };
 
@@ -230,7 +228,7 @@ namespace ThinkTank.Service.Services.ImpService
                 throw new CrudException(HttpStatusCode.InternalServerError, "Get Contest By ID Error!!!", ex.InnerException?.Message);
             }
         }
-        public async Task<List<LeaderboardContestResponse>> GetLeaderboardOfContest(int id)
+        public async Task<List<LeaderboardResponse>> GetLeaderboardOfContest(int id)
         {
             try
             {
@@ -242,7 +240,7 @@ namespace ThinkTank.Service.Services.ImpService
                     throw new CrudException(HttpStatusCode.NotFound, $"Not found contest with id{id.ToString()}", "");
                 }
 
-                IList<LeaderboardContestResponse> responses = new List<LeaderboardContestResponse>();
+                IList<LeaderboardResponse> responses = new List<LeaderboardResponse>();
                 if (contest.AccountInContests.Count() > 0)
                 {
                     var orderedAccounts = contest.AccountInContests.OrderByDescending(x => x.Mark).ThenBy(x => x.Duration);
@@ -250,7 +248,7 @@ namespace ThinkTank.Service.Services.ImpService
 
                     foreach (var account in orderedAccounts)
                     {
-                        var leaderboardContestResponse = new LeaderboardContestResponse
+                        var leaderboardContestResponse = new LeaderboardResponse
                         {
                             AccountId = account.AccountId,
                             Mark = account.Mark
@@ -287,15 +285,24 @@ namespace ThinkTank.Service.Services.ImpService
             }
         }
 
-        public async Task<PagedResults<ContestResponse>> GetContests(CreateContestRequest request, PagingRequest paging)
+        public async Task<PagedResults<ContestResponse>> GetContests(ContestRequest request, PagingRequest paging)
         {
             try
             {
                 var filter = _mapper.Map<ContestResponse>(request);
-                var contests = _unitOfWork.Repository<Contest>().GetAll()
+                var contests = _unitOfWork.Repository<Contest>().GetAll().Include(x=>x.AssetOfContests)
                                            .ProjectTo<ContestResponse>(_mapper.ConfigurationProvider)
                                            .DynamicFilter(filter)
                                            .ToList();
+                if (request.ContestStatus != Helpers.Enum.StatusType.All)
+                {
+                    bool? status = null;
+                    if (request.ContestStatus.ToString().ToLower() != "null")
+                    {
+                        status = bool.Parse(request.ContestStatus.ToString().ToLower());
+                    }
+                    contests = contests.Where(a => a.Status == status).ToList();
+                }
                 var sort = PageHelper<ContestResponse>.Sorting(paging.SortType, contests, paging.ColName);
                 var result = PageHelper<ContestResponse>.Paging(sort, paging.Page, paging.PageSize);
                 return result;
@@ -305,7 +312,25 @@ namespace ThinkTank.Service.Services.ImpService
                 throw new CrudException(HttpStatusCode.InternalServerError, "Get contest list error!!!!!", ex.Message);
             }
         }
-
+       /* public async Task<List<ContestResponse>> GetContestByGameId(int gameId)
+        {
+            try
+            {
+                var result = new List<ContestResponse>();
+                var contests = _unitOfWork.Repository<Contest>().GetAll().Include(x => x.FlipCardAndImagesWalkthroughOfContests)
+                    .Include(x => x.AnonymityOfContests).Include(x => x.MusicPasswordOfContests)                                          
+                                           .ToList();
+                foreach (var contest in contests)
+                {
+                    if(contest.FlipCardAndImagesWalkthroughOfContests.SingleOrDefault(x=>x.))
+                }
+                return result;
+            }
+            catch (CrudException ex)
+            {
+                throw new CrudException(HttpStatusCode.InternalServerError, "Get contest list error!!!!!", ex.Message);
+            }
+        }*/
         public async Task<ContestResponse> UpdateContest(int contestId, CreateContestRequest request)
         {
             try

@@ -21,7 +21,7 @@ namespace ThinkTank.Service.Helpers
             System=1,
             Player=2
         }
-        public enum FriendType
+        public enum StatusType
         {
             All=1,
             True=2,

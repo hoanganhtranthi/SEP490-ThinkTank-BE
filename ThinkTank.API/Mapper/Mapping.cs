@@ -38,30 +38,6 @@ namespace MuTote.API.Mapper
             CreateMap<GameRequest, GameResponse>();
             CreateMap<Game, GameResponse>();
 
-            CreateMap<ResourceRequest, Anonymous>();
-            CreateMap<ResourceRequest, AnonymousResponse>();
-            CreateMap<Anonymous, AnonymousResponse>();
-            CreateMap<AnonymousRequest, Anonymous>();
-
-            CreateMap<ResourceRequest, MusicPassword>();
-            CreateMap<ResourceRequest, MusicPasswordResponse>();
-            CreateMap<MusicPassword, MusicPasswordResponse>();
-            CreateMap<MusicPasswordRequest, MusicPassword>();
-
-            CreateMap<ResourceRequest, FlipCardAndImagesWalkthrough>();
-            CreateMap<ResourceRequest, FlipCardAndImagesWalkthroughResponse>();
-            CreateMap<FlipCardAndImagesWalkthrough, FlipCardAndImagesWalkthroughResponse>();
-            CreateMap<FlipCardAndImagesWalkthroughRequest, FlipCardAndImagesWalkthrough>();
-
-            CreateMap<ResourceRequest, StoryTeller>();
-            CreateMap<ResourceRequest, StoryTellerResponse>();
-            CreateMap<StoryTeller, StoryTellerResponse>();
-            CreateMap<StoryTellerRequest, StoryTeller>();
-
-            CreateMap<AnswerOfStoryTeller, AnswerOfStoryTellerRequest>().ReverseMap();
-            CreateMap<AnswerOfStoryTellerRequest, AnswerOfStoryTellerResponse>();
-            CreateMap<AnswerOfStoryTeller, AnswerOfStoryTellerResponse>();
-
             CreateMap<AchievementRequest, Achievement>();
             CreateMap<AchievementRequest, AchievementResponse>();
             CreateMap<Achievement, AchievementResponse>();
@@ -80,16 +56,11 @@ namespace MuTote.API.Mapper
             CreateMap<IconOfAccountRequest, IconOfAccount>();
             CreateMap<IconOfAccount,IconOfAccountResponse>();
 
-            CreateMap<TopicOfGame, TopicOfGameResponse>();
 
-            //
             CreateMap<CreateContestRequest, Contest>();
             CreateMap<Contest, ContestResponse>();
-            CreateMap<CreateContestRequest, ContestResponse>();
-
-            CreateMap<CreatePrizeOfContestRequest, PrizeOfContest>();
-            CreateMap<PrizeOfContest, PrizeOfContestResponse>();
-            CreateMap<CreatePrizeOfContestRequest, PrizeOfContestResponse>();
+            CreateMap<ContestRequest, ContestResponse>();
+            CreateMap<ContestRequest, Contest>();
 
             CreateMap<ChallengeRequest, ChallengeResponse>();
             CreateMap<ChallengeRequest, Challenge>();
@@ -106,19 +77,7 @@ namespace MuTote.API.Mapper
             CreateMap<CreateAccountInContestRequest, AccountInContest>();
             CreateMap<UpdateAccountInContestRequest, AccountInContest>();
 
-            CreateMap<FlipCardAndImagesWalkthroughOfContestRequest, FlipCardAndImagesWalkthroughOfContest>();
-            CreateMap<FlipCardAndImagesWalkthroughOfContest, FlipCardAndImagesWalkthroughOfContestResponse>();
-
-            CreateMap<AnonymityOfContestRequest, AnonymityOfContest>();
-            CreateMap<AnonymityOfContest, AnonymityOfContestResponse>();
-
-            CreateMap<MusicPasswordOfContestRequest, MusicPasswordOfContest>();
-            CreateMap<MusicPasswordOfContest,  MusicPasswordOfContestResponse>();
-
-            CreateMap<ResourceOfContestRequest, AnonymityOfContestResponse>();
-            CreateMap<ResourceOfContestRequest, FlipCardAndImagesWalkthroughOfContestResponse>();
-            CreateMap<ResourceOfContestRequest, MusicPasswordOfContestResponse>();
-            CreateMap<ResourceOfContestRequest, PrizeOfContestResponse>();
+           
         }
 
     }

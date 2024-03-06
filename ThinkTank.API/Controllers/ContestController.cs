@@ -21,14 +21,14 @@ namespace ThinkTank.API.Controllers
             _contestService = contestService;
         }
         /// <summary>
-        /// Get list of contest
+        /// Get list of contest (1: All, 2 : True, 3:False, 4: Null)
         /// </summary>
         /// <param name="pagingRequest"></param>
         /// <param name="contestRequest"></param>
         /// <returns></returns>
-        [Authorize(Policy = "All")]
+       // [Authorize(Policy = "All")]
         [HttpGet]
-        public async Task<ActionResult<List<ContestResponse>>> GetContests([FromQuery] PagingRequest pagingRequest, [FromQuery] CreateContestRequest contestRequest)
+        public async Task<ActionResult<List<ContestResponse>>> GetContests([FromQuery] PagingRequest pagingRequest, [FromQuery] ContestRequest contestRequest)
         {
             var rs = await _contestService.GetContests(contestRequest, pagingRequest);
             return Ok(rs);

@@ -19,7 +19,6 @@ namespace ThinkTank.Data.Entities
         public int TopicId { get; set; }
         public int GameId { get; set; }
 
-        public virtual Game Game { get; set; } = null!;
         public virtual Topic Topic { get; set; } = null!;
         public virtual ICollection<AccountInRoom> AccountInRooms { get; set; }
     }

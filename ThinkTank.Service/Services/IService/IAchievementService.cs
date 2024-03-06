@@ -13,5 +13,6 @@ namespace ThinkTank.Service.Services.IService
         Task<PagedResults<AchievementResponse>> GetAchievements(AchievementRequest request, PagingRequest paging);
         Task<AchievementResponse> CreateAchievement(CreateAchievementRequest createAchievementRequest);
         Task<AchievementResponse> GetAchievementById(int id);
+        Task<List<LeaderboardResponse>> GetLeaderboard(int id);
     }
 }

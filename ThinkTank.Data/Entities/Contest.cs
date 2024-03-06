@@ -8,10 +8,7 @@ namespace ThinkTank.Data.Entities
         public Contest()
         {
             AccountInContests = new HashSet<AccountInContest>();
-            AnonymityOfContests = new HashSet<AnonymityOfContest>();
-            FlipCardAndImagesWalkthroughOfContests = new HashSet<FlipCardAndImagesWalkthroughOfContest>();
-            MusicPasswordOfContests = new HashSet<MusicPasswordOfContest>();
-            PrizeOfContests = new HashSet<PrizeOfContest>();
+            AssetOfContests = new HashSet<AssetOfContest>();
         }
 
         public int Id { get; set; }
@@ -20,11 +17,9 @@ namespace ThinkTank.Data.Entities
         public DateTime StartTime { get; set; }
         public DateTime EndTime { get; set; }
         public bool? Status { get; set; }
+        public int? CoinBetting { get; set; }
 
         public virtual ICollection<AccountInContest> AccountInContests { get; set; }
-        public virtual ICollection<AnonymityOfContest> AnonymityOfContests { get; set; }
-        public virtual ICollection<FlipCardAndImagesWalkthroughOfContest> FlipCardAndImagesWalkthroughOfContests { get; set; }
-        public virtual ICollection<MusicPasswordOfContest> MusicPasswordOfContests { get; set; }
-        public virtual ICollection<PrizeOfContest> PrizeOfContests { get; set; }
+        public virtual ICollection<AssetOfContest> AssetOfContests { get; set; }
     }
 }

@@ -12,6 +12,7 @@ namespace ThinkTank.API.Controllers
     [ApiController]
     public class TopicsController : Controller
     {
+        /*
         private readonly ITopicService _topicService;
         public TopicsController(ITopicService topicService)
         {
@@ -68,5 +69,6 @@ namespace ThinkTank.API.Controllers
             if (rs == null) return NotFound();
             return Ok(rs);
         }
+        */
     }
 }

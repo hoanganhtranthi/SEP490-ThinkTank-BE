@@ -17,6 +17,7 @@ namespace ThinkTank.Data.Entities
         public int CompletedMilestone { get; set; }
         public string Unit { get; set; } = null!;
         public bool Status { get; set; }
+        public string MissionsImg { get; set; } = null!;
 
         public virtual ICollection<Badge> Badges { get; set; }
     }

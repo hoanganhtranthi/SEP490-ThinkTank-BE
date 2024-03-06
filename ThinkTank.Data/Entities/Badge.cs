@@ -10,6 +10,7 @@ namespace ThinkTank.Data.Entities
         public bool Status { get; set; }
         public int AccountId { get; set; }
         public int ChallengeId { get; set; }
+        public DateTime? CompletedDate { get; set; }
 
         public virtual Account Account { get; set; } = null!;
         public virtual Challenge Challenge { get; set; } = null!;
