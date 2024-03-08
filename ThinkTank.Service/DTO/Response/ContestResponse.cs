@@ -20,5 +20,8 @@ namespace ThinkTank.Service.DTO.Response
         [DateRangeAttribute]
         public DateTime? EndTime { get; set; }
         public bool? Status { get; set; }
+
+        public virtual ICollection<AssetOfContestResponse> AssetOfContests { get; set; }
+
     }
 }
