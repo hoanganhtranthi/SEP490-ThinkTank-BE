@@ -45,24 +45,41 @@ namespace ThinkTank.Service.Services.ImpService
         {
             try
             {
-                var contest = _mapper.Map<CreateContestRequest, Contest>(createContestRequest);
+                //var contest = _mapper.Map<CreateContestRequest, Contest>(createContestRequest);
                 var s = _unitOfWork.Repository<Contest>().Find(s => s.Name == createContestRequest.Name);
                 if (s != null)
                 {
                     throw new CrudException(HttpStatusCode.BadRequest, "Contest has already !!!", "");
                 }
+                
+                if (createContestRequest.StartTime > createContestRequest.EndTime || createContestRequest.StartTime < DateTime.Now || createContestRequest.EndTime < DateTime.Now)
+                {
+                    throw new CrudException(HttpStatusCode.BadRequest, "Start Time or End Time is invalid", "");
+                }
 
+                Contest contest = new Contest();
                 contest.Name = createContestRequest.Name;
                 contest.Thumbnail = createContestRequest.Thumbnail;
                 contest.StartTime = createContestRequest.StartTime;
                 contest.EndTime = createContestRequest.EndTime;
-                if (contest.StartTime > contest.EndTime || createContestRequest.StartTime < DateTime.Now || createContestRequest.EndTime < DateTime.Now)
-                {
-                    throw new CrudException(HttpStatusCode.BadRequest, "Start Time or End Time is invalid", "");
-                }
+                contest.CoinBetting = createContestRequest.CoinBetting;
                 contest.Status = null;
                 //create prize of contest
                 await _unitOfWork.Repository<Contest>().CreateAsync(contest);
+                await _unitOfWork.CommitAsync();
+
+                var t = _unitOfWork.Repository<TypeOfAssetInContest>().Find(t => t.Id == createContestRequest.TypeOfAssetId);
+                if (t == null)
+                {
+                    throw new CrudException(HttpStatusCode.InternalServerError, "Type Of Asset In Contest Not Found!!!!!", "");
+                }
+
+                AssetOfContest assetOfContest = new AssetOfContest();
+                assetOfContest.TypeOfAssetId = createContestRequest.TypeOfAssetId;
+                assetOfContest.ContestId = contest.Id;
+                assetOfContest.Value = createContestRequest.Value;
+
+                await _unitOfWork.Repository<AssetOfContest>().CreateAsync(assetOfContest);
                 await _unitOfWork.CommitAsync();
 
                 var expiryTime = contest.EndTime;                
@@ -210,14 +227,26 @@ namespace ThinkTank.Service.Services.ImpService
                 {
                     throw new CrudException(HttpStatusCode.BadRequest, "Id Contest Invalid", "");
                 }
-                var response = await _unitOfWork.Repository<Contest>().GetAsync(u => u.Id == id);
+                var response = _unitOfWork.Repository<Contest>().GetAll().Include(x => x.AssetOfContests).Select(x => new ContestResponse
+                {
+                    Name = x.Name,
+                    Thumbnail = x.Thumbnail,
+                    StartTime = x.StartTime,
+                    EndTime = x.EndTime,
+                                    
+                    AssetOfContests = new List<AssetOfContestResponse>(x.AssetOfContests.Select(a => new AssetOfContestResponse
+                    {
+                        Id = a.Id,
+                        Value = a.Value,
+                        Type = _unitOfWork.Repository<TypeOfAssetInContest>().Find(t => t.Id == a.TypeOfAssetId).Type,
+                    }))
+                }).SingleOrDefault(x => x.Id == id);
 
                 if (response == null)
                 {
                     throw new CrudException(HttpStatusCode.NotFound, $"Not found contest with id {id.ToString()}", "");
                 }
-
-                return _mapper.Map<ContestResponse>(response);
+                return response;
             }
             catch (CrudException ex)
             {
@@ -312,26 +341,50 @@ namespace ThinkTank.Service.Services.ImpService
                 throw new CrudException(HttpStatusCode.InternalServerError, "Get contest list error!!!!!", ex.Message);
             }
         }
-       /* public async Task<List<ContestResponse>> GetContestByGameId(int gameId)
+
+        public async Task<PagedResults<ContestResponse>> GetContestsNotAsset(ContestRequest request, PagingRequest paging)
         {
             try
             {
-                var result = new List<ContestResponse>();
-                var contests = _unitOfWork.Repository<Contest>().GetAll().Include(x => x.FlipCardAndImagesWalkthroughOfContests)
-                    .Include(x => x.AnonymityOfContests).Include(x => x.MusicPasswordOfContests)                                          
+                var filter = _mapper.Map<ContestResponse>(request);
+                var contests = _unitOfWork.Repository<Contest>().GetAll()
+                                           .ProjectTo<ContestResponse>(_mapper.ConfigurationProvider)
+                                           .DynamicFilter(filter)
                                            .ToList();
-                foreach (var contest in contests)
+                if (request.ContestStatus != Helpers.Enum.StatusType.All)
                 {
-                    if(contest.FlipCardAndImagesWalkthroughOfContests.SingleOrDefault(x=>x.))
+                    bool? status = null;
+                    if (request.ContestStatus.ToString().ToLower() != "null")
+                    {
+                        status = bool.Parse(request.ContestStatus.ToString().ToLower());
+                    }
+                    contests = contests.Where(a => a.Status == status).ToList();
                 }
+                var sort = PageHelper<ContestResponse>.Sorting(paging.SortType, contests, paging.ColName);
+                var result = PageHelper<ContestResponse>.Paging(sort, paging.Page, paging.PageSize);
                 return result;
             }
             catch (CrudException ex)
             {
                 throw new CrudException(HttpStatusCode.InternalServerError, "Get contest list error!!!!!", ex.Message);
             }
-        }*/
-        public async Task<ContestResponse> UpdateContest(int contestId, CreateContestRequest request)
+        }
+
+        public async Task<ContestResponse> GetContest(int id)
+        {
+            try
+            {
+                var contest = _unitOfWork.Repository<Contest>().GetAll().Include(x => x.AssetOfContests).SingleOrDefault(c => c.Id == id);
+                return _mapper.Map<Contest, ContestResponse>(contest);
+            }
+            catch (CrudException ex)
+            {
+                throw new CrudException(HttpStatusCode.InternalServerError, "Get list asset of contest error!!!!!", ex.Message);
+            }
+        }
+
+
+        public async Task<ContestResponse> UpdateContest(int contestId, UpdateContestRequest request)
         {
             try
             {
@@ -348,13 +401,14 @@ namespace ThinkTank.Service.Services.ImpService
                     throw new CrudException(HttpStatusCode.BadRequest, "Start Time or End Time is invalid", "");
                 if (contest.StartTime <= DateTime.Now)
                     throw new CrudException(HttpStatusCode.BadRequest, "The contest has already started and you cannot update it", "");
+                
                 var job = _cacheService.GetData<string>($"Contest{contest.Id}JobIdStartTime");
                 if (job != null)
                     BackgroundJob.Delete(job);
                 var jobId = _cacheService.GetData<string>($"Contest{contest.Id}JobIdEndTime");
                 if (jobId != null)
                     BackgroundJob.Delete(jobId);
-                _mapper.Map<CreateContestRequest, Contest>(request, contest);
+                _mapper.Map<UpdateContestRequest, Contest>(request, contest);
                 contest.Id = contestId;               
                 await _unitOfWork.Repository<Contest>().Update(contest, contestId);
                 await _unitOfWork.CommitAsync();
@@ -390,8 +444,16 @@ namespace ThinkTank.Service.Services.ImpService
                 {
                     throw new CrudException(HttpStatusCode.NotFound, $"Not found contest with id{id.ToString()}", "");
                 }
+
+                var assets = _unitOfWork.Repository<AssetOfContest>().GetAll().Where(a => a.ContestId == id).ToList();
+                foreach(var asset in assets)
+                {
+                    await _unitOfWork.Repository<AssetOfContest>().RemoveAsync(asset);
+                }
+                
                 await _unitOfWork.Repository<Contest>().RemoveAsync(contest);
                 await _unitOfWork.CommitAsync();
+
                 var job = _cacheService.GetData<string>($"Contest{contest.Id}JobIdStartTime");
                 if (job != null)
                     BackgroundJob.Delete(job);

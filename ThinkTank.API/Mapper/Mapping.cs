@@ -61,6 +61,7 @@ namespace MuTote.API.Mapper
             CreateMap<Contest, ContestResponse>();
             CreateMap<ContestRequest, ContestResponse>();
             CreateMap<ContestRequest, Contest>();
+            CreateMap<UpdateContestRequest, Contest>();
 
             CreateMap<ChallengeRequest, ChallengeResponse>();
             CreateMap<ChallengeRequest, Challenge>();
@@ -77,7 +78,8 @@ namespace MuTote.API.Mapper
             CreateMap<CreateAccountInContestRequest, AccountInContest>();
             CreateMap<UpdateAccountInContestRequest, AccountInContest>();
 
-           
+            CreateMap<CreateAssetOfContestRequest, AssetOfContest>();
+            CreateMap<AssetOfContest, AssetOfContestResponse>();
         }
 
     }
