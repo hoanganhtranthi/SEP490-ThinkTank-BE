@@ -46,7 +46,6 @@ namespace MuTote.API.Mapper
             CreateMap<TopicRequest, Topic>();
             CreateMap<TopicRequest, TopicResponse>();
             CreateMap<Topic, TopicResponse>();
-            CreateMap<CreateTopicOfGameRequest, Topic>();
 
             CreateMap<IconRequest, Icon>();
             CreateMap<IconRequest, IconResponse>();
@@ -61,6 +60,16 @@ namespace MuTote.API.Mapper
             CreateMap<Contest, ContestResponse>();
             CreateMap<ContestRequest, ContestResponse>();
             CreateMap<ContestRequest, Contest>();
+
+            CreateMap<CreateAssetRequest, Asset>();
+            CreateMap<Asset, AssetResponse>().ReverseMap();
+            CreateMap<AssetRequest, AssetResponse>();
+            CreateMap<AssetRequest, Asset>();
+
+            CreateMap<CreateTypeOfAssetRequest, TypeOfAsset>();
+            CreateMap<TypeOfAsset, TypeOfAssetResponse>().ReverseMap();
+            CreateMap<TypeOfAssetRequest, TypeOfAssetResponse>();
+            CreateMap<TypeOfAssetRequest, TypeOfAsset>();
 
             CreateMap<ChallengeRequest, ChallengeResponse>();
             CreateMap<ChallengeRequest, Challenge>();

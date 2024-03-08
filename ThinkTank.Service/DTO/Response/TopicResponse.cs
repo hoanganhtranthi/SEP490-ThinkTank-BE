@@ -15,6 +15,8 @@ namespace ThinkTank.Service.DTO.Response
         public int Id { get; set; }
         [StringAttribute]
         public string? Name { get; set; }
-        public virtual ICollection<TopicOfGameResponse> TopicOfGames { get; set; }
+        [IntAttribute]
+        public int? GameId { get; set; }
+        public string? GameName { get; set; }
     }
 }

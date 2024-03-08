@@ -12,8 +12,6 @@ namespace ThinkTank.Service.Services.IService
     {
         Task<PagedResults<BadgeResponse>> GetBadges(BadgeRequest request, PagingRequest paging);
         Task<PagedResults<BadgeResponse>> GetBadgesIsCompleted(BadgeRequest request, PagingRequest paging);
-        Task<BadgeResponse> CreateBadge(CreateBadgeRequest createBadgeRequest);
-        Task<BadgeResponse> UpdateBadge(int badgeId, CreateBadgeRequest request);
 
     }
 }

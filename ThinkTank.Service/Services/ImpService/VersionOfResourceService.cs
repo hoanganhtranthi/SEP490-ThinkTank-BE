@@ -10,6 +10,7 @@ using ThinkTank.Data.Entities;
 using ThinkTank.Data.UnitOfWork;
 using ThinkTank.Service.Exceptions;
 using ThinkTank.Service.Services.IService;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace ThinkTank.Service.Services.ImpService
 {
@@ -30,9 +31,9 @@ namespace ThinkTank.Service.Services.ImpService
                 return new
                 {
                     AnonymousVersion = _cacheService.GetData<int>("AnonymousVersion"),
-                    FlipCardAndImagesWalkthroughVersion = _cacheService.GetData<int>("FlipCardAndImagesWalkthroughVersion"),
-                    MusicPasswordVersion = _cacheService.GetData<int>("MusicPasswordVersion"),
-                    StoryTellerVersion = _cacheService.GetData<int>("StoryTellerVersion")
+                    FlipCardAndImagesWalkthroughVersion = _cacheService.GetData<int>("Flip CardVersion"),
+                    MusicPasswordVersion = _cacheService.GetData<int>("Music PasswordVersion"),
+                    ImagesWalkthroughVersion = _cacheService.GetData<int>("Images WalkthroughVersion"),
                 };
             }
             catch (CrudException ex)

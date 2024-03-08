@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using ThinkTank.Service.DTO.Request;
 using ThinkTank.Service.DTO.Response;
@@ -18,11 +19,16 @@ namespace ThinkTank.API.Controllers
         {
             _challengeService = challengeService;
         }
-
+        /// <summary>
+        /// Get challenges of account(1: All, 2 : True, 3:False, 4: Null)
+        /// </summary>
+        /// <param name="challengeRequest"></param>
+        /// <returns></returns>
+       [Authorize(Policy = "Player")]
         [HttpGet]
-        public async Task<ActionResult<List<ChallengeResponse>>> GetChallenges([FromQuery] PagingRequest pagingRequest, [FromQuery] ChallengeRequest challengeRequest)
+        public async Task<ActionResult<List<ChallengeResponse>>> GetChallenges([FromQuery] ChallengeRequest challengeRequest)
         {
-            var rs = await _challengeService.GetChallenges(challengeRequest, pagingRequest);
+            var rs = await _challengeService.GetChallenges(challengeRequest);
             return Ok(rs);
         }
     }

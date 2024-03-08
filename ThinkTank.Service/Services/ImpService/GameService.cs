@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using AutoMapper.QueryableExtensions;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -42,7 +43,7 @@ namespace ThinkTank.Service.Services.ImpService
                     throw new CrudException(HttpStatusCode.NotFound, $"Not found game with id {id.ToString()}", "");
                 }
 
-                var amount = _unitOfWork.Repository<Achievement>().GetAll().Where(x => x.GameId == id).Select(a=>a.AccountId).Distinct().Count();
+                var amount = _unitOfWork.Repository<Achievement>().GetAll().Include(x=>x.Topic).Where(x => x.Topic.GameId == id).Select(a=>a.AccountId).Distinct().Count();
                 var rs= _mapper.Map<GameResponse>(response);
                 rs.AmoutPlayer = amount;
                 return rs;
@@ -76,8 +77,8 @@ namespace ThinkTank.Service.Services.ImpService
                 var responseLevels = new List<ReportGameLevelResponse>();
 
                 var achievements = _unitOfWork.Repository<Achievement>()
-                    .GetAll()
-                    .Where(x => x.GameId == id && x.Mark > 0)
+                    .GetAll().Include(x=>x.Topic)
+                    .Where(x => x.Topic.GameId == id && x.Mark > 0)
                     .ToList();
 
                 foreach (var achievement in achievements)
@@ -142,7 +143,7 @@ namespace ThinkTank.Service.Services.ImpService
                 {
                     Id = x.Id,
                     Name=x.Name,
-                    AmoutPlayer =_unitOfWork.Repository<Achievement>().GetAll().Where(x => x.GameId ==x.Id).Select(a => a.AccountId).Distinct().Count()
+                    AmoutPlayer =_unitOfWork.Repository<Achievement>().GetAll().Include(x=>x.Topic).Where(x => x.Topic.GameId ==x.Id).Select(a => a.AccountId).Distinct().Count()
             })  .DynamicFilter(filter) .ToList();
                 var sort = PageHelper<GameResponse>.Sorting(paging.SortType, games, paging.ColName);
                 var result = PageHelper<GameResponse>.Paging(sort, paging.Page, paging.PageSize);

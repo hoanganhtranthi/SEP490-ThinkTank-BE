@@ -32,22 +32,5 @@ namespace ThinkTank.API.Controllers
             var rs = await _badgeService.GetBadgesIsCompleted(badgeRequest, pagingRequest);
             return Ok(rs);
         }
-
-        //[Authorize(Policy = "Admin")]
-        [HttpPost]
-        public async Task<ActionResult<BadgeResponse>> CreateBadge([FromBody] CreateBadgeRequest badgeRequest)
-        {
-            var rs = await _badgeService.CreateBadge(badgeRequest);
-            return Ok(rs);
-        }
-
-        //[Authorize(Policy = "Admin")]
-        [HttpPut("{id:int}")]
-        public async Task<ActionResult<BadgeResponse>> UpdateBadge([FromBody] CreateBadgeRequest badgeRequest, int id)
-        {
-            var rs = await _badgeService.UpdateBadge(id, badgeRequest);
-            if (rs == null) return NotFound();
-            return Ok(rs);
-        }
     }
 }

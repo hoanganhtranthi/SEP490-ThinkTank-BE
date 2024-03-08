@@ -68,29 +68,20 @@ namespace ThinkTank.Service.Services.ImpService
                 {
                     throw new CrudException(HttpStatusCode.InternalServerError, "Contest Not Available!!!!!", "");
                 }
+                a.Coin -= c.CoinBetting;
+                acc.Prize = request.Mark / 10;
                 acc.ContestId = c.Id;
                 acc.CompletedTime = DateTime.Now;
                 acc.Duration = request.Duration;
                 acc.Mark = request.Mark;
+                a.Coin += acc.Prize;
                 await _unitOfWork.Repository<AccountInContest>().CreateAsync(acc);
-                var leaderboardResult = await _contestService.GetLeaderboardOfContest(acc.ContestId);
-                if (leaderboardResult.Any())
-                {
-                    var leaderboard = leaderboardResult.SingleOrDefault(a => a.AccountId == request.AccountId);
-                    if (leaderboard != null)
-                    {
-                       /* var prize = _unitOfWork.Repository<PrizeOfContest>()
-                            .GetAll()
-                            .SingleOrDefault(x => x.ContestId == request.ContestId && x.FromRank <= leaderboard.Rank && x.ToRank >= leaderboard.Rank);
-                        if (prize != null)
-                            acc.Prize = prize.Prize;*/
-                    }
-                }
+                await _unitOfWork.Repository<Account>().Update(a, request.AccountId);
                 List<string> fcmTokens = new List<string>();
                 fcmTokens.Add(a.Fcm);
                 if (fcmTokens.Any())
                     _firebaseMessagingService.Subcribe(fcmTokens, $"/topics/contestId{c.Id}");
-                if(a.AccountInContests.Count()>2)
+                if(a.AccountInContests.Count()==2)
                 {
                     var badge = _unitOfWork.Repository<Badge>().GetAll().Include(x => x.Challenge).SingleOrDefault(x => x.AccountId == a.Id && x.Challenge.Name.Equals("Super enthusiastic"));
                     var challage = _unitOfWork.Repository<Challenge>().Find(x => x.Name.Equals("Super enthusiastic"));

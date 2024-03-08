@@ -22,7 +22,7 @@ namespace ThinkTank.API.Controllers
         /// <param name="pagingRequest"></param>
         /// <param name="request"></param>
         /// <returns></returns>
-        [Authorize(Policy ="All")]
+       // [Authorize(Policy ="All")]
         [HttpGet]
         public async Task<ActionResult<List<AchievementResponse>>> GetAchievements([FromQuery] PagingRequest pagingRequest, [FromQuery] AchievementRequest request)
         {
@@ -34,7 +34,7 @@ namespace ThinkTank.API.Controllers
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        [Authorize(Policy ="All")]
+       // [Authorize(Policy ="All")]
         [HttpGet("{id:int}")]
         public async Task<ActionResult<AchievementResponse>> GetAchievement(int id)
         {

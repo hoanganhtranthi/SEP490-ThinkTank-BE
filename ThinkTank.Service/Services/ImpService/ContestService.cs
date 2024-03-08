@@ -56,6 +56,7 @@ namespace ThinkTank.Service.Services.ImpService
                 contest.Thumbnail = createContestRequest.Thumbnail;
                 contest.StartTime = createContestRequest.StartTime;
                 contest.EndTime = createContestRequest.EndTime;
+                contest.CoinBetting = createContestRequest.CoinBetting;
                 if (contest.StartTime > contest.EndTime || createContestRequest.StartTime < DateTime.Now || createContestRequest.EndTime < DateTime.Now)
                 {
                     throw new CrudException(HttpStatusCode.BadRequest, "Start Time or End Time is invalid", "");

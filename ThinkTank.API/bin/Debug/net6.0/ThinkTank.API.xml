@@ -132,6 +132,13 @@
             <param name="gameId"></param>
             <returns></returns>
         </member>
+        <member name="M:ThinkTank.API.Controllers.ChallengesController.GetChallenges(ThinkTank.Service.DTO.Request.ChallengeRequest)">
+            <summary>
+            Get challenges of account(1: All, 2 : True, 3:False, 4: Null)
+            </summary>
+            <param name="challengeRequest"></param>
+            <returns></returns>
+        </member>
         <member name="M:ThinkTank.API.Controllers.ContestController.GetContests(ThinkTank.Service.DTO.Request.PagingRequest,ThinkTank.Service.DTO.Request.ContestRequest)">
             <summary>
             Get list of contest (1: All, 2 : True, 3:False, 4: Null)
@@ -322,6 +329,74 @@
             Create report
             </summary>
             <param name="report"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ThinkTank.API.Controllers.TopicsController.GetTopics(ThinkTank.Service.DTO.Request.PagingRequest,ThinkTank.Service.DTO.Request.TopicRequest)">
+            <summary>
+            Get list of topic
+            </summary>
+            <param name="pagingRequest"></param>
+            <param name="anonymousRequest"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ThinkTank.API.Controllers.TopicsController.GetTopic(System.Int32)">
+            <summary>
+            Get topic by Id
+            </summary>
+            <param name="id"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ThinkTank.API.Controllers.TopicsController.CreatTopic(ThinkTank.Service.DTO.Request.TopicRequest)">
+            <summary>
+            Create Topic
+            </summary>
+            <param name="request"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ThinkTank.API.Controllers.TopicsController.UpdateTopic(ThinkTank.Service.DTO.Request.TopicRequest,System.Int32)">
+            <summary>
+            Update topic
+            </summary>
+            <param name="request"></param>
+            <param name="id"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ThinkTank.API.Controllers.TypeOfAssetsController.GetAssets(ThinkTank.Service.DTO.Request.PagingRequest,ThinkTank.Service.DTO.Request.TypeOfAssetRequest)">
+            <summary>
+            Get list of assets
+            </summary>
+            <param name="pagingRequest"></param>
+            <param name="assetRequest"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ThinkTank.API.Controllers.TypeOfAssetsController.GetTypeOfAssetsById(System.Int32)">
+            <summary>
+            Get type of asset  by Id
+            </summary>
+            <param name="id"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ThinkTank.API.Controllers.TypeOfAssetsController.CreateTypeOfAsset(ThinkTank.Service.DTO.Request.CreateTypeOfAssetRequest)">
+            <summary>
+            Create type of asset  
+            </summary>
+            <param name="resource"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ThinkTank.API.Controllers.TypeOfAssetsController.UpdateResource(ThinkTank.Service.DTO.Request.CreateTypeOfAssetRequest,System.Int32)">
+            <summary>
+            Update resource
+            </summary>
+            <param name="request"></param>
+            <param name="id"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ThinkTank.API.Controllers.TypeOfAssetsController.DeleteResource(System.Int32)">
+            <summary>
+            Delete resource
+            </summary>
+            <param name="request"></param>
+            <param name="id"></param>
             <returns></returns>
         </member>
         <member name="M:ThinkTank.API.Controllers.VersionResourcesController.GetVersionOfResources">

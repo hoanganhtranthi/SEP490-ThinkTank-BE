@@ -31,48 +31,6 @@ namespace ThinkTank.Service.Services.ImpService
             _config = configuration;
         }
 
-        public async Task<BadgeResponse> CreateBadge(CreateBadgeRequest createBadgeRequest)
-        {
-            try
-            {
-                var badge = _mapper.Map<CreateBadgeRequest, Badge>(createBadgeRequest);
-                var s = _unitOfWork.Repository<Badge>().Find(s => s.ChallengeId == createBadgeRequest.ChallengeId && s.AccountId == createBadgeRequest.AccountId);
-                if (s != null)
-                {
-                    throw new CrudException(HttpStatusCode.BadRequest, "Badge has already !!!", "");
-                }
-
-                var a = _unitOfWork.Repository<Account>().Find(a => a.Id == createBadgeRequest.AccountId);
-                if (a == null)
-                {
-                    throw new CrudException(HttpStatusCode.InternalServerError, "Account Not Found!!!!!", "");
-                }
-                badge.AccountId = createBadgeRequest.AccountId;
-
-                var c = _unitOfWork.Repository<Challenge>().Find(c => c.Id == createBadgeRequest.ChallengeId);
-                if (c == null)
-                {
-                    throw new CrudException(HttpStatusCode.InternalServerError, "Challenge Not Found!!!!!", "");
-                }
-                badge.ChallengeId = createBadgeRequest.ChallengeId;
-                badge.CompletedLevel = createBadgeRequest.CompletedLevel;
-                badge.Status = false;
-
-                await _unitOfWork.Repository<Badge>().CreateAsync(badge);
-                await _unitOfWork.CommitAsync();
-
-                return _mapper.Map<BadgeResponse>(badge);
-            }
-            catch (CrudException ex)
-            {
-                throw ex;
-            }
-            catch (Exception ex)
-            {
-                throw new CrudException(HttpStatusCode.InternalServerError, "Create Badge Error!!!", ex?.Message);
-            }
-        }
-
         public async Task<PagedResults<BadgeResponse>> GetBadges(BadgeRequest request, PagingRequest paging)
         {
             try
