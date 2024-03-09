@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using AutoMapper.QueryableExtensions;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;
@@ -29,18 +30,35 @@ namespace ThinkTank.Service.Services.ImpService
             _mapper = mapper;
             _config = configuration;
         }
-        public async Task<PagedResults<ChallengeResponse>> GetChallenges(ChallengeRequest request, PagingRequest paging)
+        public async Task<List<ChallengeResponse>> GetChallenges(ChallengeRequest request)
         {
             try
             {
-                var filter = _mapper.Map<ChallengeResponse>(request);
-                var challenges = _unitOfWork.Repository<Challenge>().GetAll()
-                                           .ProjectTo<ChallengeResponse>(_mapper.ConfigurationProvider)
-                                           .DynamicFilter(filter)
+                var challenges = _unitOfWork.Repository<Challenge>().GetAll().Include(x=>x.Badges)
+                                           .Select(x=>new ChallengeResponse
+                                           {
+                                               Id=x.Id,
+                                               Avatar=x.Avatar,
+                                               CompletedMilestone=x.CompletedMilestone,
+                                               Description=x.Description,
+                                               MissionsImg=x.MissionsImg,
+                                               Name = x.Name,
+                                               Unit=x.Unit,
+                                               CompletedLevel= x.Badges.SingleOrDefault(a=>a.ChallengeId==x.Id && a.AccountId==request.AccountId).CompletedLevel,
+                                               CompletedDate= x.Badges.SingleOrDefault(a => a.ChallengeId == x.Id && a.AccountId == request.AccountId).CompletedDate,
+                                               Status= x.Badges.SingleOrDefault(a => a.ChallengeId == x.Id && a.AccountId == request.AccountId).Status
+                                           })
                                            .ToList();
-                var sort = PageHelper<ChallengeResponse>.Sorting(paging.SortType, challenges, paging.ColName);
-                var result = PageHelper<ChallengeResponse>.Paging(sort, paging.Page, paging.PageSize);
-                return result;
+                if (request.Status != Helpers.Enum.StatusType.All)
+                {
+                    bool? status = null;
+                    if (request.Status.ToString().ToLower() != "null")
+                    {
+                        status = bool.Parse(request.Status.ToString().ToLower());
+                    }
+                    challenges = challenges.Where(x => x.Status.Equals(status)).ToList();
+                }
+                return challenges;
             }
             catch (CrudException ex)
             {

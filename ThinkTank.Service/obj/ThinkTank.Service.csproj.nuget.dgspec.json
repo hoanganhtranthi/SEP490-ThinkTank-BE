@@ -1,23 +1,23 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\ADMIN\\Downloads\\SEP490-ThinkTank-BE-main\\SEP490-ThinkTank-BE-main\\ThinkTank.Service\\ThinkTank.Service.csproj": {}
+    "D:\\SEP490-ThinkTank-BE\\ThinkTank.Service\\ThinkTank.Service.csproj": {}
   },
   "projects": {
-    "C:\\Users\\ADMIN\\Downloads\\SEP490-ThinkTank-BE-main\\SEP490-ThinkTank-BE-main\\ThinkTank.Data\\ThinkTank.Data.csproj": {
+    "D:\\SEP490-ThinkTank-BE\\ThinkTank.Data\\ThinkTank.Data.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\ADMIN\\Downloads\\SEP490-ThinkTank-BE-main\\SEP490-ThinkTank-BE-main\\ThinkTank.Data\\ThinkTank.Data.csproj",
+        "projectUniqueName": "D:\\SEP490-ThinkTank-BE\\ThinkTank.Data\\ThinkTank.Data.csproj",
         "projectName": "ThinkTank.Data",
-        "projectPath": "C:\\Users\\ADMIN\\Downloads\\SEP490-ThinkTank-BE-main\\SEP490-ThinkTank-BE-main\\ThinkTank.Data\\ThinkTank.Data.csproj",
-        "packagesPath": "C:\\Users\\ADMIN\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\ADMIN\\Downloads\\SEP490-ThinkTank-BE-main\\SEP490-ThinkTank-BE-main\\ThinkTank.Data\\obj\\",
+        "projectPath": "D:\\SEP490-ThinkTank-BE\\ThinkTank.Data\\ThinkTank.Data.csproj",
+        "packagesPath": "C:\\Users\\Hoang Anh\\.nuget\\packages\\",
+        "outputPath": "D:\\SEP490-ThinkTank-BE\\ThinkTank.Data\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
         ],
         "configFilePaths": [
-          "C:\\Users\\ADMIN\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Users\\Hoang Anh\\AppData\\Roaming\\NuGet\\NuGet.Config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
@@ -137,24 +137,24 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\6.0.414\\RuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\6.0.400\\RuntimeIdentifierGraph.json"
         }
       }
     },
-    "C:\\Users\\ADMIN\\Downloads\\SEP490-ThinkTank-BE-main\\SEP490-ThinkTank-BE-main\\ThinkTank.Service\\ThinkTank.Service.csproj": {
+    "D:\\SEP490-ThinkTank-BE\\ThinkTank.Service\\ThinkTank.Service.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\ADMIN\\Downloads\\SEP490-ThinkTank-BE-main\\SEP490-ThinkTank-BE-main\\ThinkTank.Service\\ThinkTank.Service.csproj",
+        "projectUniqueName": "D:\\SEP490-ThinkTank-BE\\ThinkTank.Service\\ThinkTank.Service.csproj",
         "projectName": "ThinkTank.Service",
-        "projectPath": "C:\\Users\\ADMIN\\Downloads\\SEP490-ThinkTank-BE-main\\SEP490-ThinkTank-BE-main\\ThinkTank.Service\\ThinkTank.Service.csproj",
-        "packagesPath": "C:\\Users\\ADMIN\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\ADMIN\\Downloads\\SEP490-ThinkTank-BE-main\\SEP490-ThinkTank-BE-main\\ThinkTank.Service\\obj\\",
+        "projectPath": "D:\\SEP490-ThinkTank-BE\\ThinkTank.Service\\ThinkTank.Service.csproj",
+        "packagesPath": "C:\\Users\\Hoang Anh\\.nuget\\packages\\",
+        "outputPath": "D:\\SEP490-ThinkTank-BE\\ThinkTank.Service\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
         ],
         "configFilePaths": [
-          "C:\\Users\\ADMIN\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Users\\Hoang Anh\\AppData\\Roaming\\NuGet\\NuGet.Config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
@@ -169,8 +169,8 @@
           "net6.0": {
             "targetAlias": "net6.0",
             "projectReferences": {
-              "C:\\Users\\ADMIN\\Downloads\\SEP490-ThinkTank-BE-main\\SEP490-ThinkTank-BE-main\\ThinkTank.Data\\ThinkTank.Data.csproj": {
-                "projectPath": "C:\\Users\\ADMIN\\Downloads\\SEP490-ThinkTank-BE-main\\SEP490-ThinkTank-BE-main\\ThinkTank.Data\\ThinkTank.Data.csproj"
+              "D:\\SEP490-ThinkTank-BE\\ThinkTank.Data\\ThinkTank.Data.csproj": {
+                "projectPath": "D:\\SEP490-ThinkTank-BE\\ThinkTank.Data\\ThinkTank.Data.csproj"
               }
             }
           }
@@ -278,7 +278,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\6.0.414\\RuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\6.0.400\\RuntimeIdentifierGraph.json"
         }
       }
     }

@@ -68,29 +68,22 @@ namespace ThinkTank.Service.Services.ImpService
                 {
                     throw new CrudException(HttpStatusCode.InternalServerError, "Contest Not Available!!!!!", "");
                 }
+                a.Coin -= c.CoinBetting;
+                acc.Prize = request.Mark / 10;
                 acc.ContestId = c.Id;
                 acc.CompletedTime = DateTime.Now;
                 acc.Duration = request.Duration;
                 acc.Mark = request.Mark;
+                a.Coin += acc.Prize;
                 await _unitOfWork.Repository<AccountInContest>().CreateAsync(acc);
-                var leaderboardResult = await _contestService.GetLeaderboardOfContest(acc.ContestId);
-                if (leaderboardResult.Any())
-                {
-                    var leaderboard = leaderboardResult.SingleOrDefault(a => a.AccountId == request.AccountId);
-                    if (leaderboard != null)
-                    {
-                       /* var prize = _unitOfWork.Repository<PrizeOfContest>()
-                            .GetAll()
-                            .SingleOrDefault(x => x.ContestId == request.ContestId && x.FromRank <= leaderboard.Rank && x.ToRank >= leaderboard.Rank);
-                        if (prize != null)
-                            acc.Prize = prize.Prize;*/
-                    }
-                }
+                await _unitOfWork.Repository<Account>().Update(a, request.AccountId);
+                if(a.Coin ==4000)
+                    GetBadge(a, "The Tycoon");
                 List<string> fcmTokens = new List<string>();
                 fcmTokens.Add(a.Fcm);
                 if (fcmTokens.Any())
                     _firebaseMessagingService.Subcribe(fcmTokens, $"/topics/contestId{c.Id}");
-                if(a.AccountInContests.Count()>2)
+                if(a.AccountInContests.Count()==2)
                 {
                     var badge = _unitOfWork.Repository<Badge>().GetAll().Include(x => x.Challenge).SingleOrDefault(x => x.AccountId == a.Id && x.Challenge.Name.Equals("Super enthusiastic"));
                     var challage = _unitOfWork.Repository<Challenge>().Find(x => x.Name.Equals("Super enthusiastic"));
@@ -154,6 +147,60 @@ namespace ThinkTank.Service.Services.ImpService
             catch (Exception ex)
             {
                 throw new CrudException(HttpStatusCode.InternalServerError, "Create Account In Contest Error!!!", ex?.Message);
+            }
+        }
+        private async Task GetBadge(Account account, string name)
+        {
+            var badge = _unitOfWork.Repository<Badge>().GetAll().Include(x => x.Challenge).SingleOrDefault(x => x.AccountId == account.Id && x.Challenge.Name.Equals(name));
+            var challage = _unitOfWork.Repository<Challenge>().Find(x => x.Name.Equals(name));
+            if (badge != null)
+            {
+                if (badge.CompletedLevel < challage.CompletedMilestone)
+                    badge.CompletedLevel += 1;
+                if (badge.CompletedLevel == challage.CompletedMilestone)
+                {
+                    badge.Status = true;
+                    badge.CompletedDate = DateTime.Now;
+                    await _unitOfWork.Repository<Badge>().Update(badge, badge.Id);
+                    #region send noti for account
+                    List<string> fcmTokens = new List<string>();
+                    if (account.Fcm != null)
+                        fcmTokens.Add(account.Fcm);
+                    var data = new Dictionary<string, string>()
+                    {
+                        ["click_action"] = "FLUTTER_NOTIFICATION_CLICK",
+                        ["Action"] = "home",
+                        ["Argument"] = JsonConvert.SerializeObject(new JsonSerializerSettings
+                        {
+                            ContractResolver = new DefaultContractResolver
+                            {
+                                NamingStrategy = new SnakeCaseNamingStrategy()
+                            }
+                        }),
+                    };
+                    if (fcmTokens.Any())
+                        _firebaseMessagingService.SendToDevices(fcmTokens,
+                                                               new FirebaseAdmin.Messaging.Notification() { Title = "ThinkTank", Body = $"You have received {challage.Name} badge.", ImageUrl = challage.Avatar }, data);
+                    #endregion
+                    Notification notification = new Notification
+                    {
+                        AccountId = account.Id,
+                        Avatar = challage.Avatar,
+                        DateTime = DateTime.Now,
+                        Description = $"You have received {challage.Name} badge.",
+                        Titile = "ThinkTank"
+                    };
+                    await _unitOfWork.Repository<Notification>().CreateAsync(notification);
+                }
+            }
+            else
+            {
+                CreateBadgeRequest createBadgeRequest = new CreateBadgeRequest();
+                createBadgeRequest.AccountId = account.Id;
+                createBadgeRequest.CompletedLevel = 1;
+                createBadgeRequest.ChallengeId = challage.Id;
+                var b = _mapper.Map<CreateBadgeRequest, Badge>(createBadgeRequest);
+                await _unitOfWork.Repository<Badge>().CreateAsync(b);
             }
         }
         public async Task<AccountInContestResponse> GetAccountInContest(AccountInContestRequest account)

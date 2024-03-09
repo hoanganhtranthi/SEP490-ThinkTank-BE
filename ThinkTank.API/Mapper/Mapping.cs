@@ -46,7 +46,6 @@ namespace MuTote.API.Mapper
             CreateMap<TopicRequest, Topic>();
             CreateMap<TopicRequest, TopicResponse>();
             CreateMap<Topic, TopicResponse>();
-            CreateMap<CreateTopicOfGameRequest, Topic>();
 
             CreateMap<IconRequest, Icon>();
             CreateMap<IconRequest, IconResponse>();
@@ -57,19 +56,23 @@ namespace MuTote.API.Mapper
             CreateMap<IconOfAccount,IconOfAccountResponse>();
 
 
-            CreateMap<CreateContestRequest, Contest>();
+            CreateMap<CreateAndUpdateContestRequest, Contest>();
             CreateMap<Contest, ContestResponse>();
             CreateMap<ContestRequest, ContestResponse>();
             CreateMap<ContestRequest, Contest>();
-            CreateMap<UpdateContestRequest, Contest>();
+
+            CreateMap<CreateAssetRequest, Asset>();
+            CreateMap<Asset, AssetResponse>().ReverseMap();
+
+            CreateMap<CreateTypeOfAssetRequest, TypeOfAsset>();
+            CreateMap<TypeOfAsset, TypeOfAssetResponse>().ReverseMap();
+            CreateMap<TypeOfAssetRequest, TypeOfAssetResponse>();
+            CreateMap<TypeOfAssetRequest, TypeOfAsset>();
 
             CreateMap<ChallengeRequest, ChallengeResponse>();
             CreateMap<ChallengeRequest, Challenge>();
             CreateMap<Challenge, ChallengeResponse>();
 
-            CreateMap<BadgeRequest, Badge>();
-            CreateMap<BadgeRequest, BadgeResponse>();
-            CreateMap<Badge, BadgeResponse>();
             CreateMap<CreateBadgeRequest, Badge>();
 
             CreateMap<AccountInContestRequest, AccountInContest>();
@@ -79,7 +82,12 @@ namespace MuTote.API.Mapper
             CreateMap<UpdateAccountInContestRequest, AccountInContest>();
 
             CreateMap<CreateAssetOfContestRequest, AssetOfContest>();
-            CreateMap<AssetOfContest, AssetOfContestResponse>();
+            CreateMap<AssetOfContest, AssetOfContestResponse>().ReverseMap();
+
+            CreateMap<CreateTypeOfAssetInContestRequest, TypeOfAssetInContest>();
+            CreateMap<TypeOfAssetInContest, TypeOfAssetInContestResponse>().ReverseMap();
+            CreateMap<TypeOfAssetInContestRequest, TypeOfAssetInContestResponse>();
+            CreateMap<TypeOfAssetInContestRequest, TypeOfAssetInContest>();
         }
 
     }

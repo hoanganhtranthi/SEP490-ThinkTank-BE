@@ -229,6 +229,7 @@ namespace ThinkTank.Service.Services.ImpService
                         if(badge.CompletedLevel==challage.CompletedMilestone)
                         {
                             badge.Status = true;
+                            badge.CompletedDate = DateTime.Now;
                             await _unitOfWork.Repository<Badge>().Update(badge, badge.Id);
                             #region send noti for account
                             List<string> fcmTokens = new List<string>();
@@ -256,7 +257,7 @@ namespace ThinkTank.Service.Services.ImpService
                                     Avatar = challage.Avatar,
                                     DateTime = DateTime.Now,
                                     Description = $"You have received {challage.Name} badge.",
-                                    Titile = "ThinkTank"
+                                    Titile = "ThinkTank",
                                 };
                                 await _unitOfWork.Repository<Notification>().CreateAsync(notification);
                         }
@@ -711,18 +712,18 @@ namespace ThinkTank.Service.Services.ImpService
                 var account = _unitOfWork.Repository<Account>().Find(x => x.Id == accountId);
                 if (account == null)
                     throw new CrudException(HttpStatusCode.NotFound, $"Account Id {accountId} not found ", "");
-                var achievements = _unitOfWork.Repository<Achievement>().GetAll().Include(x => x.Account).Include(x => x.Topic.Game)
+                var achievements = _unitOfWork.Repository<Achievement>().GetAll().Include(x => x.Account).Include(x => x.Topic)
                     .Where(x => x.AccountId == accountId).ToList();
                 var result = new List<GameLevelOfAccountResponse>();
                 foreach (var achievement in achievements)
                 {
                     GameLevelOfAccountResponse gameLevelOfAccountResponse = new GameLevelOfAccountResponse();
-                    var game = result.SingleOrDefault(a => a.GameId == achievement.GameId);
+                    var game = result.SingleOrDefault(a => a.GameId == achievement.Topic.GameId);
                     if (game == null)
                     {
-                        gameLevelOfAccountResponse.GameId = achievement.GameId;
+                        gameLevelOfAccountResponse.GameId = (int)achievement.Topic.GameId;
                         gameLevelOfAccountResponse.GameName = achievement.Topic.Game.Name;
-                        gameLevelOfAccountResponse.Level = achievements.LastOrDefault(a => a.GameId == achievement.GameId).Level;
+                        gameLevelOfAccountResponse.Level = achievements.LastOrDefault(a => a.Topic.GameId == achievement.Topic.GameId).Level;
                         result.Add(gameLevelOfAccountResponse);
                     }
                 }

@@ -12,7 +12,7 @@ namespace ThinkTank.API.Controllers
     [ApiController]
     public class TopicsController : Controller
     {
-        /*
+        
         private readonly ITopicService _topicService;
         public TopicsController(ITopicService topicService)
         {
@@ -48,9 +48,9 @@ namespace ThinkTank.API.Controllers
         /// </summary>
         /// <param name="request"></param>
         /// <returns></returns>
-       // [Authorize(Policy = "Admin")]
+       [Authorize(Policy = "Admin")]
         [HttpPost()]
-        public async Task<ActionResult<TopicResponse>> CreateAnonymousResource([FromBody] CreateTopicOfGameRequest request)
+        public async Task<ActionResult<TopicResponse>> CreatTopic([FromBody] TopicRequest request)
         {
             var rs = await _topicService.CreateTopic(request);
             return Ok(rs);
@@ -58,17 +58,17 @@ namespace ThinkTank.API.Controllers
         /// <summary>
         /// Update topic
         /// </summary>
-        /// <param name="name"></param>
+        /// <param name="request"></param>
         /// <param name="id"></param>
         /// <returns></returns>
-        //[Authorize(Policy = "Admin")]
+        [Authorize(Policy = "Admin")]
         [HttpPut("{id:int}")]
-        public async Task<ActionResult<TopicResponse>> UpdateResource([FromBody] string name, int id)
+        public async Task<ActionResult<TopicResponse>> UpdateTopic([FromBody] TopicRequest request, int id)
         {
-            var rs = await _topicService.UpdateTopic(id, name);
+            var rs = await _topicService.UpdateTopic(id, request);
             if (rs == null) return NotFound();
             return Ok(rs);
         }
-        */
+        
     }
 }
