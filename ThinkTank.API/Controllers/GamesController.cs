@@ -22,7 +22,7 @@ namespace ThinkTank.API.Controllers
         /// <param name="pagingRequest"></param>
         /// <param name="gameRequest"></param>
         /// <returns></returns>
-        [AllowAnonymous]
+        [Authorize(Policy = "Admin")]
         [HttpGet]
         public async Task<ActionResult<List<GameResponse>>> GetGames([FromQuery] PagingRequest pagingRequest, [FromQuery] GameRequest gameRequest)
         {
@@ -34,7 +34,7 @@ namespace ThinkTank.API.Controllers
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        [AllowAnonymous]
+        [Authorize(Policy = "Admin")]
         [HttpGet("{id:int}")]
         public async Task<ActionResult<GameResponse>> GetGame(int id)
         {
@@ -42,16 +42,14 @@ namespace ThinkTank.API.Controllers
             return Ok(rs);
         }
         /// <summary>
-        /// Get list game level by  game Id
+        /// Get report games 
         /// </summary>
-        /// <param name="id"></param>
-        /// <param name="pagingRequest"></param>
         /// <returns></returns>
         //[Authorize(Policy ="Admin")]
-        [HttpGet("{id:int}/game-level")]
-        public async Task<ActionResult<List<GameResponse>>> GetGameLevel(int id, [FromQuery] PagingRequest pagingRequest)
+        [HttpGet("game-report")]
+        public async Task<ActionResult<dynamic>> GetReportgame()
         {
-            var rs = await _gameService.GetGameLevelById(id,pagingRequest);
+            var rs = await _gameService.GetReportOGame();
             return Ok(rs);
         }
 

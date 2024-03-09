@@ -254,6 +254,11 @@ namespace ThinkTank.Data.Entities
                 entity.Property(e => e.StartTime).HasColumnType("datetime");
 
                 entity.Property(e => e.Thumbnail).IsUnicode(false);
+
+                entity.HasOne(d => d.Game)
+                    .WithMany(p => p.Contests)
+                    .HasForeignKey(d => d.GameId)
+                    .HasConstraintName("FK__Contest__GameId__51EF2864");
             });
 
             modelBuilder.Entity<Friend>(entity =>
@@ -365,7 +370,7 @@ namespace ThinkTank.Data.Entities
                     .HasForeignKey(d => d.TopicId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("FK__Room__TopicId__05D8E0BE");
-            });          
+            });
 
             modelBuilder.Entity<Topic>(entity =>
             {

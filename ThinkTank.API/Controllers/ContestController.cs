@@ -33,14 +33,6 @@ namespace ThinkTank.API.Controllers
             var rs = await _contestService.GetContests(contestRequest, pagingRequest);
             return Ok(rs);
         }
-
-        [HttpGet("contests-not-asset")]
-        public async Task<ActionResult<List<ContestResponse>>> GetContestsNotAsset([FromQuery] PagingRequest pagingRequest, [FromQuery] ContestRequest contestRequest)
-        {
-            var rs = await _contestService.GetContestsNotAsset(contestRequest, pagingRequest);
-            return Ok(rs);
-        }
-
         /// <summary>
         /// Get lederboard of contest
         /// </summary>
@@ -71,9 +63,9 @@ namespace ThinkTank.API.Controllers
         /// </summary>
         /// <param name="contestRequest"></param>
         /// <returns></returns>
-        //[Authorize(Policy = "Admin")]
+        [Authorize(Policy = "Admin")]
         [HttpPost]
-        public async Task<ActionResult<ContestResponse>> CreateContest([FromBody] CreateContestRequest contestRequest)
+        public async Task<ActionResult<ContestResponse>> CreateContest([FromBody] CreateAndUpdateContestRequest contestRequest)
         {
             var rs = await _contestService.CreateContest(contestRequest);
             return Ok(rs);
@@ -85,9 +77,9 @@ namespace ThinkTank.API.Controllers
         /// <param name="contestRequest"></param>
         /// <param name="id"></param>
         /// <returns></returns>
-        //[Authorize(Policy = "Admin")]
+        [Authorize(Policy = "Admin")]
         [HttpPut("{id:int}")]
-        public async Task<ActionResult<ContestResponse>> UpdateContest([FromBody] UpdateContestRequest contestRequest, int id)
+        public async Task<ActionResult<ContestResponse>> UpdateContest([FromBody] CreateAndUpdateContestRequest contestRequest, int id)
         {
             var rs = await _contestService.UpdateContest(id, contestRequest);
             if (rs == null) return NotFound();
@@ -99,12 +91,23 @@ namespace ThinkTank.API.Controllers
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        //[Authorize(Policy = "Admin")]
+        [Authorize(Policy = "Admin")]
         [HttpDelete("{id}")]
-        public async Task<ActionResult<string>> DeleteContest(int id)
+        public async Task<ActionResult<ContestResponse>> DeleteContest(int id)
         {
             var rs = await _contestService.DeleteContest(id);
             if (rs == null) return NotFound();
+            return Ok(rs);
+        }
+        /// <summary>
+        /// Get Report Of Contest
+        /// </summary>
+        /// <returns></returns>
+       [Authorize(Policy = "Admin")]
+        [HttpGet("contest-report")]
+        public async Task<ActionResult<dynamic>> GetReportOfContest()
+        {
+            var rs = await _contestService.GetReportOfContest();
             return Ok(rs);
         }
     }

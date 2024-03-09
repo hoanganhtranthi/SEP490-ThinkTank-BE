@@ -6,8 +6,9 @@ using System.Threading.Tasks;
 
 namespace ThinkTank.Service.DTO.Request
 {
-    public class BadgeRequest
+    public class TypeOfAssetInContestRequest
     {
-        public int AccountId { get; set; } = 0!;
+        public string? Type { get; set; }
+        public int? ContestId { get; set; }
     }
 }

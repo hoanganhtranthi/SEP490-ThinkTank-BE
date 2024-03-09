@@ -144,7 +144,7 @@ namespace ThinkTank.Service.Services.ImpService
             }
             catch (Exception ex)
             {
-                throw new CrudException(HttpStatusCode.InternalServerError, "Gettype of asset by id Error!!!", ex.InnerException?.Message);
+                throw new CrudException(HttpStatusCode.InternalServerError, "Delete type of asset by id Error!!!", ex.InnerException?.Message);
             }
         }
 
@@ -183,7 +183,7 @@ namespace ThinkTank.Service.Services.ImpService
             }
             catch (Exception ex)
             {
-                throw new CrudException(HttpStatusCode.InternalServerError, "Gettype of asset by id Error!!!", ex.InnerException?.Message);
+                throw new CrudException(HttpStatusCode.InternalServerError, "Get type of asset by id Error!!!", ex.InnerException?.Message);
             }
         }
 
@@ -291,7 +291,11 @@ namespace ThinkTank.Service.Services.ImpService
                 response.Assets = result.ToList();
                 return response;
             }
-            catch(CrudException ex)
+            catch (CrudException ex)
+            {
+                throw ex;
+            }
+            catch (Exception ex)
             {
                 throw new CrudException(HttpStatusCode.InternalServerError, "Update type of asset error !!!", ex.Message);
             }

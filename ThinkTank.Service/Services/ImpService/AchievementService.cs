@@ -56,6 +56,9 @@ namespace ThinkTank.Service.Services.ImpService
                         throw new CrudException(HttpStatusCode.BadRequest, "Invalid Level", "");
 
                 achievement.CompletedTime = DateTime.Now;
+                var highScore = account.Achievements.Where(x => x.AccountId == account.Id && x.Level == achievement.Level && x.TopicId == topic.Id).OrderByDescending(x => x.Mark).FirstOrDefault();
+                if (highScore!= null && createAchievementRequest.Mark > highScore.Mark)
+                    GetBadge(account, "The Breaker");
                 await _unitOfWork.Repository<Achievement>().CreateAsync(achievement);
                 var leaderboard = GetLeaderboard((int)topic.GameId).Result;
                 var top1 = leaderboard.FirstOrDefault();
@@ -65,7 +68,7 @@ namespace ThinkTank.Service.Services.ImpService
                     GetBadge(account, "Fast and Furious");
 
                 var acc = leaderboard.SingleOrDefault(x => x.AccountId == account.Id);
-                if ((account.Achievements.Any(x => x.TopicId == createAchievementRequest.TopicId && x.Level == createAchievementRequest.Level) &&
+                if ( leaderboard.Count()>1 &&(account.Achievements.Any(x => x.TopicId == createAchievementRequest.TopicId && x.Level == createAchievementRequest.Level) &&
                     (acc != null && acc.Mark + createAchievementRequest.Mark >= top1?.Mark)))
                 {
                     GetBadge(account, "Legend");
@@ -79,10 +82,15 @@ namespace ThinkTank.Service.Services.ImpService
                         if (result.Level == 10)
                             list.Add(result);
                     }
+
                 }
-                var highScore = account.Achievements.Where(x => x.AccountId == account.Id && x.Level == achievement.Level && x.TopicId==topic.Id).OrderByDescending(x => x.Mark).FirstOrDefault();
-                if (createAchievementRequest.Mark > highScore.Mark)
-                    GetBadge(account, "The Breaker");
+                
+                var twoLastAchievement = account.Achievements.Where(x => x.TopicId == topic.Id).Skip(Math.Max(0, account.Achievements.Count - 2)).Take(2);
+                bool areConsecutive = twoLastAchievement.Count() == 2 && twoLastAchievement.ToArray()[0].Level == twoLastAchievement.ToArray()[1].Level - 1 && twoLastAchievement.ToArray()[0].Mark >0 && twoLastAchievement.ToArray()[1].Mark >0;
+                if ( createAchievementRequest.Level!= twoLastAchievement.LastOrDefault().Level&& createAchievementRequest.Mark >0 && areConsecutive && twoLastAchievement.Last().Level +1==createAchievementRequest.Level)
+                {
+                    GetBadge(account, "Streak killer");
+                }
                 if (account.Achievements.Count(x => x.TopicId == createAchievementRequest.TopicId && x.Level == 10) == 1)
                 {
                     GetPlowLordBadge(account, list);

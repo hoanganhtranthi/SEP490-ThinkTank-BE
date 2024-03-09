@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -7,11 +8,10 @@ using ThinkTank.Data.Entities;
 
 namespace ThinkTank.Service.DTO.Request
 {
-    public class TypeOfAssetRequest
+    public class CreateTypeOfAssetInContestRequest
     {
-        public string? Type { get; set; }
-        public int? TopicId { get; set; }
-        public int? GameId { get; set; }
-        public int? Version { get; set; }
+        [Required]
+        public string Type { get; set; } = null!;
+
     }
 }

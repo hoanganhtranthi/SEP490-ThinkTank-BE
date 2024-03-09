@@ -50,12 +50,12 @@ builder.Services.AddScoped<IIconService, IconService>();
 builder.Services.AddScoped<IAccountIn1vs1Service, AccountIn1vs1Service>();
 builder.Services.AddScoped<IContestService, ContestService>();
 builder.Services.AddScoped<IChallengeService, ChallengeService>();
-builder.Services.AddScoped<IBadgeService, BadgeService>();
 builder.Services.AddScoped<IFirebaseMessagingService, FirebaseMessagingService>();
 builder.Services.AddScoped<IAccountInContestService, AccountInContestService>();
 builder.Services.AddScoped<IReportService, ReportService>();
 builder.Services.AddScoped<INotificationService, NotificationService>();
 builder.Services.AddScoped<ITypeOfAssetService, TypeOfAssetService>();
+builder.Services.AddScoped<ITypeOfAssetInContestService, TypeOfAssetInContestService>();
 builder.Services.AddScoped<ITopicService, TopicService>();
 System.Environment.SetEnvironmentVariable("GOOGLE_APPLICATION_CREDENTIALS", "thinktank-ad0b3-45e7681d45c6.json");
 FirebaseApp.Create(new AppOptions()
