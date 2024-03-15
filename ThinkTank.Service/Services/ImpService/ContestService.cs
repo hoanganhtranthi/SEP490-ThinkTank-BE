@@ -27,6 +27,8 @@ using Repository.Extensions;
 using OpenAI_API.Moderation;
 using System.Runtime.ConstrainedExecution;
 using static Google.Apis.Requests.BatchRequest;
+using FirebaseAdmin.Messaging;
+using Notification = ThinkTank.Data.Entities.Notification;
 
 namespace ThinkTank.Service.Services.ImpService
 {
@@ -78,7 +80,7 @@ namespace ThinkTank.Service.Services.ImpService
                     var t = _unitOfWork.Repository<TypeOfAssetInContest>().Find(t => t.Id == type.TypeOfAssetId);
                     if (t == null)
                     {
-                        throw new CrudException(HttpStatusCode.InternalServerError, "Type Of Asset In Contest Not Found!!!!!", "");
+                        throw new CrudException(HttpStatusCode.NotFound, "Type Of Asset In Contest Not Found!!!!!", "");
                     }
 
                     AssetOfContest assetOfContest = new AssetOfContest();
@@ -152,8 +154,9 @@ namespace ThinkTank.Service.Services.ImpService
                         AccountId = account.Id,
                         Avatar = contest.Thumbnail,
                         DateTime = DateTime.Now,
+                        Status=false,
                         Description = $"\"{contest.Name}\"” is opened. Join now.",
-                        Titile = "ThinkTank Contest"
+                        Title = "ThinkTank Contest"
                     };
 
                     await _unitOfWork.Repository<Notification>().CreateAsync(notification);
@@ -196,7 +199,7 @@ namespace ThinkTank.Service.Services.ImpService
                     }),
                 };
                 _firebaseMessagingService.SendToTopic($"/topics/contestId{contest.Id}",
-                                                       new FirebaseAdmin.Messaging.Notification() { Title = "ThinkTank Contest", Body = $"\"{contest.Name}\"” is closed. You have received.", ImageUrl = $"{contest.Thumbnail}" }, data);
+                                                       new FirebaseAdmin.Messaging.Notification() { Title = "ThinkTank Contest", Body = $"\"{contest.Name}\"” is closed. Thank you for participating in the contest.", ImageUrl = $"{contest.Thumbnail}" }, data);
                 if (accounts.Any())
                 {
                     foreach (var account in accounts)
@@ -206,8 +209,9 @@ namespace ThinkTank.Service.Services.ImpService
                             AccountId = account.AccountId,
                             Avatar = contest.Thumbnail,
                             DateTime = DateTime.Now,
-                            Description = $"\"{contest.Name}\"” is closed. You have received {account.Prize}.",
-                            Titile = "ThinkTank Contest"
+                            Description = $"\"{contest.Name}\"” is closed.Thank you for participating in the contest.",
+                            Status = false,
+                            Title = "ThinkTank Contest"
                         };
 
                         await _unitOfWork.Repository<Notification>().CreateAsync(notification);
@@ -245,10 +249,29 @@ namespace ThinkTank.Service.Services.ImpService
                             rewardPercentage = 20;
                             break;
                     }
-
                     int reward = (int)Math.Round((decimal)(contest.CoinBetting * contest.AccountInContests.Count * (rewardPercentage / 100.0m)));
-                    account.Coin += reward;
+                    account.Coin =account.Coin+reward;
                     await _unitOfWork.Repository<Account>().Update(account, account.Id);
+                    var fcm = new List<string>();
+                    fcm.Add(account.Fcm);
+                    if (fcm.Any())
+                        _firebaseMessagingService.SendToDevices(fcm,
+                      new FirebaseAdmin.Messaging.Notification()
+                      {
+                          Title = "ThinkTank Contest",
+                          Body = $"Congratulations! You won top 1 in the contest \"{contest.Name}\" and received {reward} ThinkTank coins”", ImageUrl = $"{ contest.Thumbnail }" 
+                      }, data);
+                    Notification notification = new Notification
+                        {
+                            AccountId = account.Id,
+                            Avatar = contest.Thumbnail,
+                            DateTime = DateTime.Now,
+                            Description = $"Congratulations! You won top 1 in the contest \"{contest.Name}\" and received {reward} ThinkTank coins”",
+                            Status=false,
+                            Title = "ThinkTank Contest"
+                        };
+
+                    await _unitOfWork.Repository<Notification>().CreateAsync(notification);
                     if (account.Coin == 4000)
                         GetBadge(account, "The Tycoon");
                 }
@@ -304,9 +327,12 @@ namespace ThinkTank.Service.Services.ImpService
                         Avatar = challage.Avatar,
                         DateTime = DateTime.Now,
                         Description = $"You have received {challage.Name} badge.",
-                        Titile = "ThinkTank"
+                        Status = false,
+                        Title = "ThinkTank"
                     };
                     await _unitOfWork.Repository<Notification>().CreateAsync(notification);
+                    account.Coin += 20;
+                    await _unitOfWork.Repository<Account>().Update(account, account.Id);
                 }
             }
             else
@@ -363,19 +389,22 @@ namespace ThinkTank.Service.Services.ImpService
                 IList<LeaderboardResponse> responses = new List<LeaderboardResponse>();
                 if (contest.AccountInContests.Count() > 0)
                 {
-                    var orderedAccounts = contest.AccountInContests.OrderByDescending(x => x.Mark).ThenBy(x => x.Duration);
+                    var orderedAccounts = contest.AccountInContests.OrderByDescending(x => x.Mark);
                     var rank = 1;
 
                     foreach (var account in orderedAccounts)
                     {
+                        var acc = _unitOfWork.Repository<Account>().Find(x => x.Id == account.AccountId);
                         var leaderboardContestResponse = new LeaderboardResponse
                         {
                             AccountId = account.AccountId,
-                            Mark = account.Mark
+                            Mark = account.Mark,
+                            Avatar=acc.Avatar,
+                            FullName=acc.FullName
                         };
 
                         var mark = contest.AccountInContests
-                            .Where(x => x.Mark == account.Mark && x.Duration == account.Duration && x.AccountId != account.AccountId)
+                            .Where(x => x.Mark == account.Mark && x.AccountId != account.AccountId)
                             .ToList();
 
                         if (mark.Any())
@@ -532,6 +561,8 @@ namespace ThinkTank.Service.Services.ImpService
                 {
                     throw new CrudException(HttpStatusCode.NotFound, $"Not found contest with id{id.ToString()}", "");
                 }
+                if (contest.StartTime <= DateTime.Now)
+                    throw new CrudException(HttpStatusCode.BadRequest, "The contest has already started and you cannot update it", "");
                 _unitOfWork.Repository<AssetOfContest>().DeleteRange(contest.AssetOfContests.ToArray());
                 await _unitOfWork.Repository<Contest>().RemoveAsync(contest);
                 await _unitOfWork.CommitAsync();
@@ -588,7 +619,7 @@ namespace ThinkTank.Service.Services.ImpService
 
                 return new
                 {
-                    NameTopContest=bestContest.Name,
+                    NameTopContest=bestContest?.Name,
                     PercentAverageScore = percentAverageScore,
                     Contests = contests.Select(x => new ContestResponse
                     {

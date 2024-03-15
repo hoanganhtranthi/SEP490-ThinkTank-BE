@@ -19,12 +19,12 @@ namespace ThinkTank.Service.Services.ImpService
     public class CustomAuthorizationHandler : AuthorizationHandler<CustomRequirement>
     {
         private readonly IAccountService _accountRepository;
-        private readonly ICacheService _cacheService;
+        private readonly IFirebaseRealtimeDatabaseService _firebaseRealtimeDatabaseService;
 
-        public CustomAuthorizationHandler(IAccountService accountRepository,ICacheService cacheService)
+        public CustomAuthorizationHandler(IAccountService accountRepository,IFirebaseRealtimeDatabaseService firebaseRealtimeDatabaseService)
         {
             _accountRepository = accountRepository;
-            _cacheService = cacheService;
+            _firebaseRealtimeDatabaseService = firebaseRealtimeDatabaseService;
         }
 
         protected override async Task HandleRequirementAsync(AuthorizationHandlerContext context, CustomRequirement requirement)
@@ -48,7 +48,7 @@ namespace ThinkTank.Service.Services.ImpService
                 }
                 if (role.Equals("Admin"))
                 {
-                    var adminAccountResponse = _cacheService.GetData<AdminAccountResponse>("AdminAccount");
+                    var adminAccountResponse = _firebaseRealtimeDatabaseService.GetAsync<AdminAccountResponse>("AdminAccount").Result;
                     if(adminAccountResponse != null)
                     {
                         if(Int32.Parse(versionClaimValue)==adminAccountResponse.VersionTokenAdmin)

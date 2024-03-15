@@ -88,7 +88,8 @@ namespace ThinkTank.Service.Services.ImpService
                     Avatar = s.Avatar,
                     DateTime = DateTime.Now,
                     Description = $"{s.FullName} sent you a friend request.",
-                    Titile= "ThinkTank Community"
+                    Status = false,
+                    Title= "ThinkTank Community"
                 };
                await _unitOfWork.Repository<Notification>().CreateAsync(notification);
                 await _unitOfWork.CommitAsync();
@@ -303,10 +304,21 @@ namespace ThinkTank.Service.Services.ImpService
                     AccountId = friend.AccountId1,
                     Avatar = friend.AccountId2Navigation.Avatar,
                     DateTime = DateTime.Now,
+                    Status = false,
                     Description = $"{friend.AccountId2Navigation.FullName}  has agreed to be friends. ",
-                    Titile = "ThinkTank Community"
+                    Title = "ThinkTank Community"
                 };
                 await _unitOfWork.Repository<Notification>().CreateAsync(notification);
+                if (friend.AccountId1Navigation.FriendAccountId1Navigations.Where(x=>x.Status==true).Count() + friend.AccountId1Navigation.FriendAccountId2Navigations.Where(x => x.Status == true).Count() == 15)
+                    GetBadge(friend.AccountId1Navigation, "The friendliest");
+                if (friend.AccountId2Navigation.FriendAccountId1Navigations.Where(x => x.Status == true).Count() + friend.AccountId2Navigation.FriendAccountId2Navigations.Where(x => x.Status == true).Count() == 15)
+                    GetBadge(friend.AccountId2Navigation, "The friendliest");
+                if (friend.AccountId1Navigation.Badges.Where(x => x.Status == true).Count() == 10)
+                    friend.AccountId1Navigation.Coin += 100;
+                if (friend.AccountId2Navigation.Badges.Where(x => x.Status == true).Count() == 10)
+                    friend.AccountId2Navigation.Coin += 100;
+                await _unitOfWork.Repository<Account>().Update(friend.AccountId1Navigation,friend.AccountId1);
+                await _unitOfWork.Repository<Account>().Update(friend.AccountId2Navigation, friend.AccountId2);
                 await _unitOfWork.CommitAsync();
                 var rs = _mapper.Map<FriendResponse>(friend);
                 rs.UserName1 = friend.AccountId1Navigation.UserName;
@@ -322,6 +334,61 @@ namespace ThinkTank.Service.Services.ImpService
             catch (Exception ex)
             {
                 throw new CrudException(HttpStatusCode.InternalServerError, "Accept friend error!!!!!", ex.Message);
+            }
+        }
+        private async Task GetBadge(Account account, string name)
+        {
+            var badge = _unitOfWork.Repository<Badge>().GetAll().Include(x => x.Challenge).SingleOrDefault(x => x.AccountId == account.Id && x.Challenge.Name.Equals(name));
+            var challage = _unitOfWork.Repository<Challenge>().Find(x => x.Name.Equals(name));
+            if (badge != null)
+            {
+                if (badge.CompletedLevel < challage.CompletedMilestone)
+                    badge.CompletedLevel += 1;
+                if (badge.CompletedLevel == challage.CompletedMilestone)
+                {
+                    badge.CompletedDate = DateTime.Now;
+                    await _unitOfWork.Repository<Badge>().Update(badge, badge.Id);
+                    #region send noti for account
+                    List<string> fcmTokens = new List<string>();
+                    if (account.Fcm != null)
+                        fcmTokens.Add(account.Fcm);
+                    var data = new Dictionary<string, string>()
+                    {
+                        ["click_action"] = "FLUTTER_NOTIFICATION_CLICK",
+                        ["Action"] = "home",
+                        ["Argument"] = JsonConvert.SerializeObject(new JsonSerializerSettings
+                        {
+                            ContractResolver = new DefaultContractResolver
+                            {
+                                NamingStrategy = new SnakeCaseNamingStrategy()
+                            }
+                        }),
+                    };
+                    if (fcmTokens.Any())
+                        _firebaseMessagingService.SendToDevices(fcmTokens,
+                                                               new FirebaseAdmin.Messaging.Notification() { Title = "ThinkTank", Body = $"You have received {challage.Name} badge.", ImageUrl = challage.Avatar }, data);
+                    #endregion
+                    Notification notification = new Notification
+                    {
+                        AccountId = account.Id,
+                        Avatar = challage.Avatar,
+                        DateTime = DateTime.Now,
+                        Description = $"You have received {challage.Name} badge.",
+                        Status=false,
+                        Title = "ThinkTank"
+                    };
+                    await _unitOfWork.Repository<Notification>().CreateAsync(notification);
+                }
+            }
+            else
+            {
+                CreateBadgeRequest createBadgeRequest = new CreateBadgeRequest();
+                createBadgeRequest.AccountId = account.Id;
+                createBadgeRequest.CompletedLevel = 1;
+                createBadgeRequest.ChallengeId = challage.Id;
+                var b = _mapper.Map<CreateBadgeRequest, Badge>(createBadgeRequest);
+                b.Status = false;
+                await _unitOfWork.Repository<Badge>().CreateAsync(b);
             }
         }
     }

@@ -321,7 +321,7 @@ namespace ThinkTank.Data.Entities
 
                 entity.Property(e => e.Description).HasMaxLength(500);
 
-                entity.Property(e => e.Titile).HasMaxLength(300);
+                entity.Property(e => e.Title).HasMaxLength(300);
 
                 entity.HasOne(d => d.Account)
                     .WithMany(p => p.Notifications)

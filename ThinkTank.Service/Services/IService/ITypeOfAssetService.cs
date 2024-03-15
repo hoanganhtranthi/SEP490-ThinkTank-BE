@@ -12,8 +12,5 @@ namespace ThinkTank.Service.Services.IService
     {
         Task<PagedResults<TypeOfAssetResponse>> GetTypeOfAssets(TypeOfAssetRequest request, PagingRequest paging);
         Task<TypeOfAssetResponse> GetTypeOfAssetById(int id);
-        Task<TypeOfAssetResponse> CreateTypeOfAsset(CreateTypeOfAssetRequest request);
-        Task<TypeOfAssetResponse> UpdateTypeOfAsset(int id, CreateTypeOfAssetRequest request);
-        Task<TypeOfAssetResponse> DeleteTypeOfAsset(int id);
     }
 }

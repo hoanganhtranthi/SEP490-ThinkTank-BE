@@ -122,7 +122,6 @@ namespace ThinkTank.Service.Services.ImpService
                     badge.CompletedLevel += 1;
                 if (badge.CompletedLevel == challage.CompletedMilestone)
                 {
-                    badge.Status = true;
                     badge.CompletedDate = DateTime.Now;
                     await _unitOfWork.Repository<Badge>().Update(badge, badge.Id);
                     #region send noti for account
@@ -150,8 +149,9 @@ namespace ThinkTank.Service.Services.ImpService
                         AccountId = account.Id,
                         Avatar = challage.Avatar,
                         DateTime = DateTime.Now,
+                        Status = false,
                         Description = $"You have received {challage.Name} badge.",
-                        Titile = "ThinkTank"
+                        Title = "ThinkTank"
                     };
                     await _unitOfWork.Repository<Notification>().CreateAsync(notification);
                 }
@@ -163,6 +163,7 @@ namespace ThinkTank.Service.Services.ImpService
                 createBadgeRequest.CompletedLevel = 1;
                 createBadgeRequest.ChallengeId = challage.Id;
                 var b = _mapper.Map<CreateBadgeRequest, Badge>(createBadgeRequest);
+                b.Status = false;
                 await _unitOfWork.Repository<Badge>().CreateAsync(b);
             }
         }
@@ -176,7 +177,6 @@ namespace ThinkTank.Service.Services.ImpService
                     badge.CompletedLevel += 1;
                 if (badge.CompletedLevel == challage.CompletedMilestone)
                 {
-                    badge.Status = true;
                     badge.CompletedDate = DateTime.Now;
                     await _unitOfWork.Repository<Badge>().Update(badge, badge.Id);
                     #region send noti for account
@@ -205,7 +205,7 @@ namespace ThinkTank.Service.Services.ImpService
                         Avatar = challage.Avatar,
                         DateTime = DateTime.Now,
                         Description = $"You have received {challage.Name} badge.",
-                        Titile = "ThinkTank"
+                        Title = "ThinkTank"
                     };
                     await _unitOfWork.Repository<Notification>().CreateAsync(notification);
                 }
@@ -217,6 +217,7 @@ namespace ThinkTank.Service.Services.ImpService
                 createBadgeRequest.CompletedLevel = 1;
                 createBadgeRequest.ChallengeId = challage.Id;
                 var b = _mapper.Map<CreateBadgeRequest, Badge>(createBadgeRequest);
+                b.Status = false;
                 await _unitOfWork.Repository<Badge>().CreateAsync(b);
                 }
             }        
@@ -344,7 +345,7 @@ namespace ThinkTank.Service.Services.ImpService
                 throw new CrudException(HttpStatusCode.InternalServerError, "Get leaderboard of contest error!!!!!", ex.Message);
             }
         }
-        public Achievement GetSumScoreOfAccount(int id, List<Achievement> achievements)
+        private Achievement GetSumScoreOfAccount(int id, List<Achievement> achievements)
         {
             List<Achievement> responses = new List<Achievement>();
             var score = 0;

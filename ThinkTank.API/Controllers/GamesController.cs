@@ -22,7 +22,7 @@ namespace ThinkTank.API.Controllers
         /// <param name="pagingRequest"></param>
         /// <param name="gameRequest"></param>
         /// <returns></returns>
-        [Authorize(Policy = "Admin")]
+        [Authorize(Policy = "All")]
         [HttpGet]
         public async Task<ActionResult<List<GameResponse>>> GetGames([FromQuery] PagingRequest pagingRequest, [FromQuery] GameRequest gameRequest)
         {
@@ -34,7 +34,7 @@ namespace ThinkTank.API.Controllers
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        [Authorize(Policy = "Admin")]
+        [Authorize(Policy = "All")]
         [HttpGet("{id:int}")]
         public async Task<ActionResult<GameResponse>> GetGame(int id)
         {
@@ -45,7 +45,7 @@ namespace ThinkTank.API.Controllers
         /// Get report games 
         /// </summary>
         /// <returns></returns>
-        //[Authorize(Policy ="Admin")]
+        [Authorize(Policy ="Admin")]
         [HttpGet("game-report")]
         public async Task<ActionResult<dynamic>> GetReportgame()
         {

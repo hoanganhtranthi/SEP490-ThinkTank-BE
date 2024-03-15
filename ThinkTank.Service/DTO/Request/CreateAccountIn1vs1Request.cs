@@ -8,11 +8,11 @@ namespace ThinkTank.Service.DTO.Request
 {
     public class CreateAccountIn1vs1Request
     {
-        public DateTime EndTime { get; set; }
+        public DateTime StartTime { get; set; }
         public int Coin { get; set; }
         public int WinnerId { get; set; }
         public int AccountId1 { get; set; }
         public int AccountId2 { get; set; }
-        public int GameId { get; set; }
+        public int TopicId { get; set; }
     }
 }

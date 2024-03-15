@@ -17,6 +17,6 @@ namespace ThinkTank.Service.DTO.Response
         public string? Name { get; set; }
         [IntAttribute]
         public int? GameId { get; set; }
-        public string? GameName { get; set; }
+        public virtual ICollection<AssetResponse> Assets { get; set; }
     }
 }
