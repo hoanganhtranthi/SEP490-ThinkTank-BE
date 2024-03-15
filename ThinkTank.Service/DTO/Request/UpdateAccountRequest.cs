@@ -10,7 +10,6 @@ namespace ThinkTank.Service.DTO.Request
     public class UpdateAccountRequest
     {
         public string FullName { get; set; } = null!;
-        public string UserName { get; set; } = null!;
         public string Email { get; set; } = null!;
         public string? Gender { get; set; }
         public DateTime? DateOfBirth { get; set; }

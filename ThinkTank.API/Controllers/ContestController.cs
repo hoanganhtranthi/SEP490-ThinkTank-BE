@@ -26,7 +26,7 @@ namespace ThinkTank.API.Controllers
         /// <param name="pagingRequest"></param>
         /// <param name="contestRequest"></param>
         /// <returns></returns>
-       // [Authorize(Policy = "All")]
+       [Authorize(Policy = "All")]
         [HttpGet]
         public async Task<ActionResult<List<ContestResponse>>> GetContests([FromQuery] PagingRequest pagingRequest, [FromQuery] ContestRequest contestRequest)
         {
@@ -38,7 +38,7 @@ namespace ThinkTank.API.Controllers
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        [Authorize(Policy = "All")]
+       [Authorize(Policy = "All")]
         [HttpGet("{id:int}/leaderboard")]
         public async Task<ActionResult<List<ContestResponse>>> GetLeaderboardOfContest(int id)
         {
@@ -100,10 +100,23 @@ namespace ThinkTank.API.Controllers
             return Ok(rs);
         }
         /// <summary>
+        /// Update Status Contest
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        [Authorize(Policy = "Admin")]
+        [HttpGet("{id}/ended-contest")]
+        public async Task<ActionResult<ContestResponse>> GetToUpdateStatusContest(int id)
+        {
+            var rs = await _contestService.UpdateStateContest(id);
+            if (rs == null) return NotFound();
+            return Ok(rs);
+        }
+        /// <summary>
         /// Get Report Of Contest
         /// </summary>
         /// <returns></returns>
-       [Authorize(Policy = "Admin")]
+        [Authorize(Policy = "Admin")]
         [HttpGet("contest-report")]
         public async Task<ActionResult<dynamic>> GetReportOfContest()
         {

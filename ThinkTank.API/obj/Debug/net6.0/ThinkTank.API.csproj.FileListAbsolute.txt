@@ -350,3 +350,9 @@ D:\SEP490-ThinkTank-BE\ThinkTank.API\obj\Debug\net6.0\ThinkTank.API.xml
 D:\SEP490-ThinkTank-BE\ThinkTank.API\obj\Debug\net6.0\ThinkTank.API.pdb
 D:\SEP490-ThinkTank-BE\ThinkTank.API\obj\Debug\net6.0\ThinkTank.API.genruntimeconfig.cache
 D:\SEP490-ThinkTank-BE\ThinkTank.API\obj\Debug\net6.0\ref\ThinkTank.API.dll
+D:\SEP490-ThinkTank-BE\ThinkTank.API\bin\Debug\net6.0\FireSharp.dll
+D:\SEP490-ThinkTank-BE\ThinkTank.API\bin\Debug\net6.0\Microsoft.Threading.Tasks.Extensions.Desktop.dll
+D:\SEP490-ThinkTank-BE\ThinkTank.API\bin\Debug\net6.0\Microsoft.Threading.Tasks.Extensions.dll
+D:\SEP490-ThinkTank-BE\ThinkTank.API\bin\Debug\net6.0\Microsoft.Threading.Tasks.dll
+D:\SEP490-ThinkTank-BE\ThinkTank.API\bin\Debug\net6.0\System.Net.Http.Extensions.dll
+D:\SEP490-ThinkTank-BE\ThinkTank.API\bin\Debug\net6.0\System.Net.Http.Primitives.dll

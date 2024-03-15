@@ -16,6 +16,7 @@ using ThinkTank.Service.Exceptions;
 using ThinkTank.Service.Helpers;
 using ThinkTank.Service.Services.IService;
 using ThinkTank.Service.Utilities;
+using static ThinkTank.Service.Helpers.Enum;
 
 namespace ThinkTank.Service.Services.ImpService
 {
@@ -63,6 +64,52 @@ namespace ThinkTank.Service.Services.ImpService
             catch (CrudException ex)
             {
                 throw new CrudException(HttpStatusCode.InternalServerError, "Get challenge list error!!!!!", ex.Message);
+            }
+        }
+        public async Task<List<ChallengeResponse>> GetCoinReward(int accountId, int? challengeId)
+        {
+            try
+            {
+                var acc = _unitOfWork.Repository<Account>().GetAll().Include(x => x.Badges).SingleOrDefault(x => x.Id == accountId);
+                if (acc == null)
+                    throw new  CrudException(HttpStatusCode.NotFound, $"Account Id {accountId} is not found ","");
+                if (challengeId != null)
+                {
+                    var challenge = _unitOfWork.Repository<Challenge>().Find(x => x.Id == challengeId);
+                    if (challenge == null)
+                        throw new CrudException(HttpStatusCode.NotFound, $"Challegne Id {challengeId} is not found ", "");
+                    var badge = acc.Badges.SingleOrDefault(x => x.ChallengeId == challengeId);
+                    if (badge.CompletedLevel != challenge.CompletedMilestone)
+                        throw new CrudException(HttpStatusCode.BadRequest, $"Account Id {accountId} haven't completed the correct milestones for this challenge ", "");
+                    badge.Status = true;
+                    acc.Coin += 20;
+                }
+                List<Challenge> result = new List<Challenge>();
+                foreach(var b in acc.Badges)
+                {
+                    var challenge = _unitOfWork.Repository<Challenge>().Find(x => x.Id == b.ChallengeId);
+                    if (challenge == null)
+                        throw new CrudException(HttpStatusCode.NotFound, $"Challegne Id {b.ChallengeId} is not found ", "");
+                    if (b.CompletedLevel == challenge.CompletedMilestone)
+                        result.Add(challenge);
+                }
+                if (result.Count() == 10)
+                    acc.Coin += 100;
+                await _unitOfWork.Repository<Account>().Update(acc, accountId);
+                await _unitOfWork.CommitAsync();
+                ChallengeRequest request = new ChallengeRequest();
+                request.AccountId = accountId;
+                request.Status = StatusType.All;
+                return GetChallenges(request).Result;
+
+            }
+            catch (CrudException ex)
+            {
+                throw ex;
+            }
+            catch (Exception ex)
+            {
+                throw new CrudException(HttpStatusCode.InternalServerError, " Get reward error!!!!!", ex.Message);
             }
         }
     }

@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using ThinkTank.Service.DTO.Request;
 using ThinkTank.Service.DTO.Response;
@@ -7,7 +8,7 @@ using ThinkTank.Service.Services.IService;
 
 namespace ThinkTank.API.Controllers
 {
-    [Route("api/accountincontests")]
+    [Route("api/accountInContests")]
     [ApiController]
     public class AccountInContestController : ControllerBase
     {
@@ -19,7 +20,13 @@ namespace ThinkTank.API.Controllers
             _accountInContestService = accountInContestService;
         }
 
-        //[Authorize(Policy = "Admin")]
+        /// <summary>
+        /// Get list of account in contest 
+        /// </summary>
+        /// <param name="pagingRequest"></param>
+        /// <param name="accountInContestRequest"></param>
+        /// <returns></returns>
+        [Authorize(Policy = "All")]
         [HttpGet]
         public async Task<ActionResult<List<AccountInContestResponse>>> GetAccountInContests([FromQuery] PagingRequest pagingRequest, [FromQuery] AccountInContestRequest accountInContestRequest)
         {
@@ -27,28 +34,29 @@ namespace ThinkTank.API.Controllers
             return Ok(rs);
         }
 
-        //[Authorize(Policy = "Admin")]
-        [HttpGet("result-contest-of-account")]
-        public async Task<ActionResult<AccountInContestResponse>> GetContest([FromQuery] AccountInContestRequest accountInContestRequest)
+        /// <summary>
+        /// Get account in contest by Id
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        [Authorize(Policy = "All")]
+        [HttpGet("{id:int}")]
+        public async Task<ActionResult<AccountInContestResponse>> GetAccountInContestById([FromQuery] int id)
         {
-            var rs = await _accountInContestService.GetAccountInContest(accountInContestRequest);
+            var rs = await _accountInContestService.GetAccountInContestById(id);
             return Ok(rs);
         }
 
-        //[Authorize(Policy = "Admin")]
+        /// <summary>
+        /// Create Account In Contest
+        /// </summary>
+        /// <param name="request"></param>
+        /// <returns></returns>
+        [Authorize(Policy = "Player")]
         [HttpPost]
         public async Task<ActionResult<AccountInContestResponse>> CreateAccountInContest([FromBody] CreateAccountInContestRequest request)
         {
             var rs = await _accountInContestService.CreateAccountInContest(request);
-            return Ok(rs);
-        }
-
-        //[Authorize(Policy = "Admin")]
-        [HttpPut("{id:int}")]
-        public async Task<ActionResult<AccountInContestResponse>> UpdateAccountInContest([FromBody] UpdateAccountInContestRequest request, int id)
-        {
-            var rs = await _accountInContestService.UpdateAccountInContest(id, request);
-            if (rs == null) return NotFound();
             return Ok(rs);
         }
     }

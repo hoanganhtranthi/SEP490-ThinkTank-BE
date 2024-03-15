@@ -22,6 +22,7 @@ using FirebaseAdmin;
 using Google.Apis.Auth.OAuth2;
 using Hangfire;
 using ThinkTank.API.AppStart;
+using FireSharp.Config;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -45,7 +46,6 @@ builder.Services.AddScoped<IFriendService, FriendService>();
 builder.Services.AddScoped<IGameService, GameService>();
 builder.Services.AddScoped<ICacheService, CacheService>();
 builder.Services.AddScoped<IAchievementService, AchievementService>();
-builder.Services.AddScoped<IVersionOfResourceService, VersionOfResourceService>();
 builder.Services.AddScoped<IIconService, IconService>();
 builder.Services.AddScoped<IAccountIn1vs1Service, AccountIn1vs1Service>();
 builder.Services.AddScoped<IContestService, ContestService>();
@@ -57,6 +57,9 @@ builder.Services.AddScoped<INotificationService, NotificationService>();
 builder.Services.AddScoped<ITypeOfAssetService, TypeOfAssetService>();
 builder.Services.AddScoped<ITypeOfAssetInContestService, TypeOfAssetInContestService>();
 builder.Services.AddScoped<ITopicService, TopicService>();
+builder.Services.AddScoped<IAssetService, AssetService>();
+builder.Services.AddScoped<IAccountIn1vs1Service, AccountIn1vs1Service>();
+builder.Services.AddScoped<IFirebaseRealtimeDatabaseService, FirebaseRealtimeDatabaseService>();
 System.Environment.SetEnvironmentVariable("GOOGLE_APPLICATION_CREDENTIALS", "thinktank-ad0b3-45e7681d45c6.json");
 FirebaseApp.Create(new AppOptions()
 {

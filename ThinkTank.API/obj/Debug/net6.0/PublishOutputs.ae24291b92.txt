@@ -10,6 +10,7 @@ D:\SEP490-ThinkTank-BE\ThinkTank.API\obj\Release\net6.0\PubTmp\Out\AutoMapper.Ex
 D:\SEP490-ThinkTank-BE\ThinkTank.API\obj\Release\net6.0\PubTmp\Out\Firebase.Auth.dll
 D:\SEP490-ThinkTank-BE\ThinkTank.API\obj\Release\net6.0\PubTmp\Out\FirebaseAdmin.dll
 D:\SEP490-ThinkTank-BE\ThinkTank.API\obj\Release\net6.0\PubTmp\Out\Firebase.Storage.dll
+D:\SEP490-ThinkTank-BE\ThinkTank.API\obj\Release\net6.0\PubTmp\Out\FireSharp.dll
 D:\SEP490-ThinkTank-BE\ThinkTank.API\obj\Release\net6.0\PubTmp\Out\Google.Api.Gax.dll
 D:\SEP490-ThinkTank-BE\ThinkTank.API\obj\Release\net6.0\PubTmp\Out\Google.Api.Gax.Rest.dll
 D:\SEP490-ThinkTank-BE\ThinkTank.API\obj\Release\net6.0\PubTmp\Out\Google.Apis.dll
@@ -22,6 +23,9 @@ D:\SEP490-ThinkTank-BE\ThinkTank.API\obj\Release\net6.0\PubTmp\Out\Hangfire.Memo
 D:\SEP490-ThinkTank-BE\ThinkTank.API\obj\Release\net6.0\PubTmp\Out\Hangfire.NetCore.dll
 D:\SEP490-ThinkTank-BE\ThinkTank.API\obj\Release\net6.0\PubTmp\Out\Hangfire.SqlServer.dll
 D:\SEP490-ThinkTank-BE\ThinkTank.API\obj\Release\net6.0\PubTmp\Out\Microsoft.AspNetCore.Authentication.JwtBearer.dll
+D:\SEP490-ThinkTank-BE\ThinkTank.API\obj\Release\net6.0\PubTmp\Out\Microsoft.Threading.Tasks.Extensions.Desktop.dll
+D:\SEP490-ThinkTank-BE\ThinkTank.API\obj\Release\net6.0\PubTmp\Out\Microsoft.Threading.Tasks.Extensions.dll
+D:\SEP490-ThinkTank-BE\ThinkTank.API\obj\Release\net6.0\PubTmp\Out\Microsoft.Threading.Tasks.dll
 D:\SEP490-ThinkTank-BE\ThinkTank.API\obj\Release\net6.0\PubTmp\Out\Microsoft.Bcl.AsyncInterfaces.dll
 D:\SEP490-ThinkTank-BE\ThinkTank.API\obj\Release\net6.0\PubTmp\Out\Microsoft.Data.SqlClient.dll
 D:\SEP490-ThinkTank-BE\ThinkTank.API\obj\Release\net6.0\PubTmp\Out\Microsoft.EntityFrameworkCore.dll
@@ -37,6 +41,8 @@ D:\SEP490-ThinkTank-BE\ThinkTank.API\obj\Release\net6.0\PubTmp\Out\Microsoft.Ide
 D:\SEP490-ThinkTank-BE\ThinkTank.API\obj\Release\net6.0\PubTmp\Out\Microsoft.IdentityModel.Protocols.dll
 D:\SEP490-ThinkTank-BE\ThinkTank.API\obj\Release\net6.0\PubTmp\Out\Microsoft.IdentityModel.Protocols.OpenIdConnect.dll
 D:\SEP490-ThinkTank-BE\ThinkTank.API\obj\Release\net6.0\PubTmp\Out\Microsoft.IdentityModel.Tokens.dll
+D:\SEP490-ThinkTank-BE\ThinkTank.API\obj\Release\net6.0\PubTmp\Out\System.Net.Http.Extensions.dll
+D:\SEP490-ThinkTank-BE\ThinkTank.API\obj\Release\net6.0\PubTmp\Out\System.Net.Http.Primitives.dll
 D:\SEP490-ThinkTank-BE\ThinkTank.API\obj\Release\net6.0\PubTmp\Out\System.ServiceModel.dll
 D:\SEP490-ThinkTank-BE\ThinkTank.API\obj\Release\net6.0\PubTmp\Out\Microsoft.OpenApi.dll
 D:\SEP490-ThinkTank-BE\ThinkTank.API\obj\Release\net6.0\PubTmp\Out\Microsoft.Win32.SystemEvents.dll

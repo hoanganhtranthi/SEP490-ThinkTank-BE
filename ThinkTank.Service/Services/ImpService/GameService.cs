@@ -36,17 +36,23 @@ namespace ThinkTank.Service.Services.ImpService
                 {
                     throw new CrudException(HttpStatusCode.BadRequest, "Id Game Invalid", "");
                 }
-                var response = await _unitOfWork.Repository<Game>().GetAsync(u => u.Id == id);
+                var response = _unitOfWork.Repository<Game>().GetAll().Include(x => x.Topics).Select(x => new GameResponse
+                {
+                    Id = x.Id,
+                    Name = x.Name,
+                    AmoutPlayer= _unitOfWork.Repository<Achievement>().GetAll().Include(x => x.Topic).Where(x => x.Topic.GameId == id).Select(a => a.AccountId).Distinct().Count(),
+                    Topics = new List<TopicResponse>(x.Topics.Select(a => new TopicResponse
+                    {
+                        Id = a.Id,
+                        Name = a.Name
+                    }))
+                }).SingleOrDefault(x=>x.Id == id);
 
                 if (response == null)
                 {
                     throw new CrudException(HttpStatusCode.NotFound, $"Not found game with id {id.ToString()}", "");
                 }
-
-                var amount = _unitOfWork.Repository<Achievement>().GetAll().Include(x=>x.Topic).Where(x => x.Topic.GameId == id).Select(a=>a.AccountId).Distinct().Count();
-                var rs= _mapper.Map<GameResponse>(response);
-                rs.AmoutPlayer = amount;
-                return rs;
+                return response;
             }
             catch (CrudException ex)
             {
@@ -146,11 +152,15 @@ namespace ThinkTank.Service.Services.ImpService
             {
 
                 var filter = _mapper.Map<GameResponse>(request);
-                var games = _unitOfWork.Repository<Game>().GetAll().Select(x=>new GameResponse
+                var games = _unitOfWork.Repository<Game>().GetAll().Include(x=>x.Topics).Select(x=>new GameResponse
                 {
                     Id = x.Id,
                     Name=x.Name,
-                    
+                    Topics=new List<TopicResponse>(x.Topics.Select(a=>new TopicResponse
+                    {
+                        Id=a.Id,
+                        Name=a.Name
+                    }))
             })  .DynamicFilter(filter) .ToList();
                 foreach(var game in games)
                 {

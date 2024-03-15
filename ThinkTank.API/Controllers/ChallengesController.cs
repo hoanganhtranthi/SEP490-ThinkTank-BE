@@ -31,5 +31,17 @@ namespace ThinkTank.API.Controllers
             var rs = await _challengeService.GetChallenges(challengeRequest);
             return Ok(rs);
         }
+        /// <summary>
+        /// Get Coin Reward Of Account
+        /// </summary>
+        /// <param name="accountId"></param>
+        /// <returns></returns>
+        [Authorize(Policy = "Player")]
+        [HttpGet("{accountId}")]
+        public async Task<ActionResult<List<ChallengeResponse>>> GetToRewardCoin(int accountId, [FromQuery] int? challengeId)
+        {
+            var rs = await _challengeService.GetCoinReward(accountId,challengeId);
+            return Ok(rs);
+        }
     }
 }

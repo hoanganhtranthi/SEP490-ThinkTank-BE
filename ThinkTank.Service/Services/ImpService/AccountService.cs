@@ -25,6 +25,7 @@ using System.Security.Cryptography;
 using System.Security.Principal;
 using System.Text;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using ThinkTank.Data.Entities;
 using ThinkTank.Data.UnitOfWork;
@@ -42,15 +43,15 @@ namespace ThinkTank.Service.Services.ImpService
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
         private readonly IConfiguration _config;
-        private readonly ICacheService _cacheService;
         private readonly IFirebaseMessagingService _firebaseMessagingService;
-        public AccountService(IUnitOfWork unitOfWork, IMapper mapper, IConfiguration configuration, ICacheService cacheService, IFirebaseMessagingService firebaseMessagingService)
+        private readonly IFirebaseRealtimeDatabaseService _firebaseRealtimeDatabaseService;
+        public AccountService(IUnitOfWork unitOfWork, IMapper mapper, IConfiguration configuration, IFirebaseMessagingService firebaseMessagingService, IFirebaseRealtimeDatabaseService firebaseRealtimeDatabaseService)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
-            _cacheService = cacheService;
             _config = configuration;
             _firebaseMessagingService = firebaseMessagingService;
+            _firebaseRealtimeDatabaseService = firebaseRealtimeDatabaseService;
         }
 
         public async Task<AccountResponse> CreateAccount(CreateAccountRequest createAccountRequest)
@@ -74,6 +75,8 @@ namespace ThinkTank.Service.Services.ImpService
                     if (acc != null)
                         throw new CrudException(HttpStatusCode.BadRequest, "GoogleId has already !!!", "");
                 }
+                if(!Regex.IsMatch(createAccountRequest.Password, "^(?=.*\\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[a-zA-Z]).{8,12}$"))
+                    throw new CrudException(HttpStatusCode.BadRequest, "Password is invalid", "");
                 CreatPasswordHash(createAccountRequest.Password, out byte[] passwordHash, out byte[] passwordSalt);
                 customer.PasswordHash = passwordHash;
                 customer.PasswordSalt = passwordSalt;
@@ -82,6 +85,7 @@ namespace ThinkTank.Service.Services.ImpService
                 customer.RegistrationDate = DateTime.Now;
                 if (createAccountRequest.Fcm == null || createAccountRequest.Fcm == "")
                     customer.Fcm = null;
+                customer.Coin = 0;
                 Guid id = Guid.NewGuid();
                 customer.Code = id.ToString().Substring(0, 8).ToUpper();
                 await _unitOfWork.Repository<Account>().CreateAsync(customer);
@@ -257,9 +261,12 @@ namespace ThinkTank.Service.Services.ImpService
                                     Avatar = challage.Avatar,
                                     DateTime = DateTime.Now,
                                     Description = $"You have received {challage.Name} badge.",
-                                    Titile = "ThinkTank",
+                                    Title = "ThinkTank",
+                                    Status=false,
                                 };
                                 await _unitOfWork.Repository<Notification>().CreateAsync(notification);
+                            user.Coin += 20;
+                            await _unitOfWork.Repository<Account>().Update(user, user.Id);
                         }
                     }
                     else
@@ -316,19 +323,19 @@ namespace ThinkTank.Service.Services.ImpService
                     rs.AccessToken = GenerateJwtToken(user);
                     rs.RefreshToken = token;
                     var expiryTime = DateTime.MaxValue;
-                    var adminAccount = _cacheService.GetData<AdminAccountResponse>("AdminAccount");
+                    var adminAccount = _firebaseRealtimeDatabaseService.GetAsync<AdminAccountResponse>("AdminAccount").Result;
                     if (adminAccount != null)
                     {
                         adminAccount.VersionTokenAdmin += 1;
                         adminAccount.RefreshTokenAdmin = token;
-                        _cacheService.SetData<AdminAccountResponse>("AdminAccount", adminAccount, expiryTime);
+                        _firebaseRealtimeDatabaseService.SetAsync<AdminAccountResponse>("AdminAccount", adminAccount);
                     }
                     else
                     {
                         adminAccount = new AdminAccountResponse();
                         adminAccount.VersionTokenAdmin = 1;
                         adminAccount.RefreshTokenAdmin = token;
-                        _cacheService.SetData<AdminAccountResponse>("AdminAccount", adminAccount, expiryTime);
+                        _firebaseRealtimeDatabaseService.SetAsync<AdminAccountResponse>("AdminAccount", adminAccount);
                     }
                 }
                 else throw new CrudException(HttpStatusCode.BadRequest, "Account Not Found", "");
@@ -381,7 +388,7 @@ namespace ThinkTank.Service.Services.ImpService
             }
             else
             {
-                var adminAccountResponse = _cacheService.GetData<AdminAccountResponse>("AdminAccount");
+                var adminAccountResponse =_firebaseRealtimeDatabaseService.GetAsync<AdminAccountResponse>("AdminAccount").Result;
                 var t = 0;
                 if (adminAccountResponse != null)
                     t = adminAccountResponse.VersionTokenAdmin + 1;
@@ -418,7 +425,7 @@ namespace ThinkTank.Service.Services.ImpService
             }
             else
             {
-                var adminAccountResponse = _cacheService.GetData<AdminAccountResponse>("AdminAccount");
+                var adminAccountResponse = _firebaseRealtimeDatabaseService.GetAsync<AdminAccountResponse>("AdminAccount").Result;
                 var t = 0;
                 if (adminAccountResponse != null)
                     t = adminAccountResponse.VersionTokenAdmin + 1;
@@ -471,12 +478,12 @@ namespace ThinkTank.Service.Services.ImpService
                 if (userId==0)
                 {
                     var expiryTime = DateTime.MaxValue;
-                    var adminAccountResponse = _cacheService.GetData<AdminAccountResponse>("AdminAccount");
+                    var adminAccountResponse =  _firebaseRealtimeDatabaseService.GetAsync<AdminAccountResponse>("AdminAccount").Result;
                     if (adminAccountResponse != null)
                     {
                         adminAccountResponse.VersionTokenAdmin += 1;
                         adminAccountResponse.RefreshTokenAdmin = null;
-                        _cacheService.SetData<AdminAccountResponse>("AdminAccount", adminAccountResponse, expiryTime);
+                       await _firebaseRealtimeDatabaseService.SetAsync<AdminAccountResponse>("AdminAccount", adminAccountResponse);
                     }
                     rs.UserName = "Admin";
                 }
@@ -519,14 +526,11 @@ namespace ThinkTank.Service.Services.ImpService
                 if (request.DateOfBirth >= DateTime.Now.AddDays(-1))
                     throw new CrudException(HttpStatusCode.BadRequest, "Date Of Birth is invalid", "");
 
-                var existingUsernameAccount = _unitOfWork.Repository<Account>().GetAll().FirstOrDefault(c => c.UserName.Equals(request.UserName) && c.Id != accountId);
-                if (existingUsernameAccount != null)
-                    throw new CrudException(HttpStatusCode.BadRequest, "Username has already been taken", "");
-
                 var existingEmailAccount = _unitOfWork.Repository<Account>().GetAll().FirstOrDefault(c => c.Email.Equals(request.Email) && c.Id != accountId);
                 if (existingEmailAccount != null)
                     throw new CrudException(HttpStatusCode.BadRequest, "Email has already been registered", "");
-
+                if(!Regex.IsMatch(request.NewPassword, "^(?=.*\\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[a-zA-Z]).{8,12}$"))
+                    throw new CrudException(HttpStatusCode.BadRequest, "New Password is invalid", "");
                 _mapper.Map<UpdateAccountRequest, Account>(request, account);
 
                 if (request.Avatar == null) account.Avatar = account.Avatar;
@@ -542,7 +546,9 @@ namespace ThinkTank.Service.Services.ImpService
                 }
                 await _unitOfWork.Repository<Account>().Update(account, accountId);
                 await _unitOfWork.CommitAsync();
-                return _mapper.Map<Account, AccountResponse>(account);
+                var rs= _mapper.Map<Account, AccountResponse>(account);
+                rs.AccessToken = GenerateJwtToken(account);
+                return rs;
             }
             catch (CrudException ex)
             {
@@ -565,6 +571,8 @@ namespace ThinkTank.Service.Services.ImpService
                     throw new CrudException(HttpStatusCode.NotFound, $"Not found account with email{request.Email}", "");
                 }
                 if (customer.Status == false) throw new CrudException(HttpStatusCode.BadRequest, "Your account is block", "");
+                if(!Regex.IsMatch(request.NewPassword, "^(?=.*\\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[a-zA-Z]).{8,12}$"))
+                    throw new CrudException(HttpStatusCode.BadRequest, "New Password is invalid", "");
                 CreatPasswordHash(request.NewPassword, out byte[] passwordHash, out byte[] passwordSalt);
                 customer.PasswordHash = passwordHash;
                 customer.PasswordSalt = passwordSalt;
@@ -606,7 +614,7 @@ namespace ThinkTank.Service.Services.ImpService
                 if (expiredDate.AddMinutes(-5) > DateTime.UtcNow) throw new CrudException(HttpStatusCode.BadRequest, "Access Token is not expried", "");
                 if (tokenInVerification.Claims.FirstOrDefault(x => x.Type == ClaimTypes.Role).Value.Equals("Admin"))
                 {
-                    var adminAccountResponse = _cacheService.GetData<AdminAccountResponse>("AdminAccount");
+                    var adminAccountResponse = _firebaseRealtimeDatabaseService.GetAsync<AdminAccountResponse>("AdminAccount").Result;
                     if (adminAccountResponse != null)
                     {
                         if (!request.RefreshToken.Equals(adminAccountResponse.RefreshTokenAdmin))
@@ -618,7 +626,9 @@ namespace ThinkTank.Service.Services.ImpService
                     cus = _mapper.Map<Account, AccountResponse>(acc);
                     cus.AccessToken = token;
                     cus.RefreshToken = GenerateRefreshToken(acc);
-
+                    adminAccountResponse.RefreshTokenAdmin = cus.RefreshToken;
+                    adminAccountResponse.VersionTokenAdmin = adminAccountResponse.VersionTokenAdmin + 1;
+                    await _firebaseRealtimeDatabaseService.SetAsync<AdminAccountResponse>("AdminAccount", adminAccountResponse);
                 }
                 else
                 {

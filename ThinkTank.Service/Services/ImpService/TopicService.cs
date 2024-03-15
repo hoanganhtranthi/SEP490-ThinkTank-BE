@@ -45,7 +45,6 @@ namespace ThinkTank.Service.Services.ImpService
                 await _unitOfWork.Repository<Topic>().CreateAsync(topic);
                 await _unitOfWork.CommitAsync();
                 var rs = _mapper.Map<TopicResponse>(topic);
-                rs.GameName = g.Name;
                 return rs;
             }
             catch (CrudException ex)
@@ -71,8 +70,19 @@ namespace ThinkTank.Service.Services.ImpService
                     {
                         Id = a.Id,
                         Name = a.Name,
-                       GameId=a.GameId,
-                       GameName=a.Game.Name
+                        GameId=a.GameId,
+                        Assets=new List<AssetResponse>(a.Assets.Select(x=>new AssetResponse
+                        {
+                            Id=x.Id,
+                            GameId=x.Topic.GameId,
+                            GameName=x.Topic.Game.Name,
+                            Status=x.Status,
+                            TopicId=a.Id,
+                            TopicName=a.Name,
+                            Value=x.Value,
+                            Version=x.Version,
+                            Answer= x.Topic.GameId == 2 ? System.IO.Path.GetFileName(new Uri(x.Value).LocalPath) : null
+                        }))
                     }).SingleOrDefault();
 
                 if (response == null)
@@ -103,7 +113,18 @@ namespace ThinkTank.Service.Services.ImpService
                         Id = a.Id,
                         Name = a.Name,
                         GameId=a.GameId,
-                        GameName=a.Game.Name
+                        Assets = new List<AssetResponse>(a.Assets.Select(x => new AssetResponse
+                        {
+                            Id = x.Id,
+                            GameId = x.Topic.GameId,
+                            GameName = x.Topic.Game.Name,
+                            Status = x.Status,
+                            TopicId = a.Id,
+                            TopicName = a.Name,
+                            Value = x.Value,
+                            Version = x.Version,
+                            Answer = x.Topic.GameId == 2 ? System.IO.Path.GetFileName(new Uri(x.Value).LocalPath) : null
+                        }))
                     }).DynamicFilter(filter).ToList();
                 var sort = PageHelper<TopicResponse>.Sorting(paging.SortType, friends, paging.ColName);
                 var result = PageHelper<TopicResponse>.Paging(sort, paging.Page, paging.PageSize);
@@ -140,7 +161,6 @@ namespace ThinkTank.Service.Services.ImpService
                 var rs=_mapper.Map<TopicResponse>(topic);
                 await _unitOfWork.Repository<Topic>().Update(topic, id);
                 await _unitOfWork.CommitAsync();
-                rs.GameName = g.Name;
                 return rs;
             }
             catch (CrudException ex)

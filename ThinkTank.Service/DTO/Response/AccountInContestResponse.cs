@@ -12,12 +12,16 @@ namespace ThinkTank.Service.DTO.Response
     {
         [Key]
         public int Id { get; set; }
-        public string UserName { get; set; }
-        public string ContestName { get; set; }
-        public DateTime CompletedTime { get; set; }
-        public decimal Duration { get; set; }
-        public int Mark { get; set; }
-        public int Prize { get; set; }
+        [IntAttribute]
+        public int? ContestId { get; set; }
+        [IntAttribute]
+        public int? AccountId { get; set; }
+        public string? UserName { get; set; }
+        public string? ContestName { get; set; }
+        public DateTime? CompletedTime { get; set; }
+        public decimal? Duration { get; set; }
+        public int? Mark { get; set; }
+        public int? Prize { get; set; }
         
     }
 }

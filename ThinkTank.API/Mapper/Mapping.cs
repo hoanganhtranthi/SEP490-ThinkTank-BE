@@ -63,8 +63,9 @@ namespace MuTote.API.Mapper
 
             CreateMap<CreateAssetRequest, Asset>();
             CreateMap<Asset, AssetResponse>().ReverseMap();
+            CreateMap<AssetRequest,AssetResponse>();
+            CreateMap<AssetRequest, Asset>();
 
-            CreateMap<CreateTypeOfAssetRequest, TypeOfAsset>();
             CreateMap<TypeOfAsset, TypeOfAssetResponse>().ReverseMap();
             CreateMap<TypeOfAssetRequest, TypeOfAssetResponse>();
             CreateMap<TypeOfAssetRequest, TypeOfAsset>();
@@ -79,12 +80,15 @@ namespace MuTote.API.Mapper
             CreateMap<AccountInContest, AccountInContestResponse>();
             CreateMap<AccountInContestRequest, AccountInContestResponse>();
             CreateMap<CreateAccountInContestRequest, AccountInContest>();
-            CreateMap<UpdateAccountInContestRequest, AccountInContest>();
+
+            CreateMap<AccountIn1vs1Request, AccountIn1vs1>();
+            CreateMap<AccountIn1vs1, AccountIn1vs1Response>();
+            CreateMap<AccountIn1vs1Request, AccountIn1vs1Response>();
+            CreateMap<CreateAccountIn1vs1Request, AccountIn1vs1>();
 
             CreateMap<CreateAssetOfContestRequest, AssetOfContest>();
             CreateMap<AssetOfContest, AssetOfContestResponse>().ReverseMap();
 
-            CreateMap<CreateTypeOfAssetInContestRequest, TypeOfAssetInContest>();
             CreateMap<TypeOfAssetInContest, TypeOfAssetInContestResponse>().ReverseMap();
             CreateMap<TypeOfAssetInContestRequest, TypeOfAssetInContestResponse>();
             CreateMap<TypeOfAssetInContestRequest, TypeOfAssetInContest>();
