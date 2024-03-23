@@ -69,17 +69,12 @@ namespace ThinkTank.Service.Services.ImpService
                 {
                     throw new CrudException(HttpStatusCode.BadRequest, "Username has already !!!", "");
                 }
-                if (createAccountRequest.GoogleId != null && createAccountRequest.GoogleId != "")
-                {
-                    var acc = _unitOfWork.Repository<Account>().Find(x => x.GoogleId == createAccountRequest.GoogleId);
-                    if (acc != null)
-                        throw new CrudException(HttpStatusCode.BadRequest, "GoogleId has already !!!", "");
-                }
                 if(!Regex.IsMatch(createAccountRequest.Password, "^(?=.*\\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[a-zA-Z]).{8,12}$"))
                     throw new CrudException(HttpStatusCode.BadRequest, "Password is invalid", "");
                 CreatPasswordHash(createAccountRequest.Password, out byte[] passwordHash, out byte[] passwordSalt);
                 customer.PasswordHash = passwordHash;
                 customer.PasswordSalt = passwordSalt;
+                customer.VersionToken = 1;
                 customer.Status = true;
                 customer.Avatar = "https://firebasestorage.googleapis.com/v0/b/thinktank-79ead.appspot.com/o/System%2Favatar-trang-4.jpg?alt=media&token=2ab24327-c484-485a-938a-ed30dc3b1688";
                 customer.RegistrationDate = DateTime.Now;
@@ -108,23 +103,24 @@ namespace ThinkTank.Service.Services.ImpService
             Random _rdm = new Random();
             return _rdm.Next(_min, _max).ToString();
         }
-        public async Task<dynamic> CreateMailMessage(string email)
+        public async Task<dynamic> CreateMailMessage(string username)
         {
+            var acc = _unitOfWork.Repository<Account>().Find(a => a.UserName.Equals(username));
+            if (acc == null)
+            {
+                throw new CrudException(HttpStatusCode.NotFound, $"Not found account with username {username}", "");
+            }
+            if (acc.GoogleId != null && acc.GoogleId != "")
+                throw new CrudException(HttpStatusCode.BadRequest, "Login Google cannot update password", "");
             bool success = false;
             string token = "";
             var randomToken = GenerateRandomNo();
-            string to = email;
-            string from = _config["EmailUserName"];
-
-            var acc = _unitOfWork.Repository<Account>().Find(a => a.Email.Equals(email));
-            if (acc == null)
-            {
-                throw new CrudException(HttpStatusCode.NotFound, $"Not found account with gmail {email}", "");
-            }
+            string to = acc.Email;
+            string from = _config["EmailUserName"];         
             if (acc.Status == false) throw new CrudException(HttpStatusCode.BadRequest, "Your account is block", "");
             MailMessage message = new MailMessage(from, to);
             message.Subject = "Account Verification Code";
-            message.Body = $"<p> Hi {acc.FullName}, </p> \n <span> <p> We received a request to access your Account {email} through your email address. Your Account verification code is:</p></span>\n" +
+            message.Body = $"<p> Hi {acc.FullName}, </p> \n <span> <p> We received a request to access your Account {acc.Email} through your email address. Your Account verification code is:</p></span>\n" +
                 $"<div style=\"text-align:center\"<p dir=\"ltr\"><strong style= \"text-align:center;font-size:24px;font-weight:bold\">{randomToken}</strong></p></div>";
             AlternateView htmlView = AlternateView.CreateAlternateViewFromString(message.Body, null, "text/html");
             message.AlternateViews.Add(htmlView);
@@ -152,7 +148,8 @@ namespace ThinkTank.Service.Services.ImpService
             return new
             {
                 Success = success,
-                Token = token
+                Token = token,
+                Email=acc.Email
             };
         }
 
@@ -213,9 +210,12 @@ namespace ThinkTank.Service.Services.ImpService
                 Account user = _unitOfWork.Repository<Account>().GetAll()
                   .FirstOrDefault(u => u.UserName.Equals(request.UserName));
                     if (user == null) throw new CrudException(HttpStatusCode.BadRequest, "Account Not Found", "");
-                    if (!VerifyPasswordHash(request.Password.Trim(), user.PasswordHash, user.PasswordSalt))
+                if (user.GoogleId != null && user.GoogleId != "")
+                    throw new CrudException(HttpStatusCode.BadRequest, "Login Google cannot login by username and password", "");
+                if (!VerifyPasswordHash(request.Password.Trim(), user.PasswordHash, user.PasswordSalt))
                         throw new CrudException(HttpStatusCode.BadRequest, "Password is incorrect", "");
                     if (user.Status == false) throw new CrudException(HttpStatusCode.BadRequest, "Your account is block", "");
+                    user.VersionToken = user.VersionToken+1;
                     var token = GenerateRefreshToken(user);
                     user.RefreshToken = token;
                     if(request.Fcm != null && request.Fcm != "")
@@ -226,11 +226,12 @@ namespace ThinkTank.Service.Services.ImpService
                 {
                     var badge = _unitOfWork.Repository<Badge>().GetAll().Include(x => x.Challenge).SingleOrDefault(x => x.AccountId == user.Id && x.Challenge.Name.Equals("Nocturnal"));
                     var challage = _unitOfWork.Repository<Challenge>().Find(x => x.Name.Equals("Nocturnal"));
+                    var noti = _unitOfWork.Repository<Notification>().Find(x => x.Title == $"You have received {challage.Name} badge.");
                     if (badge != null)
                     {
                         if(badge.CompletedLevel != challage.CompletedMilestone)
                         badge.CompletedLevel += 1;
-                        if(badge.CompletedLevel==challage.CompletedMilestone)
+                        if(badge.CompletedLevel==challage.CompletedMilestone && noti ==null)
                         {
                             badge.Status = true;
                             badge.CompletedDate = DateTime.Now;
@@ -292,18 +293,6 @@ namespace ThinkTank.Service.Services.ImpService
             catch (Exception ex)
             {
                 throw new CrudException(HttpStatusCode.InternalServerError, "Login  Fail", ex.InnerException?.Message);
-            }
-        }
-        public async Task SendNotification(Contest contest)
-        {
-            try
-            {
-                
-                await _unitOfWork.CommitAsync();
-            }
-            catch (CrudException ex)
-            {
-                throw ex;
             }
         }
         public async Task<AccountResponse> LoginAdmin(LoginRequest request)
@@ -377,10 +366,10 @@ namespace ThinkTank.Service.Services.ImpService
                  {
                 new Claim(ClaimTypes.NameIdentifier, customer.Id.ToString()),
                 new Claim(ClaimTypes.Role, "Player"),
-                new Claim("version", BitConverter.ToString(customer.Version).Replace("-", "")),
+                new Claim("version", customer.VersionToken.ToString()),
                 new Claim(ClaimTypes.Email , customer.Email),
                  });
-                tokenDescriptor.Expires = DateTime.Now.AddMinutes(20);
+                tokenDescriptor.Expires = DateTime.Now.AddMinutes(5);
                 tokenDescriptor.SigningCredentials = new(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature);
                 var token = tokenHandler.CreateToken(tokenDescriptor);
                 var rs = tokenHandler.WriteToken(token);
@@ -399,7 +388,7 @@ namespace ThinkTank.Service.Services.ImpService
                 new Claim(ClaimTypes.Role, "Admin"),
                 new Claim("version",t.ToString()),
                 });
-                tokenDescriptor.Expires = DateTime.Now.AddMinutes(20);
+                tokenDescriptor.Expires = DateTime.Now.AddMinutes(1);
                 tokenDescriptor.SigningCredentials = new(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature);
                 var token = tokenHandler.CreateToken(tokenDescriptor);
                 var rs = tokenHandler.WriteToken(token);
@@ -419,7 +408,7 @@ namespace ThinkTank.Service.Services.ImpService
                  {
                 new Claim(ClaimTypes.NameIdentifier, customer.Id.ToString()),
                 new Claim(ClaimTypes.Role, "Player"),
-                 new Claim("version", BitConverter.ToString(customer.Version).Replace("-", "")),
+                 new Claim("version", customer.VersionToken.ToString()),
                 new Claim(ClaimTypes.Email , customer.Email),
                  });
             }
@@ -442,19 +431,40 @@ namespace ThinkTank.Service.Services.ImpService
             var token = tokenHandler.CreateToken(tokenDescriptor);
             return tokenHandler.WriteToken(token);
         }
-        public async Task<AccountResponse> LoginGoogle(string data, string fcm)
+        public async Task<AccountResponse> LoginGoogle(LoginGoogleRequest request)
         {
             try
             {
                 Account user = _unitOfWork.Repository<Account>().GetAll()
-               .FirstOrDefault(u => u.GoogleId.Equals(data));
-
-                if (user == null) throw new CrudException(HttpStatusCode.BadRequest, "Account Not Found", "");
-                if (user.Status == false) throw new CrudException(HttpStatusCode.BadRequest, "Your account is block", "");
-                var token = GenerateRefreshToken(user);
-                user.RefreshToken = token;
-                user.Fcm = fcm;
-                await _unitOfWork.Repository<Account>().Update(user, user.Id);
+               .FirstOrDefault(u => u.GoogleId.Equals(request.GoogleId) );
+                if (user == null)
+                {
+                    if(_unitOfWork.Repository<Account>().Find(x=>x.Email == request.Email) != null)
+                        throw new CrudException(HttpStatusCode.BadRequest, "Email has already been registered", "");
+                    user = _mapper.Map<Account>(request);
+                    user.VersionToken = 1;
+                    user.Status = true;
+                    user.RegistrationDate = DateTime.Now;
+                    if (request.FCM == null || request.FCM == "")
+                        user.Fcm = null;
+                    user.Coin = 0;
+                    if (request.Avatar == "" || request.Avatar == null)
+                        user.Avatar = "https://firebasestorage.googleapis.com/v0/b/thinktank-79ead.appspot.com/o/System%2Favatar-trang-4.jpg?alt=media&token=2ab24327-c484-485a-938a-ed30dc3b1688";
+                    Guid id = Guid.NewGuid();
+                    user.Code = id.ToString().Substring(0, 8).ToUpper();
+                   user.UserName = $"player_{user.Code}";
+                    var token = GenerateRefreshToken(user);
+                    user.RefreshToken = token;
+                    await _unitOfWork.Repository<Account>().CreateAsync(user);
+                }
+                else
+                {
+                    if (user.Status == false) throw new CrudException(HttpStatusCode.BadRequest, "Your account is block", "");
+                    user.VersionToken = user.VersionToken + 1;
+                    var token = GenerateRefreshToken(user);
+                    user.RefreshToken = token;
+                    await _unitOfWork.Repository<Account>().Update(user, user.Id);
+                }                
                 await _unitOfWork.CommitAsync();
                 var rs = _mapper.Map<Account, AccountResponse>(user);
                 rs.AccessToken = GenerateJwtToken(user);
@@ -497,6 +507,7 @@ namespace ThinkTank.Service.Services.ImpService
                     if (customer.Status == false) throw new CrudException(HttpStatusCode.BadRequest, "Your account is block", "");
                     customer.RefreshToken = null;
                     customer.Fcm = null;
+                    customer.VersionToken = customer.VersionToken + 1;
                     await _unitOfWork.Repository<Account>().Update(customer, customer.Id);
                     await _unitOfWork.CommitAsync();
                     rs = _mapper.Map<Account, AccountResponse>(customer);
@@ -522,22 +533,24 @@ namespace ThinkTank.Service.Services.ImpService
                 if (account.Status == false) throw new CrudException(HttpStatusCode.BadRequest, "Your account is block", "");
                 if (account == null)
                     throw new CrudException(HttpStatusCode.NotFound, $"Not found account with id{accountId.ToString()}", "");
-
-                if (request.DateOfBirth >= DateTime.Now.AddDays(-1))
+                if (DateTime.Now.Year - request.DateOfBirth.Value.Year < 5 )
                     throw new CrudException(HttpStatusCode.BadRequest, "Date Of Birth is invalid", "");
 
                 var existingEmailAccount = _unitOfWork.Repository<Account>().GetAll().FirstOrDefault(c => c.Email.Equals(request.Email) && c.Id != accountId);
                 if (existingEmailAccount != null)
-                    throw new CrudException(HttpStatusCode.BadRequest, "Email has already been registered", "");
-                if(!Regex.IsMatch(request.NewPassword, "^(?=.*\\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[a-zA-Z]).{8,12}$"))
-                    throw new CrudException(HttpStatusCode.BadRequest, "New Password is invalid", "");
+                    throw new CrudException(HttpStatusCode.BadRequest, "Email has already been registered", "");                                 
                 _mapper.Map<UpdateAccountRequest, Account>(request, account);
 
                 if (request.Avatar == null) account.Avatar = account.Avatar;
                 else account.Avatar = request.Avatar;
                 account.Id = accountId;
-                if (request.OldPassword != null && request.NewPassword != null)
+                account.VersionToken = account.VersionToken + 1;
+                if (request.OldPassword != null && request.NewPassword != null && request.OldPassword != "" && request.NewPassword != "")
                 {
+                    if (account.GoogleId != null && account.GoogleId != "")
+                        throw new CrudException(HttpStatusCode.BadRequest, "Login Google cannot update password", "");
+                        if (!Regex.IsMatch(request.NewPassword, "^(?=.*\\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[a-zA-Z]).{8,12}$"))
+                        throw new CrudException(HttpStatusCode.BadRequest, "New Password is invalid", "");
                     if (!VerifyPasswordHash(request.OldPassword.Trim(), account.PasswordHash, account.PasswordSalt))
                         throw new CrudException(HttpStatusCode.BadRequest, "Old Password is not match", "");
                     CreatPasswordHash(request.NewPassword, out byte[] passwordHash, out byte[] passwordSalt);
@@ -559,21 +572,54 @@ namespace ThinkTank.Service.Services.ImpService
                 throw new CrudException(HttpStatusCode.InternalServerError, "Update account error!!!!!", ex.Message);
             }
         }
+      private  string GeneratePassword()
+        {
+            string validChars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+            Random random = new Random();
+            StringBuilder passwordBuilder = new StringBuilder();
+            passwordBuilder.Append(validChars[random.Next(10, validChars.Length)]);
+            passwordBuilder.Append(validChars[random.Next(0, 26)]);
+            passwordBuilder.Append(char.ToUpper(validChars[random.Next(0, 26)]));
+            while (passwordBuilder.Length < 8)
+            {
+                passwordBuilder.Append(validChars[random.Next(validChars.Length)]);
+            }
 
-        public async Task<AccountResponse> UpdatePass(ResetPasswordRequest request)
+            return passwordBuilder.ToString();
+        }
+    
+
+    public async Task<AccountResponse> UpdatePass(ResetPasswordRequest request)
         {
             try
             {
                 Account customer = _unitOfWork.Repository<Account>()
-                     .Find(c => c.Email.Equals(request.Email));
+                     .Find(c => c.Email.Equals(request.Email) && c.UserName.Equals(request.Username));
                 if (customer == null)
                 {
-                    throw new CrudException(HttpStatusCode.NotFound, $"Not found account with email{request.Email}", "");
+                    throw new CrudException(HttpStatusCode.NotFound, $"Not found account with email {request.Email} and username {request.Username}", "");
                 }
                 if (customer.Status == false) throw new CrudException(HttpStatusCode.BadRequest, "Your account is block", "");
-                if(!Regex.IsMatch(request.NewPassword, "^(?=.*\\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[a-zA-Z]).{8,12}$"))
-                    throw new CrudException(HttpStatusCode.BadRequest, "New Password is invalid", "");
-                CreatPasswordHash(request.NewPassword, out byte[] passwordHash, out byte[] passwordSalt);
+                if (customer.GoogleId != null && customer.GoogleId != "")
+                    throw new CrudException(HttpStatusCode.BadRequest, "Login Google cannot update password", "");
+                string to = request.Email;
+                string from = _config["EmailUserName"];
+                var newPass = GeneratePassword();
+                MailMessage message = new MailMessage(from, to);
+                message.Subject = "Your New Password for Account Verification";
+                message.Body = $"<p> Hi {customer.FullName}, </p> \n <span> <p> We are pleased to inform you that your account has been successfully verified with the email address associated with it. As a result, a new password has been generated for your account to enhance security.</p></span>\n" +
+                 $"<p> Your new password is :<strong style= \"font-weight:bold\">{newPass}</strong></p>";
+                AlternateView htmlView = AlternateView.CreateAlternateViewFromString(message.Body, null, "text/html");
+                message.AlternateViews.Add(htmlView);
+
+                message.IsBodyHtml = true;
+                SmtpClient SmtpServer = new SmtpClient("smtp.gmail.com");
+                SmtpServer.UseDefaultCredentials = false;
+                SmtpServer.Port = 587;
+                SmtpServer.Credentials = new System.Net.NetworkCredential(from, _config["EmailPassword"]);
+                SmtpServer.EnableSsl = true;
+                SmtpServer.Send(message);                  
+                CreatPasswordHash(newPass, out byte[] passwordHash, out byte[] passwordSalt);
                 customer.PasswordHash = passwordHash;
                 customer.PasswordSalt = passwordSalt;
                 await _unitOfWork.Repository<Account>().Update(customer, customer.Id);
@@ -611,7 +657,6 @@ namespace ThinkTank.Service.Services.ImpService
                 var utcExpiredDate = long.Parse(tokenInVerification.Claims.FirstOrDefault(x => x.Type == JwtRegisteredClaimNames.Exp).Value);
 
                 var expiredDate = DateTimeOffset.FromUnixTimeSeconds(utcExpiredDate).DateTime;
-                if (expiredDate.AddMinutes(-5) > DateTime.UtcNow) throw new CrudException(HttpStatusCode.BadRequest, "Access Token is not expried", "");
                 if (tokenInVerification.Claims.FirstOrDefault(x => x.Type == ClaimTypes.Role).Value.Equals("Admin"))
                 {
                     var adminAccountResponse = _firebaseRealtimeDatabaseService.GetAsync<AdminAccountResponse>("AdminAccount").Result;
@@ -620,7 +665,7 @@ namespace ThinkTank.Service.Services.ImpService
                         if (!request.RefreshToken.Equals(adminAccountResponse.RefreshTokenAdmin))
                             throw new CrudException(HttpStatusCode.BadRequest, "Invalid Refresh Token", "");
                     }
-
+                    if (expiredDate.AddMinutes(-5) > DateTime.UtcNow) throw new CrudException(HttpStatusCode.BadRequest, "Access Token is not expried", "");
                     acc.FullName = "Admin";
                     var token = GenerateJwtToken(acc);
                     cus = _mapper.Map<Account, AccountResponse>(acc);
@@ -636,7 +681,9 @@ namespace ThinkTank.Service.Services.ImpService
                     var list = _unitOfWork.Repository<Account>().GetAll();
                     if (list != null) acc = list.Where(a => a.RefreshToken != null && a.RefreshToken.Equals(request.RefreshToken)).SingleOrDefault();
                     if (acc == null) throw new CrudException(HttpStatusCode.BadRequest, "Invalid Refresh Token", "");
+                    if (expiredDate.AddMinutes(-5) > DateTime.UtcNow) throw new CrudException(HttpStatusCode.BadRequest, "Access Token is not expried", "");
                     if (acc.Status == false) throw new CrudException(HttpStatusCode.BadRequest, "Your account is block", "");
+                    acc.VersionToken=acc.VersionToken+1;
                     var token = GenerateRefreshToken(acc);
                     acc.RefreshToken = token;
                     await _unitOfWork.Repository<Account>().Update(acc, acc.Id);
@@ -669,8 +716,6 @@ namespace ThinkTank.Service.Services.ImpService
                 {
                     throw new CrudException(HttpStatusCode.NotFound, $"Not found account with id{id.ToString()}", "");
                 }
-                if(_unitOfWork.Repository<Report>().GetAll().Where(x=>x.AccountId2==id).ToList().Count() <=0)
-                    throw new CrudException(HttpStatusCode.BadRequest, $"Id Account {id} has not been reported by anyone", "");
                 account.Status = !account.Status;
                 await _unitOfWork.Repository<Account>().Update(account, id);
                 await _unitOfWork.CommitAsync();
@@ -722,18 +767,18 @@ namespace ThinkTank.Service.Services.ImpService
                 var account = _unitOfWork.Repository<Account>().Find(x => x.Id == accountId);
                 if (account == null)
                     throw new CrudException(HttpStatusCode.NotFound, $"Account Id {accountId} not found ", "");
-                var achievements = _unitOfWork.Repository<Achievement>().GetAll().Include(x => x.Account).Include(x => x.Topic)
+                var achievements = _unitOfWork.Repository<Achievement>().GetAll().Include(x => x.Account).Include(x => x.Game)
                     .Where(x => x.AccountId == accountId).ToList();
                 var result = new List<GameLevelOfAccountResponse>();
                 foreach (var achievement in achievements)
                 {
                     GameLevelOfAccountResponse gameLevelOfAccountResponse = new GameLevelOfAccountResponse();
-                    var game = result.SingleOrDefault(a => a.GameId == achievement.Topic.GameId);
+                    var game = result.SingleOrDefault(a => a.GameId == achievement.GameId);
                     if (game == null)
                     {
-                        gameLevelOfAccountResponse.GameId = (int)achievement.Topic.GameId;
-                        gameLevelOfAccountResponse.GameName = achievement.Topic.Game.Name;
-                        gameLevelOfAccountResponse.Level = achievements.LastOrDefault(a => a.Topic.GameId == achievement.Topic.GameId).Level;
+                        gameLevelOfAccountResponse.GameId = (int)achievement.GameId;
+                        gameLevelOfAccountResponse.GameName = achievement.Game.Name;
+                        gameLevelOfAccountResponse.Level = achievements.LastOrDefault(a => a.GameId == achievement.GameId).Level;
                         result.Add(gameLevelOfAccountResponse);
                     }
                 }

@@ -10,12 +10,12 @@ namespace ThinkTank.API.Controllers
 {
     [Route("api/accountInContests")]
     [ApiController]
-    public class AccountInContestController : ControllerBase
+    public class AccountInContestsController : ControllerBase
     {
         private readonly
             IAccountInContestService _accountInContestService;
 
-        public AccountInContestController(IAccountInContestService accountInContestService)
+        public AccountInContestsController(IAccountInContestService accountInContestService)
         {
             _accountInContestService = accountInContestService;
         }

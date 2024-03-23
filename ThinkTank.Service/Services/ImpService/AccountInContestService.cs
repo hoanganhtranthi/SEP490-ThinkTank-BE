@@ -67,6 +67,8 @@ namespace ThinkTank.Service.Services.ImpService
                     throw new CrudException(HttpStatusCode.BadRequest, "Contest Not Available!!!!!", "");
                 }
                 a.Coin -= c.CoinBetting;
+                if (a.Coin < c.CoinBetting)
+                    throw new CrudException(HttpStatusCode.BadRequest, "Not enough coin for this contest", "");
                 acc.Prize = request.Mark / 10;
                 acc.ContestId = c.Id;
                 acc.CompletedTime = DateTime.Now;
@@ -103,11 +105,12 @@ namespace ThinkTank.Service.Services.ImpService
         {
             var badge = _unitOfWork.Repository<Badge>().GetAll().Include(x => x.Challenge).SingleOrDefault(x => x.AccountId == account.Id && x.Challenge.Name.Equals(name));
             var challage = _unitOfWork.Repository<Challenge>().Find(x => x.Name.Equals(name));
+            var noti = _unitOfWork.Repository<Notification>().Find(x => x.Title == $"You have received {challage.Name} badge.");
             if (badge != null)
             {
                 if (badge.CompletedLevel < challage.CompletedMilestone)
                     badge.CompletedLevel += 1;
-                if (badge.CompletedLevel == challage.CompletedMilestone)
+                if (badge.CompletedLevel == challage.CompletedMilestone && noti == null )
                 {
                     badge.CompletedDate = DateTime.Now;
                     await _unitOfWork.Repository<Badge>().Update(badge, badge.Id);

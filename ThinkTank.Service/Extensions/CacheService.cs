@@ -1,7 +1,12 @@
-﻿using Microsoft.EntityFrameworkCore.Storage;
+﻿using Microsoft.EntityFrameworkCore.Metadata.Internal;
+using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Caching.StackExchangeRedis;
 using Microsoft.Extensions.Configuration;
+using Newtonsoft.Json.Linq;
+using RedLockNet;
+using RedLockNet.SERedis;
 using StackExchange.Redis;
 using System;
 using System.Collections.Generic;
@@ -14,6 +19,7 @@ using System.Text;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using ThinkTank.Service.DTO.Response;
 using IDatabase = StackExchange.Redis.IDatabase;
 
 namespace Repository.Extensions
@@ -24,9 +30,12 @@ namespace Repository.Extensions
         private IConfiguration _configuration;
         private IDatabase redis;
         private ConnectionMultiplexer connection;
-        public CacheService(IConfiguration configuration)
+        private readonly RedLockFactory _redLockFactory;
+
+        public CacheService(IConfiguration configuration,RedLockFactory redLockFactory)
         {
             _configuration = configuration;
+            _redLockFactory = redLockFactory;
             connection = ConnectionMultiplexer.Connect(_configuration["ConnectionStrings:RedisConnectionString"]);
             redis = ConnectionMultiplexer.Connect(_configuration["ConnectionStrings:RedisConnectionString"]).GetDatabase();
         }
@@ -74,12 +83,27 @@ namespace Repository.Extensions
         {
 
             var db = redis;
-            var id = await db.StringIncrementAsync($":jobid");
-
            // await db.HashSetAsync(key, parametersDictionary.Select(entries => new HashEntry(entries.Key, entries.Value)).ToArray());
 
             await db.ListLeftPushAsync(key, JsonSerializer.Serialize(value));
             await connection.GetSubscriber().PublishAsync("account1vs1", "");
+        }
+        public async Task<bool> DeleteJobAsync<T>(string key, T value)
+        {
+            string jsonValue = JsonSerializer.Serialize(value);
+
+            long removedItemCount = await redis.ListRemoveAsync(key, jsonValue);
+
+            return removedItemCount > 0;
+        }
+        public IRedLock AcquireLock(string key)
+        {
+            var redLock = _redLockFactory.CreateLock(key,
+                expiryTime: TimeSpan.FromMilliseconds(10000),
+                waitTime: TimeSpan.FromMilliseconds(250),
+                retryTime: TimeSpan.FromMilliseconds(250));
+
+            return redLock;
         }
 
     }

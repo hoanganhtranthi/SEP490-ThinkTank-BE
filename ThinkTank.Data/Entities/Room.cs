@@ -13,11 +13,11 @@ namespace ThinkTank.Data.Entities
         public int Id { get; set; }
         public string Code { get; set; } = null!;
         public int AmountPlayer { get; set; }
-        public DateTime StartTime { get; set; }
-        public DateTime EndTime { get; set; }
+        public DateTime? StartTime { get; set; }
+        public DateTime? EndTime { get; set; }
         public bool Status { get; set; }
         public int TopicId { get; set; }
-        public int GameId { get; set; }
+        public string Name { get; set; } = null!;
 
         public virtual Topic Topic { get; set; } = null!;
         public virtual ICollection<AccountInRoom> AccountInRooms { get; set; }

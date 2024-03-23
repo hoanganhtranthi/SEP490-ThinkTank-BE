@@ -19,6 +19,7 @@ namespace MuTote.API.Mapper
             CreateMap<Account, AccountResponse>();
             CreateMap<CreateAccountRequest, Account>();
             CreateMap<UpdateAccountRequest, Account>();
+            CreateMap<LoginGoogleRequest, Account>();
 
             CreateMap<FriendRequest, Friend>();
             CreateMap<FriendRequest, FriendResponse>();
@@ -92,6 +93,16 @@ namespace MuTote.API.Mapper
             CreateMap<TypeOfAssetInContest, TypeOfAssetInContestResponse>().ReverseMap();
             CreateMap<TypeOfAssetInContestRequest, TypeOfAssetInContestResponse>();
             CreateMap<TypeOfAssetInContestRequest, TypeOfAssetInContest>();
+
+            CreateMap<CreateRoomRequest, Room>();
+            CreateMap<Room, RoomResponse>().ReverseMap();
+            CreateMap<RoomRequest, RoomResponse>();
+            CreateMap<RoomRequest, Room>();
+
+            CreateMap<AccountInRoomRequest, AccountInRoom>();
+            CreateMap<AccountInRoom, AccountInRoomResponse>();
+            CreateMap<AccountInRoomRequest, AccountInRoomResponse>();
+            CreateMap<CreateAndUpdateAccountInRoomRequest, AccountInRoom>();
         }
 
     }

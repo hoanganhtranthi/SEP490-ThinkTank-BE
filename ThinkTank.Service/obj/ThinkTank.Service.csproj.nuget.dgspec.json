@@ -261,6 +261,10 @@
               "target": "Package",
               "version": "[1.10.0, )"
             },
+            "RedLock.net": {
+              "target": "Package",
+              "version": "[2.3.2, )"
+            },
             "StackExchange.Redis": {
               "target": "Package",
               "version": "[2.7.10, )"

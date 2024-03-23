@@ -12,7 +12,7 @@ namespace ThinkTank.Service.DTO.Request
         public int Mark { get; set; }
         public int Level { get; set; }
         public int AccountId { get; set; }
-        public int TopicId { get; set; }
+        public int GameId { get; set; }
         public int PieceOfInformation { get; set; }
     }
 }

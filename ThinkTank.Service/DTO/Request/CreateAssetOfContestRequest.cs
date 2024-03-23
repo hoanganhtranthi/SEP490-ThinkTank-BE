@@ -9,7 +9,6 @@ namespace ThinkTank.Service.DTO.Request
     public class CreateAssetOfContestRequest
     {
         public string Value { get; set; } = null!;
-        public int? ContestId { get; set; }
         public int? TypeOfAssetId { get; set; }
     }
 }

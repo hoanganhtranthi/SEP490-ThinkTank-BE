@@ -40,7 +40,7 @@ namespace ThinkTank.Service.Services.ImpService
                 {
                     Id = x.Id,
                     Name = x.Name,
-                    AmoutPlayer= _unitOfWork.Repository<Achievement>().GetAll().Include(x => x.Topic).Where(x => x.Topic.GameId == id).Select(a => a.AccountId).Distinct().Count(),
+                    AmoutPlayer= _unitOfWork.Repository<Achievement>().GetAll().Include(x => x.Game).Where(x => x.GameId == id).Select(a => a.AccountId).Distinct().Count(),
                     Topics = new List<TopicResponse>(x.Topics.Select(a => new TopicResponse
                     {
                         Id = a.Id,
@@ -79,7 +79,7 @@ namespace ThinkTank.Service.Services.ImpService
 
                 var totalMultiplayerMode = _unitOfWork.Repository<AccountInRoom>()
                     .GetAll()
-                    .Where(x => x.CompletedTime.Month == currentDateMonth)
+                    .Where(x => x.CompletedTime.Value.Month == currentDateMonth)
                     .Select(x => x.AccountId)
                     .Distinct()
                     .Count();
@@ -106,7 +106,7 @@ namespace ThinkTank.Service.Services.ImpService
 
                 var totalRoom = _unitOfWork.Repository<AccountInRoom>()
                     .GetAll()
-                    .Where(x => x.CompletedTime.Month == currentDateMonth)
+                    .Where(x => x.CompletedTime.Value.Month == currentDateMonth)
                     .Select(x => x.AccountId)
                     .Distinct()
                     .Count();
@@ -121,9 +121,9 @@ namespace ThinkTank.Service.Services.ImpService
                     .Count();
 
                 var total = total1vs1Mode + totalMultiplayerMode + totalSinglePlayer;
-                var percent1vs1Mode = (double)total1vs1Mode / total * 100;
-                var percentMultiplayerMode = (double)totalMultiplayerMode / total * 100;
-                var percentSinglePlayer = (double)totalSinglePlayer / total * 100;
+                var percent1vs1Mode = total1vs1Mode != 0 ? (double)total1vs1Mode / total * 100 : 0.0;
+                var percentMultiplayerMode = totalMultiplayerMode != 0 ? (double)totalMultiplayerMode / total * 100 : 0.0;
+                var percentSinglePlayer = totalSinglePlayer != 0 ? (double)totalSinglePlayer / total * 100 : 0.0;
 
                 return new
                 {
@@ -164,7 +164,7 @@ namespace ThinkTank.Service.Services.ImpService
             })  .DynamicFilter(filter) .ToList();
                 foreach(var game in games)
                 {
-                    game.AmoutPlayer = _unitOfWork.Repository<Achievement>().GetAll().Include(x => x.Topic).Where(x => x.Topic.GameId == game.Id).Select(a => a.AccountId).Distinct().Count();
+                    game.AmoutPlayer = _unitOfWork.Repository<Achievement>().GetAll().Include(x => x.Game).Where(x => x.GameId == game.Id).Select(a => a.AccountId).Distinct().Count();
                   
                 }
                 var sort = PageHelper<GameResponse>.Sorting(paging.SortType, games, paging.ColName);

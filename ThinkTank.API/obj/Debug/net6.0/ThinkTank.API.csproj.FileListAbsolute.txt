@@ -356,3 +356,5 @@ D:\SEP490-ThinkTank-BE\ThinkTank.API\bin\Debug\net6.0\Microsoft.Threading.Tasks.
 D:\SEP490-ThinkTank-BE\ThinkTank.API\bin\Debug\net6.0\Microsoft.Threading.Tasks.dll
 D:\SEP490-ThinkTank-BE\ThinkTank.API\bin\Debug\net6.0\System.Net.Http.Extensions.dll
 D:\SEP490-ThinkTank-BE\ThinkTank.API\bin\Debug\net6.0\System.Net.Http.Primitives.dll
+D:\SEP490-ThinkTank-BE\ThinkTank.API\bin\Debug\net6.0\RedLockNet.Abstractions.dll
+D:\SEP490-ThinkTank-BE\ThinkTank.API\bin\Debug\net6.0\RedLockNet.SERedis.dll

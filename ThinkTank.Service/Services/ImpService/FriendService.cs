@@ -221,7 +221,7 @@ namespace ThinkTank.Service.Services.ImpService
                 throw new CrudException(HttpStatusCode.InternalServerError, "Get friendship list error!!!!!", ex.Message);
             }
         }
-        public async Task<List<FriendResponse>> GetFriendsByAccountId(FriendRequest request)
+        private async Task<List<FriendResponse>> GetFriendsByAccountId(FriendRequest request)
         {
             try
             {
@@ -275,6 +275,8 @@ namespace ThinkTank.Service.Services.ImpService
                 {
                     throw new CrudException(HttpStatusCode.NotFound, $"Not found friendship with id{id.ToString()}", "");
                 }
+                var acc1 = _unitOfWork.Repository<Account>().Find(x => x.Id == friend.AccountId1);
+                var acc2 = _unitOfWork.Repository<Account>().Find(x => x.Id == friend.AccountId2);
                 friend.Status = true;
                 await _unitOfWork.Repository<Friend>().Update(friend, id);
                 if (friend.AccountId2Navigation.Avatar == null)
@@ -314,11 +316,12 @@ namespace ThinkTank.Service.Services.ImpService
                 if (friend.AccountId2Navigation.FriendAccountId1Navigations.Where(x => x.Status == true).Count() + friend.AccountId2Navigation.FriendAccountId2Navigations.Where(x => x.Status == true).Count() == 15)
                     GetBadge(friend.AccountId2Navigation, "The friendliest");
                 if (friend.AccountId1Navigation.Badges.Where(x => x.Status == true).Count() == 10)
-                    friend.AccountId1Navigation.Coin += 100;
+                    acc1.Coin += 100;
                 if (friend.AccountId2Navigation.Badges.Where(x => x.Status == true).Count() == 10)
-                    friend.AccountId2Navigation.Coin += 100;
-                await _unitOfWork.Repository<Account>().Update(friend.AccountId1Navigation,friend.AccountId1);
-                await _unitOfWork.Repository<Account>().Update(friend.AccountId2Navigation, friend.AccountId2);
+                    acc2.Coin += 100;
+                
+                await _unitOfWork.Repository<Account>().Update(acc1,friend.AccountId1);
+                await _unitOfWork.Repository<Account>().Update(acc2, friend.AccountId2);
                 await _unitOfWork.CommitAsync();
                 var rs = _mapper.Map<FriendResponse>(friend);
                 rs.UserName1 = friend.AccountId1Navigation.UserName;
@@ -340,11 +343,12 @@ namespace ThinkTank.Service.Services.ImpService
         {
             var badge = _unitOfWork.Repository<Badge>().GetAll().Include(x => x.Challenge).SingleOrDefault(x => x.AccountId == account.Id && x.Challenge.Name.Equals(name));
             var challage = _unitOfWork.Repository<Challenge>().Find(x => x.Name.Equals(name));
+            var noti = _unitOfWork.Repository<Notification>().Find(x => x.Title == $"You have received {challage.Name} badge.");
             if (badge != null)
             {
                 if (badge.CompletedLevel < challage.CompletedMilestone)
                     badge.CompletedLevel += 1;
-                if (badge.CompletedLevel == challage.CompletedMilestone)
+                if (badge.CompletedLevel == challage.CompletedMilestone && noti ==null)
                 {
                     badge.CompletedDate = DateTime.Now;
                     await _unitOfWork.Repository<Badge>().Update(badge, badge.Id);

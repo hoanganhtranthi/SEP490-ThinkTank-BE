@@ -23,6 +23,10 @@ using Google.Apis.Auth.OAuth2;
 using Hangfire;
 using ThinkTank.API.AppStart;
 using FireSharp.Config;
+using RedLockNet.SERedis;
+using RedLockNet;
+using RedLockNet.SERedis.Configuration;
+using ThinkTank.API.Utility;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -32,6 +36,8 @@ builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Services.AddRedisConnection(builder.Configuration)
+               .AddRedLock();
 builder.Services.AddStackExchangeRedisCache(options =>
 {
     options.Configuration = builder.Configuration.GetConnectionString("RedisConnectionString");
@@ -54,11 +60,13 @@ builder.Services.AddScoped<IFirebaseMessagingService, FirebaseMessagingService>(
 builder.Services.AddScoped<IAccountInContestService, AccountInContestService>();
 builder.Services.AddScoped<IReportService, ReportService>();
 builder.Services.AddScoped<INotificationService, NotificationService>();
+builder.Services.AddScoped<IRoomService,RoomService>();
 builder.Services.AddScoped<ITypeOfAssetService, TypeOfAssetService>();
 builder.Services.AddScoped<ITypeOfAssetInContestService, TypeOfAssetInContestService>();
 builder.Services.AddScoped<ITopicService, TopicService>();
 builder.Services.AddScoped<IAssetService, AssetService>();
 builder.Services.AddScoped<IAccountIn1vs1Service, AccountIn1vs1Service>();
+builder.Services.AddScoped<IAccountInRoomService, AccountInRoomService>();
 builder.Services.AddScoped<IFirebaseRealtimeDatabaseService, FirebaseRealtimeDatabaseService>();
 System.Environment.SetEnvironmentVariable("GOOGLE_APPLICATION_CREDENTIALS", "thinktank-ad0b3-45e7681d45c6.json");
 FirebaseApp.Create(new AppOptions()
@@ -140,8 +148,6 @@ builder.Services.AddAuthentication(x =>
         };
     });
 //end JWT
-
-
 builder.Services.AddTransient<IAuthorizationHandler, CustomAuthorizationHandler>();
 builder.Services.AddAuthorization(options =>
 {
@@ -188,5 +194,4 @@ app.UseCors("_myAllowSpecificOrigins");
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
-
 app.Run();

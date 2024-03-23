@@ -84,12 +84,13 @@ namespace ThinkTank.API.Controllers
         /// <summary>
         /// Send Verification Code  
         /// </summary>
+        /// <param name="username"></param>
         /// <returns></returns>
         [AllowAnonymous]
         [HttpPost("verification-code")]
-        public async Task<ActionResult<string>> Verification([FromQuery] string email)
+        public async Task<ActionResult<string>> Verification([FromQuery] string username)
         {
-            var rs = await _accountService.CreateMailMessage(email);
+            var rs = await _accountService.CreateMailMessage(username);
             return Ok(rs);
         }
         /// <summary>
@@ -174,9 +175,9 @@ namespace ThinkTank.API.Controllers
         /// <returns></returns>
         [AllowAnonymous]
         [HttpPost("google-authentication")]
-        public async Task<ActionResult<AccountResponse>> LoginGoogle([FromQuery] string googleId, [FromQuery] string fcm)
+        public async Task<ActionResult<AccountResponse>> LoginGoogle([FromBody] LoginGoogleRequest request)
         {
-            var rs = await _accountService.LoginGoogle(googleId,fcm);
+            var rs = await _accountService.LoginGoogle(request);
             return Ok(rs);
         }
         /// <summary>

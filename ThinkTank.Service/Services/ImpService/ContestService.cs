@@ -29,6 +29,7 @@ using System.Runtime.ConstrainedExecution;
 using static Google.Apis.Requests.BatchRequest;
 using FirebaseAdmin.Messaging;
 using Notification = ThinkTank.Data.Entities.Notification;
+using System.Net.NetworkInformation;
 
 namespace ThinkTank.Service.Services.ImpService
 {
@@ -87,6 +88,7 @@ namespace ThinkTank.Service.Services.ImpService
                     assetOfContest.Value = type.Value;
                     assetOfContest.TypeOfAssetId = type.TypeOfAssetId;
                     assetOfContest.ContestId = contest.Id;
+                    assetOfContest.Contest = contest;
                     await _unitOfWork.Repository<AssetOfContest>().CreateAsync(assetOfContest);
                     AssetOfContestResponse response = new AssetOfContestResponse();
                     response.Id = assetOfContest.Id;
@@ -292,11 +294,12 @@ namespace ThinkTank.Service.Services.ImpService
         {
             var badge = _unitOfWork.Repository<Badge>().GetAll().Include(x => x.Challenge).SingleOrDefault(x => x.AccountId == account.Id && x.Challenge.Name.Equals(name));
             var challage = _unitOfWork.Repository<Challenge>().Find(x => x.Name.Equals(name));
+            var noti = _unitOfWork.Repository<Notification>().Find(x => x.Title == $"You have received {challage.Name} badge.");
             if (badge != null)
             {
                 if (badge.CompletedLevel < challage.CompletedMilestone)
                     badge.CompletedLevel += 1;
-                if (badge.CompletedLevel == challage.CompletedMilestone)
+                if (badge.CompletedLevel == challage.CompletedMilestone && noti ==null)
                 {
                     badge.Status = true;
                     badge.CompletedDate = DateTime.Now;
@@ -374,16 +377,16 @@ namespace ThinkTank.Service.Services.ImpService
                 throw new CrudException(HttpStatusCode.InternalServerError, "Get Contest By ID Error!!!", ex.InnerException?.Message);
             }
         }
-        public async Task<List<LeaderboardResponse>> GetLeaderboardOfContest(int id)
+        private async Task<List<LeaderboardResponse>> GetLeaderboardOfContest(int contestId)
         {
             try
             {
                 var contest = _unitOfWork.Repository<Contest>().GetAll().Include(c => c.AccountInContests)
-                      .SingleOrDefault(c => c.Id == id);
+                      .SingleOrDefault(c => c.Id == contestId);
 
                 if (contest == null)
                 {
-                    throw new CrudException(HttpStatusCode.NotFound, $"Not found contest with id{id.ToString()}", "");
+                    throw new CrudException(HttpStatusCode.NotFound, $"Not found contest with id{contestId.ToString()}", "");
                 }
 
                 IList<LeaderboardResponse> responses = new List<LeaderboardResponse>();
@@ -433,7 +436,65 @@ namespace ThinkTank.Service.Services.ImpService
                 throw new CrudException(HttpStatusCode.InternalServerError, "Get leaderboard of contest error!!!!!", ex.Message);
             }
         }
+        public async Task<PagedResults<LeaderboardResponse>> GetLeaderboardOfContest(int contestId, PagingRequest paging)
+        {
+            try
+            {
+                var contest = _unitOfWork.Repository<Contest>().GetAll().Include(c => c.AccountInContests)
+                      .SingleOrDefault(c => c.Id == contestId);
 
+                if (contest == null)
+                {
+                    throw new CrudException(HttpStatusCode.NotFound, $"Not found contest with id{contestId.ToString()}", "");
+                }
+
+                IList<LeaderboardResponse> responses = new List<LeaderboardResponse>();
+                if (contest.AccountInContests.Count() > 0)
+                {
+                    var orderedAccounts = contest.AccountInContests.OrderByDescending(x => x.Mark);
+                    var rank = 1;
+
+                    foreach (var account in orderedAccounts)
+                    {
+                        var acc = _unitOfWork.Repository<Account>().Find(x => x.Id == account.AccountId);
+                        var leaderboardContestResponse = new LeaderboardResponse
+                        {
+                            AccountId = account.AccountId,
+                            Mark = account.Mark,
+                            Avatar = acc.Avatar,
+                            FullName = acc.FullName
+                        };
+
+                        var mark = contest.AccountInContests
+                            .Where(x => x.Mark == account.Mark && x.AccountId != account.AccountId)
+                            .ToList();
+
+                        if (mark.Any())
+                        {
+                            var a = responses.SingleOrDefault(a => a.AccountId == mark.First().AccountId);
+                            leaderboardContestResponse.Rank = a?.Rank ?? rank;// a != null: leaderboardContestResponse.Rank = a.Rank va nguoc lai a==null : leaderboardContestResponse.Rank = rank
+                        }
+                        else
+                        {
+                            leaderboardContestResponse.Rank = rank;
+                        }
+
+                        responses.Add(leaderboardContestResponse);
+                        rank++;
+                    }
+
+                }
+                return PageHelper<LeaderboardResponse>.Paging(responses.ToList(), paging.Page, paging.PageSize);
+            }
+            catch (CrudException ex)
+            {
+                throw ex;
+            }
+            catch (Exception ex)
+            {
+                throw new CrudException(HttpStatusCode.InternalServerError, "Get leaderboard of contest error!!!!!", ex.Message);
+            }
+        }
         public async Task<PagedResults<ContestResponse>> GetContests(ContestRequest request, PagingRequest paging)
         {
             try
@@ -445,11 +506,19 @@ namespace ThinkTank.Service.Services.ImpService
                                                Id = x.Id,
                                                EndTime=x.EndTime,
                                                StartTime=x.StartTime,
-                                               AssetOfContests=_mapper.Map<List<AssetOfContestResponse>>(x.AssetOfContests),
+                                               AssetOfContests=_mapper.Map<List<AssetOfContestResponse>>(x.AssetOfContests.Select(a=>new AssetOfContestResponse
+                                               {
+                                                   ContestId=a.ContestId,
+                                                   Id=a.Id,
+                                                   Value=a.Value,
+                                                   NameOfContest=x.Name,
+                                                   Type=a.TypeOfAsset.Type
+                                               })),
                                                Name=x.Name,
                                                Status=x.Status,
                                                Thumbnail=x.Thumbnail,
                                                GameId=x.GameId,
+                                               CoinBetting=x.CoinBetting,
                                                GameName=x.Game.Name,
                                                AmoutPlayer=x.AccountInContests.Count()
                                            })
@@ -528,6 +597,8 @@ namespace ThinkTank.Service.Services.ImpService
                 }
                 _mapper.Map<CreateAndUpdateContestRequest, Contest>(request, contest);
                 contest.Id = contestId;
+                if (request.Thumbnail != null) contest.Thumbnail = request.Thumbnail;
+                else contest.Thumbnail = contest.Thumbnail;
                 await _unitOfWork.Repository<Contest>().Update(contest, contestId);
                 await _unitOfWork.CommitAsync();
                 var expiryTime = contest.EndTime;

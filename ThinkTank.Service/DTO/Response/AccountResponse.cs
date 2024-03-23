@@ -33,5 +33,6 @@ namespace ThinkTank.Service.DTO.Response
         public string? AccessToken { get; set; }
         public int? AmountReport { get; set; }
         public byte[] Version { get; set; } 
+        public int? VersionToken { get; set; }
     }
 }

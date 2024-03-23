@@ -11,6 +11,7 @@ namespace ThinkTank.Service.DTO.Response
     {
         public int Id { get; set; }
         public string Description { get; set; } = null!;
+        [IntAttribute]
         public int AccountId1 { get; set; }
         [IntAttribute]
         public int AccountId2 { get; set; }
