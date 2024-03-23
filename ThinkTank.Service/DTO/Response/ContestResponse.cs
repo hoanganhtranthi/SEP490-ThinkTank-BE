@@ -23,7 +23,8 @@ namespace ThinkTank.Service.DTO.Response
         [IntAttribute]
         public int? GameId { get; set; }
         public string?  GameName { get; set; }
-        public int AmoutPlayer { get; set; }
+        public int? AmoutPlayer { get; set; }
+        public int? CoinBetting { get; set; }
         public virtual ICollection<AssetOfContestResponse> AssetOfContests { get; set; }
 
     }

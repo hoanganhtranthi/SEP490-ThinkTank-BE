@@ -13,6 +13,7 @@ namespace ThinkTank.Service.DTO.Request
         public int WinnerId { get; set; }
         public int AccountId1 { get; set; }
         public int AccountId2 { get; set; }
-        public int TopicId { get; set; }
+        public int GameId { get; set; }
+        public string RoomId { get; set; }
     }
 }

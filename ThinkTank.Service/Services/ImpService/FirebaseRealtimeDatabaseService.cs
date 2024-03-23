@@ -10,6 +10,7 @@ using System.Linq;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
+using ThinkTank.Data.Entities;
 using ThinkTank.Service.Services.IService;
 using static Google.Apis.Requests.BatchRequest;
 

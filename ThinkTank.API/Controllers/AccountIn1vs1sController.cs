@@ -55,5 +55,19 @@ namespace ThinkTank.API.Controllers
             var rs = await accountIn1Vs1Service.CreateAccount1vs1(request);
             return Ok(rs);
         }
+        /// <summary>
+        /// Find Opponent of Account In 1vs1
+        /// </summary>
+        /// <param name="accountId"></param>
+        ///  <param name="gameId"></param>
+        ///   <param name="coin"></param>
+        /// <returns></returns>
+        [Authorize(Policy = "Player")]
+        [HttpGet("opponent-of-account")]
+        public async Task<ActionResult<int>> FindAccountIn1vs1([FromQuery] int accountId, [FromQuery] int gameId, [FromQuery] int coin)
+        {
+            var rs = await accountIn1Vs1Service.FindAccountTo1vs1(accountId,coin,gameId);
+            return Ok(rs);
+        }
     }
 }

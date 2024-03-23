@@ -30,7 +30,19 @@ namespace ThinkTank.Service.Services.ImpService
             var response = await _fm.SendMulticastAsync(message);
             Console.WriteLine($"{response.SuccessCount} messages were sent successfully");
         }
+        public async Task<int>SendMessage(List<string> tokens, Notification notification, Dictionary<string, string> data)
+        {
+            var message = new MulticastMessage()
+            {
+                Tokens = tokens,
+                Data = data,
+                Notification = notification
 
+            };
+
+            var response = await _fm.SendMulticastAsync(message);
+            return response.SuccessCount;
+        }
         public async void SendToTopic(string topic, Notification notification, Dictionary<string, string> data)
         {
             // See documentation on defining a message payload.

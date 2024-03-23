@@ -60,9 +60,9 @@ namespace ThinkTank.API.Controllers
         /// <returns></returns>
         [Authorize(Policy = "All")]
         [HttpGet("{gameId:int}/leaderboard")]
-        public async Task<ActionResult<List<ContestResponse>>> GetLeaderboard(int gameId)
+        public async Task<ActionResult<List<LeaderboardResponse>>> GetLeaderboard(int gameId, [FromQuery] PagingRequest request)
         {
-            var rs = await _achievementService.GetLeaderboard(gameId);
+            var rs = await _achievementService.GetLeaderboard(gameId,request);
             return Ok(rs);
         }
     }

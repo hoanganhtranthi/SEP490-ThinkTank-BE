@@ -16,7 +16,7 @@ namespace ThinkTank.Service.Services.IService
         Task<ContestResponse> UpdateContest(int contestId, CreateAndUpdateContestRequest request);
         Task<ContestResponse> UpdateStateContest(int id);
         Task<ContestResponse> DeleteContest(int id);
-        Task<List<LeaderboardResponse>> GetLeaderboardOfContest(int id);
+        Task<PagedResults<LeaderboardResponse>> GetLeaderboardOfContest(int contestId, PagingRequest paging);
         Task<dynamic> GetReportOfContest();
     }
 }

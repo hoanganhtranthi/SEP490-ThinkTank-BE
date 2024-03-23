@@ -11,12 +11,12 @@ namespace ThinkTank.API.Controllers
 {
     [Route("api/contests")]
     [ApiController]
-    public class ContestController : ControllerBase
+    public class ContestsController : ControllerBase
     {
         private readonly 
             IContestService _contestService;
 
-        public ContestController(IContestService contestService)
+        public ContestsController(IContestService contestService)
         {
             _contestService = contestService;
         }
@@ -37,12 +37,13 @@ namespace ThinkTank.API.Controllers
         /// Get lederboard of contest
         /// </summary>
         /// <param name="id"></param>
+        /// <param name="request"></param>
         /// <returns></returns>
-       [Authorize(Policy = "All")]
+        [Authorize(Policy = "All")]
         [HttpGet("{id:int}/leaderboard")]
-        public async Task<ActionResult<List<ContestResponse>>> GetLeaderboardOfContest(int id)
+        public async Task<ActionResult<List<LeaderboardResponse>>> GetLeaderboardOfContest(int id, [FromQuery] PagingRequest request)
         {
-            var rs = await _contestService.GetLeaderboardOfContest(id);
+            var rs = await _contestService.GetLeaderboardOfContest(id,request);
             return Ok(rs);
         }
         /// <summary>
@@ -63,7 +64,7 @@ namespace ThinkTank.API.Controllers
         /// </summary>
         /// <param name="contestRequest"></param>
         /// <returns></returns>
-        [Authorize(Policy = "Admin")]
+       [Authorize(Policy = "Admin")]
         [HttpPost]
         public async Task<ActionResult<ContestResponse>> CreateContest([FromBody] CreateAndUpdateContestRequest contestRequest)
         {

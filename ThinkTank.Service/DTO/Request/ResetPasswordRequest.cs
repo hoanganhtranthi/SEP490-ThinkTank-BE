@@ -12,7 +12,7 @@ namespace ThinkTank.Service.DTO.Request
         [Required(ErrorMessage = "Email is required !")]
         public string Email { get; set; }
         [Required(ErrorMessage = " New Password is required !")]
-        [StringLength(int.MaxValue, MinimumLength = 1, ErrorMessage = "New Password is invalid")]
-        public string NewPassword { get; set; }
+        [StringLength(int.MaxValue, MinimumLength = 1, ErrorMessage = "Username is invalid")]
+        public string Username { get; set; }
     }
 }

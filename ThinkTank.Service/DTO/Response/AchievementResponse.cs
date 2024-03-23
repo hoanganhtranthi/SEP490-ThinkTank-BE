@@ -19,10 +19,9 @@ namespace ThinkTank.Service.DTO.Response
         public int? AccountId { get; set; }
         public string? Username { get; set; }
         [IntAttribute]
-        public int? TopicId { get; set; }
+        public int? GameId { get; set; }
         [IntAttribute]
         public int? PieceOfInformation { get; set; }
-        public string? TopicName { get; set; }
         public string? GameName { get; set; }
     }
 }

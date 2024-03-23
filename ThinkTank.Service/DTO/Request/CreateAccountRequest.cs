@@ -13,7 +13,6 @@ namespace ThinkTank.Service.DTO.Request
         public string Email { get; set; } = null!;
         public string Password { get; set; } = null!;
         public string? Fcm { get; set; }
-        public string? GoogleId { get; set; }
 
     }
 }

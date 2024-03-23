@@ -49,7 +49,7 @@ namespace ThinkTank.Service.Services.ImpService
 
                 if (response == null)
                 {
-                    throw new CrudException(HttpStatusCode.NotFound, $"Not found type of asset with id {id.ToString()}", "");
+                    throw new CrudException(HttpStatusCode.NotFound, $"Not found asset with id {id.ToString()}", "");
                 }
                 return response;
             }
@@ -76,7 +76,7 @@ namespace ThinkTank.Service.Services.ImpService
                     TopicName = x.Topic.Name,
                     Status = x.Status,
                     Version=x.Version,
-                    Answer= x.Topic.GameId==2?System.IO.Path.GetFileName(new Uri(x.Value).LocalPath):null,
+                    Answer = x.Topic.GameId==2?System.IO.Path.GetFileName(new Uri(x.Value).LocalPath):null,
                     GameId = x.Topic.GameId,
                     GameName = x.Topic.Game.Name,
                     Value = x.Value
@@ -89,7 +89,7 @@ namespace ThinkTank.Service.Services.ImpService
             }
             catch (CrudException ex)
             {
-                throw new CrudException(HttpStatusCode.InternalServerError, "Get type of assets list error!!!!!", ex.Message);
+                throw new CrudException(HttpStatusCode.InternalServerError, "Get assets list error!!!!!", ex.Message);
             }
         }
         public async Task<List<AssetResponse>> CreateAsset(List<CreateAssetRequest> request)
