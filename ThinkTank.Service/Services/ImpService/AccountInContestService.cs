@@ -206,6 +206,8 @@ namespace ThinkTank.Service.Services.ImpService
                         ContestName = x.Contest.Name,
                         CompletedTime = x.CompletedTime,
                         Duration = x.Duration,
+                        AccountId = x.AccountId,
+                        ContestId=x.ContestId,
                         Mark = x.Mark,
                         Prize = x.Prize
                     }).DynamicFilter(filter).ToList();

@@ -208,6 +208,21 @@
             <param name="gameId"></param>
             <returns></returns>
         </member>
+        <member name="M:ThinkTank.API.Controllers.AnalysesController.GetAnalysisOfAccount(System.Int32)">
+            <summary>
+            Get analysis of account by account Id
+            </summary>
+            <param name="accountId"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ThinkTank.API.Controllers.AnalysesController.GetAnalysisOfAccount(System.Int32,System.Int32)">
+            <summary>
+            Get analysis of account by account Id and game Id
+            </summary>
+            <param name="accountId"></param>
+            <param name="gameId"></param>
+            <returns></returns>
+        </member>
         <member name="M:ThinkTank.API.Controllers.AssetsController.GetAssets(ThinkTank.Service.DTO.Request.PagingRequest,ThinkTank.Service.DTO.Request.AssetRequest)">
             <summary>
             Get list of assets

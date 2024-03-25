@@ -19,6 +19,7 @@ namespace ThinkTank.Data.Entities
         public bool? Status { get; set; }
         public int? CoinBetting { get; set; }
         public int? GameId { get; set; }
+        public int? PlayTime { get; set; }
 
         public virtual Game? Game { get; set; }
         public virtual ICollection<AccountInContest> AccountInContests { get; set; }

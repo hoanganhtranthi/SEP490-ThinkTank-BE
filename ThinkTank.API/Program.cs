@@ -68,6 +68,7 @@ builder.Services.AddScoped<IAssetService, AssetService>();
 builder.Services.AddScoped<IAccountIn1vs1Service, AccountIn1vs1Service>();
 builder.Services.AddScoped<IAccountInRoomService, AccountInRoomService>();
 builder.Services.AddScoped<IFirebaseRealtimeDatabaseService, FirebaseRealtimeDatabaseService>();
+builder.Services.AddScoped<IAnalysisService, AnalysisService>();
 System.Environment.SetEnvironmentVariable("GOOGLE_APPLICATION_CREDENTIALS", "thinktank-ad0b3-45e7681d45c6.json");
 FirebaseApp.Create(new AppOptions()
 {
