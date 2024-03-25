@@ -369,7 +369,7 @@ namespace ThinkTank.Service.Services.ImpService
                 new Claim("version", customer.VersionToken.ToString()),
                 new Claim(ClaimTypes.Email , customer.Email),
                  });
-                tokenDescriptor.Expires = DateTime.Now.AddMinutes(5);
+                tokenDescriptor.Expires = DateTime.Now.AddMinutes(20);
                 tokenDescriptor.SigningCredentials = new(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature);
                 var token = tokenHandler.CreateToken(tokenDescriptor);
                 var rs = tokenHandler.WriteToken(token);
@@ -388,7 +388,7 @@ namespace ThinkTank.Service.Services.ImpService
                 new Claim(ClaimTypes.Role, "Admin"),
                 new Claim("version",t.ToString()),
                 });
-                tokenDescriptor.Expires = DateTime.Now.AddMinutes(1);
+                tokenDescriptor.Expires = DateTime.Now.AddMinutes(20);
                 tokenDescriptor.SigningCredentials = new(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature);
                 var token = tokenHandler.CreateToken(tokenDescriptor);
                 var rs = tokenHandler.WriteToken(token);

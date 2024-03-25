@@ -85,11 +85,14 @@ namespace ThinkTank.Service.Services.ImpService
 
                 }
                 
-                var twoLastAchievement = account.Achievements.Where(x => x.GameId == game.Id).Skip(Math.Max(0, account.Achievements.Count - 2)).Take(2);
-                bool areConsecutive = twoLastAchievement.Count() == 2 && twoLastAchievement.ToArray()[0].Level == twoLastAchievement.ToArray()[1].Level - 1 && twoLastAchievement.ToArray()[0].Mark >0 && twoLastAchievement.ToArray()[1].Mark >0;
-                if ( createAchievementRequest.Level!= twoLastAchievement.LastOrDefault().Level&& createAchievementRequest.Mark >0 && areConsecutive && twoLastAchievement.Last().Level +1==createAchievementRequest.Level)
+                var twoLastAchievement = account.Achievements.Where(x => x.GameId == game.Id).Skip(Math.Max(0, account.Achievements.Count - 2)).Take(2).ToList();
+                if (twoLastAchievement.Any())
                 {
-                    GetBadge(account, "Streak killer");
+                    bool areConsecutive = twoLastAchievement.Count() == 2 && twoLastAchievement.ToArray()[0].Level == twoLastAchievement.ToArray()[1].Level - 1 && twoLastAchievement.ToArray()[0].Mark > 0 && twoLastAchievement.ToArray()[1].Mark > 0;
+                    if (createAchievementRequest.Level != twoLastAchievement.LastOrDefault().Level && createAchievementRequest.Mark > 0 && areConsecutive && twoLastAchievement.Last().Level + 1 == createAchievementRequest.Level)
+                    {
+                        GetBadge(account, "Streak killer");
+                    }
                 }
                 if (account.Achievements.Count(x => x.GameId == createAchievementRequest.GameId && x.Level == 10) == 1)
                 {

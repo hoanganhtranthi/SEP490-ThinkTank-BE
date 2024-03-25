@@ -512,12 +512,14 @@ namespace ThinkTank.Service.Services.ImpService
                                                    Id=a.Id,
                                                    Value=a.Value,
                                                    NameOfContest=x.Name,
-                                                   Type=a.TypeOfAsset.Type
+                                                   Answer = x.GameId == 2 ? System.IO.Path.GetFileName(new Uri(a.Value).LocalPath) : null,
+                                                   Type =a.TypeOfAsset.Type
                                                })),
                                                Name=x.Name,
                                                Status=x.Status,
                                                Thumbnail=x.Thumbnail,
                                                GameId=x.GameId,
+                                               PlayTime=x.PlayTime,
                                                CoinBetting=x.CoinBetting,
                                                GameName=x.Game.Name,
                                                AmoutPlayer=x.AccountInContests.Count()
@@ -677,12 +679,12 @@ namespace ThinkTank.Service.Services.ImpService
 
                 if (bestContest != null)
                 {
-                    var highScoreOfContest = bestContest.AccountInContests.Max(x => x.Mark);
-                    var lowestScoreOfContest = bestContest.AccountInContests.Min(x => x.Mark);
+                    var highScoreOfContest = bestContest.AccountInContests.Any() ? bestContest.AccountInContests.Max(x => x.Mark) : 0;
+                    var lowestScoreOfContest = bestContest.AccountInContests.Any() ? bestContest.AccountInContests.Min(x => x.Mark) : 0;
                     var averageScore = (highScoreOfContest + lowestScoreOfContest) / 2;
 
-                    var usersInAverageScore = bestContest.AccountInContests
-                        .Count(x => x.Mark > averageScore - 100 && x.Mark < averageScore + 100);
+                    var usersInAverageScore = bestContest.AccountInContests.Any()? bestContest.AccountInContests
+                        .Count(x => x.Mark > averageScore - 100 && x.Mark < averageScore + 100):0;
 
                     var totalUserInContest = bestContest.AccountInContests.Count();
                     percentAverageScore = totalUserInContest > 0 ? (double)usersInAverageScore / totalUserInContest * 100 : 0;
@@ -701,6 +703,7 @@ namespace ThinkTank.Service.Services.ImpService
                         Status = x.Status,
                         Thumbnail = x.Thumbnail,
                         GameId = x.GameId,
+                        PlayTime = x.PlayTime,
                         GameName = x.Game.Name,
                         AmoutPlayer = x.AccountInContests.Count()
                     }),
