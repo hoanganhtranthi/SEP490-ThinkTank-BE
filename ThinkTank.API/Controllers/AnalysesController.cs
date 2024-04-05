@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using ThinkTank.Service.DTO.Request;
 using ThinkTank.Service.Services.ImpService;
 using ThinkTank.Service.Services.IService;
 
@@ -29,14 +30,25 @@ namespace ThinkTank.API.Controllers
         /// <summary>
         /// Get analysis of account by account Id and game Id
         /// </summary>
+        /// <returns></returns>
+        [Authorize(Policy = "Player")]
+        [HttpGet()]
+        public async Task<ActionResult<dynamic>> GetAnalysisOfAccount([FromQuery] AnalysisRequest request)
+        {
+            var rs = await _analysisService.GetAnalysisOfAccountIdAndGameId(request);
+            return Ok(rs);
+        }
+        /// <summary>
+        /// Get analysis of each type of account's memory by account Id 
+        /// </summary>
         /// <param name="accountId"></param>
         /// <param name="gameId"></param>
         /// <returns></returns>
-      //[Authorize(Policy = "Player")]
-        [HttpGet("{accountId},{gameId}")]
-        public async Task<ActionResult<dynamic>> GetAnalysisOfAccount(int accountId, int gameId)
+        [Authorize(Policy = "Player")]
+        [HttpGet("{accountId}/by-memory-type")]
+        public async Task<ActionResult<dynamic>> GetAnalysisOfEachTypeOfMemoryOfAccount(int accountId)
         {
-            var rs = await _analysisService.GetAnalysisOfAccountIdAndGameId(accountId,gameId);
+            var rs = await _analysisService.GetAnalysisOfMemoryTypeByAccountId(accountId);
             return Ok(rs);
         }
     }

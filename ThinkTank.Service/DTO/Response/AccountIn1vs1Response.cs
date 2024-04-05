@@ -17,6 +17,7 @@ namespace ThinkTank.Service.DTO.Response
         public int? AccountId2 { get; set; }
         public int? GameId { get; set; }
         public string? GameName { get; set; }
+        public string? RoomOfAccountIn1vs1Id { get; set; }
         public string? Username1 { get; set; }
         public string? Username2 { get; set; }
     }

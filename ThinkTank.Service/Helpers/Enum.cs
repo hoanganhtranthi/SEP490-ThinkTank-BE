@@ -13,8 +13,7 @@ namespace ThinkTank.Service.Helpers
             Anonymous=1,
             MusicPassword=2,
             FlipCard=3,
-            ImagesWalkthrough=4,
-            StoryTeller=5,
+            ImagesWalkthrough=4
         }
         public enum FileType
         {

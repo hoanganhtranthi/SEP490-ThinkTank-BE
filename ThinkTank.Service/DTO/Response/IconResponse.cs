@@ -17,6 +17,5 @@ namespace ThinkTank.Service.DTO.Response
         public int? Price { get; set; }
         [BooleanAttribute]
         public bool? Status { get; set; }
-        public virtual ICollection<IconOfAccountResponse> IconOfAccounts { get; set; }
     }
 }

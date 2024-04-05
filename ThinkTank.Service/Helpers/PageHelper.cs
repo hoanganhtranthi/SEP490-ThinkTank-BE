@@ -9,7 +9,7 @@ namespace ThinkTank.Service.Helpers
 {
     public static class PageHelper<T> where T : class
     {
-       public static PagedResults<T> Paging(List<T> list, int? page, int? pageSize)
+       public static PagedResults<T>? Paging(List<T> list, int? page, int? pageSize)
         {
             try
             {

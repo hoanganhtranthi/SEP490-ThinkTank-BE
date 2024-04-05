@@ -33,7 +33,19 @@ namespace ThinkTank.API.Controllers
             var rs = await _accountInContestService.GetAccountInContests(accountInContestRequest, pagingRequest);
             return Ok(rs);
         }
-
+        /// <summary>
+        /// Minus coin of account
+        /// </summary>
+        /// <param name="id"></param>
+        /// <param name="contestId"></param>
+        /// <returns></returns>
+        [Authorize(Policy = "Player")]
+        [HttpPut("{id:int},{contestId:int}/coin-of-account")]
+        public async Task<ActionResult<List<AccountInContestResponse>>> MinusCoinOfContest( int id,  int contestId)
+        {
+            var rs = await _accountInContestService.MinusCoinOfAccount(id,contestId);
+            return Ok(rs);
+        }
         /// <summary>
         /// Get account in contest by Id
         /// </summary>
@@ -41,7 +53,7 @@ namespace ThinkTank.API.Controllers
         /// <returns></returns>
         [Authorize(Policy = "All")]
         [HttpGet("{id:int}")]
-        public async Task<ActionResult<AccountInContestResponse>> GetAccountInContestById([FromQuery] int id)
+        public async Task<ActionResult<AccountInContestResponse>> GetAccountInContestById( int id)
         {
             var rs = await _accountInContestService.GetAccountInContestById(id);
             return Ok(rs);
@@ -52,7 +64,7 @@ namespace ThinkTank.API.Controllers
         /// </summary>
         /// <param name="request"></param>
         /// <returns></returns>
-        [Authorize(Policy = "Player")]
+       [Authorize(Policy = "Player")]
         [HttpPost]
         public async Task<ActionResult<AccountInContestResponse>> CreateAccountInContest([FromBody] CreateAccountInContestRequest request)
         {

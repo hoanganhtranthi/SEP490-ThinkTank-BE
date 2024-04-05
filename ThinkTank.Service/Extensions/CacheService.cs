@@ -8,6 +8,7 @@ using Newtonsoft.Json.Linq;
 using RedLockNet;
 using RedLockNet.SERedis;
 using StackExchange.Redis;
+using StackExchange.Redis.MultiplexerPool;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -27,46 +28,43 @@ namespace Repository.Extensions
    
     public class CacheService : ICacheService
     {
-        private IConfiguration _configuration;
-        private IDatabase redis;
-        private ConnectionMultiplexer connection;
+        private static CacheService _instance;
+        private static readonly object SyncRoot = new object();
         private readonly RedLockFactory _redLockFactory;
+        private static readonly Lazy<CacheService> Lazy = new Lazy<CacheService>(() => new CacheService());
+        private IDatabase redis;
+        private IConnectionMultiplexer connection;
 
-        public CacheService(IConfiguration configuration,RedLockFactory redLockFactory)
+        public CacheService()
         {
-            _configuration = configuration;
-            _redLockFactory = redLockFactory;
-            connection = ConnectionMultiplexer.Connect(_configuration["ConnectionStrings:RedisConnectionString"]);
-            redis = ConnectionMultiplexer.Connect(_configuration["ConnectionStrings:RedisConnectionString"]).GetDatabase();
-        }
-        public T GetData<T>(string key)
-        {
-            var value=redis.StringGet(key);
-              if (!string.IsNullOrEmpty(value.ToString()))
-                  return JsonSerializer.Deserialize<T>(value);
-              return default;
-        }
+            var builder = new ConfigurationBuilder()
+                .SetBasePath(AppContext.BaseDirectory)
+             .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
 
-        public object RemoveData(string key)
-        {
-            var _exist = redis.StringGet(key);
-            Console.WriteLine(_exist.ToString());
-            if (!string.IsNullOrEmpty(_exist.ToString()))
-                return redis.KeyDelete(key);
-            return false;
-        }
+            IConfigurationRoot configuration = builder.Build();
 
-        public void SetData<T>(string key, T value, DateTimeOffset expirationTime)
+            var redisConnectionString = configuration.GetConnectionString("RedisConnectionString");
+            connection = ConnectionMultiplexer.Connect(redisConnectionString);
+            redis = connection.GetDatabase();
+        }
+        public static CacheService Instance
         {
-            var expirty = expirationTime.DateTime.Subtract(DateTime.Now);
-            redis.StringSet(key, JsonSerializer.Serialize(value), expirty);
+            get
+            {
+                if (_instance == null)
+                    lock (SyncRoot)
+                    {
+                        return Lazy.Value;
+                    }
+
+                return _instance;
+            }
         }
         public async Task EnqueueJobAsync(int job)
         {
             await redis.ListLeftPushAsync("jobQueue", JsonSerializer.Serialize(job));
             await redis.HashSetAsync(job.ToString(), "status", "queued");
         }
-
         // Fetch all jobs in the queue, along with their status
         public async Task<List<string>> GetJobsAsync(string key)
         {
@@ -83,8 +81,6 @@ namespace Repository.Extensions
         {
 
             var db = redis;
-           // await db.HashSetAsync(key, parametersDictionary.Select(entries => new HashEntry(entries.Key, entries.Value)).ToArray());
-
             await db.ListLeftPushAsync(key, JsonSerializer.Serialize(value));
             await connection.GetSubscriber().PublishAsync("account1vs1", "");
         }
@@ -95,15 +91,6 @@ namespace Repository.Extensions
             long removedItemCount = await redis.ListRemoveAsync(key, jsonValue);
 
             return removedItemCount > 0;
-        }
-        public IRedLock AcquireLock(string key)
-        {
-            var redLock = _redLockFactory.CreateLock(key,
-                expiryTime: TimeSpan.FromMilliseconds(10000),
-                waitTime: TimeSpan.FromMilliseconds(250),
-                retryTime: TimeSpan.FromMilliseconds(250));
-
-            return redLock;
         }
 
     }

@@ -26,7 +26,6 @@ using FireSharp.Config;
 using RedLockNet.SERedis;
 using RedLockNet;
 using RedLockNet.SERedis.Configuration;
-using ThinkTank.API.Utility;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -36,8 +35,6 @@ builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-builder.Services.AddRedisConnection(builder.Configuration)
-               .AddRedLock();
 builder.Services.AddStackExchangeRedisCache(options =>
 {
     options.Configuration = builder.Configuration.GetConnectionString("RedisConnectionString");
@@ -53,6 +50,7 @@ builder.Services.AddScoped<IGameService, GameService>();
 builder.Services.AddScoped<ICacheService, CacheService>();
 builder.Services.AddScoped<IAchievementService, AchievementService>();
 builder.Services.AddScoped<IIconService, IconService>();
+builder.Services.AddScoped<IIconOfAccountService,IconOfAccountService>();
 builder.Services.AddScoped<IAccountIn1vs1Service, AccountIn1vs1Service>();
 builder.Services.AddScoped<IContestService, ContestService>();
 builder.Services.AddScoped<IChallengeService, ChallengeService>();

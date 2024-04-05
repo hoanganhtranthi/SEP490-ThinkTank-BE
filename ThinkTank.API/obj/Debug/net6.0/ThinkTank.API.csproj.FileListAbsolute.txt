@@ -358,3 +358,8 @@ D:\SEP490-ThinkTank-BE\ThinkTank.API\bin\Debug\net6.0\System.Net.Http.Extensions
 D:\SEP490-ThinkTank-BE\ThinkTank.API\bin\Debug\net6.0\System.Net.Http.Primitives.dll
 D:\SEP490-ThinkTank-BE\ThinkTank.API\bin\Debug\net6.0\RedLockNet.Abstractions.dll
 D:\SEP490-ThinkTank-BE\ThinkTank.API\bin\Debug\net6.0\RedLockNet.SERedis.dll
+D:\SEP490-ThinkTank-BE\ThinkTank.API\bin\Debug\net6.0\Nito.AsyncEx.Coordination.dll
+D:\SEP490-ThinkTank-BE\ThinkTank.API\bin\Debug\net6.0\Nito.AsyncEx.Tasks.dll
+D:\SEP490-ThinkTank-BE\ThinkTank.API\bin\Debug\net6.0\Nito.Collections.Deque.dll
+D:\SEP490-ThinkTank-BE\ThinkTank.API\bin\Debug\net6.0\Nito.Disposables.dll
+D:\SEP490-ThinkTank-BE\ThinkTank.API\bin\Debug\net6.0\StackExchange.Redis.MultiplexerPool.dll

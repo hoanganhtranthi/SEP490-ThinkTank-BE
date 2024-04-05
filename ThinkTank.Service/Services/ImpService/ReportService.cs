@@ -49,7 +49,7 @@ namespace ThinkTank.Service.Services.ImpService
                 {
                     throw new CrudException(HttpStatusCode.NotFound, $" Account Id {createReportRequest.AccountId2} is not found !!!", "");
                 }
-                report.DateTime = DateTime.Now;
+                report.DateReport = DateTime.Now;
                 await _unitOfWork.Repository<Report>().CreateAsync(report);
                 if (s.Avatar == null)
                     s.Avatar = "https://firebasestorage.googleapis.com/v0/b/thinktank-79ead.appspot.com/o/System%2Flogo_2_bg%201%20%281%29.png?alt=media&token=437436e4-28ce-4a0c-a7d2-a8763064151f";
@@ -76,8 +76,8 @@ namespace ThinkTank.Service.Services.ImpService
                 {
                     AccountId = cus.Id,
                     Avatar = s.Avatar,
-                    DateTime = DateTime.Now,
-                    Description = $"You have a report for acting {createReportRequest.Titile}.",
+                    DateNotification = DateTime.Now,
+                    Description = $"You have a report for acting {createReportRequest.Title}.",
                     Title = "ThinkTank Report",
                     Status=false,
                 };
@@ -140,7 +140,8 @@ namespace ThinkTank.Service.Services.ImpService
                         Id = x.Id,
                         AccountId1 = x.AccountId1,
                         AccountId2 = x.AccountId2,
-                        Titile = x.Titile,
+                        DateReport=x.DateReport,
+                        Title = x.Title,
                         Description=x.Description,
                         UserName1 = x.AccountId1Navigation.UserName,
                         UserName2 = x.AccountId2Navigation.UserName,

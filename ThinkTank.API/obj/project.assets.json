@@ -1233,6 +1233,69 @@
           }
         }
       },
+      "Nito.AsyncEx.Coordination/5.0.0": {
+        "type": "package",
+        "dependencies": {
+          "Nito.AsyncEx.Tasks": "5.0.0",
+          "Nito.Collections.Deque": "1.0.4",
+          "Nito.Disposables": "2.0.0"
+        },
+        "compile": {
+          "lib/netstandard2.0/Nito.AsyncEx.Coordination.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/netstandard2.0/Nito.AsyncEx.Coordination.dll": {
+            "related": ".xml"
+          }
+        }
+      },
+      "Nito.AsyncEx.Tasks/5.0.0": {
+        "type": "package",
+        "dependencies": {
+          "Nito.Disposables": "2.0.0"
+        },
+        "compile": {
+          "lib/netstandard2.0/Nito.AsyncEx.Tasks.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/netstandard2.0/Nito.AsyncEx.Tasks.dll": {
+            "related": ".xml"
+          }
+        }
+      },
+      "Nito.Collections.Deque/1.0.4": {
+        "type": "package",
+        "compile": {
+          "lib/netstandard2.0/Nito.Collections.Deque.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/netstandard2.0/Nito.Collections.Deque.dll": {
+            "related": ".xml"
+          }
+        }
+      },
+      "Nito.Disposables/2.0.0": {
+        "type": "package",
+        "dependencies": {
+          "System.Collections.Immutable": "1.4.0"
+        },
+        "compile": {
+          "lib/netstandard2.0/Nito.Disposables.dll": {
+            "related": ".pdb;.xml"
+          }
+        },
+        "runtime": {
+          "lib/netstandard2.0/Nito.Disposables.dll": {
+            "related": ".pdb;.xml"
+          }
+        }
+      },
       "OpenAI/1.10.0": {
         "type": "package",
         "dependencies": {
@@ -1470,6 +1533,19 @@
           "lib/net6.0/StackExchange.Redis.dll": {
             "related": ".xml"
           }
+        }
+      },
+      "StackExchange.Redis.MultiplexerPool/2.0.1": {
+        "type": "package",
+        "dependencies": {
+          "Nito.AsyncEx.Coordination": "5.0.0",
+          "StackExchange.Redis": "2.6.111"
+        },
+        "compile": {
+          "lib/netstandard2.1/StackExchange.Redis.MultiplexerPool.dll": {}
+        },
+        "runtime": {
+          "lib/netstandard2.1/StackExchange.Redis.MultiplexerPool.dll": {}
         }
       },
       "Swashbuckle.AspNetCore/6.2.3": {
@@ -2886,6 +2962,7 @@
           "Microsoft.Extensions.Configuration.Json": "6.0.0",
           "OpenAI": "1.10.0",
           "StackExchange.Redis": "2.7.10",
+          "StackExchange.Redis.MultiplexerPool": "2.0.1",
           "System.Linq.Dynamic.Core": "1.3.7"
         },
         "compile": {
@@ -2916,6 +2993,7 @@
           "OpenAI": "1.10.0",
           "RedLock.net": "2.3.2",
           "StackExchange.Redis": "2.7.10",
+          "StackExchange.Redis.MultiplexerPool": "2.0.1",
           "System.Linq.Dynamic.Core": "1.3.7",
           "ThinkTank.Data": "1.0.0"
         },
@@ -4784,6 +4862,68 @@
         "packageIcon.png"
       ]
     },
+    "Nito.AsyncEx.Coordination/5.0.0": {
+      "sha512": "kjauyO8UMo/FGZO/M8TdjXB8ZlBPFOiRN8yakThaGQbYOywazQ0kGZ39SNr2gNNzsTxbZOUudBMYNo+IrtscbA==",
+      "type": "package",
+      "path": "nito.asyncex.coordination/5.0.0",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "lib/netstandard1.3/Nito.AsyncEx.Coordination.dll",
+        "lib/netstandard1.3/Nito.AsyncEx.Coordination.xml",
+        "lib/netstandard2.0/Nito.AsyncEx.Coordination.dll",
+        "lib/netstandard2.0/Nito.AsyncEx.Coordination.xml",
+        "nito.asyncex.coordination.5.0.0.nupkg.sha512",
+        "nito.asyncex.coordination.nuspec"
+      ]
+    },
+    "Nito.AsyncEx.Tasks/5.0.0": {
+      "sha512": "ZtvotignafOLteP4oEjVcF3k2L8h73QUCaFpVKWbU+EOlW/I+JGkpMoXIl0rlwPcDmR84RxzggLRUNMaWlOosA==",
+      "type": "package",
+      "path": "nito.asyncex.tasks/5.0.0",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "lib/netstandard1.3/Nito.AsyncEx.Tasks.dll",
+        "lib/netstandard1.3/Nito.AsyncEx.Tasks.xml",
+        "lib/netstandard2.0/Nito.AsyncEx.Tasks.dll",
+        "lib/netstandard2.0/Nito.AsyncEx.Tasks.xml",
+        "nito.asyncex.tasks.5.0.0.nupkg.sha512",
+        "nito.asyncex.tasks.nuspec"
+      ]
+    },
+    "Nito.Collections.Deque/1.0.4": {
+      "sha512": "yGDKqCQ61i97MyfEUYG6+ln5vxpx11uA5M9+VV9B7stticbFm19YMI/G9w4AFYVBj5PbPi138P8IovkMFAL0Aw==",
+      "type": "package",
+      "path": "nito.collections.deque/1.0.4",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "lib/netstandard1.0/Nito.Collections.Deque.dll",
+        "lib/netstandard1.0/Nito.Collections.Deque.xml",
+        "lib/netstandard2.0/Nito.Collections.Deque.dll",
+        "lib/netstandard2.0/Nito.Collections.Deque.xml",
+        "nito.collections.deque.1.0.4.nupkg.sha512",
+        "nito.collections.deque.nuspec"
+      ]
+    },
+    "Nito.Disposables/2.0.0": {
+      "sha512": "ExJl/jTjegSLHGcwnmaYaI5xIlrefAsVdeLft7VLtXI2+W5irihiu36LizWvlaUpzY1/llo+YSh09uSHMu2VFw==",
+      "type": "package",
+      "path": "nito.disposables/2.0.0",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "lib/netstandard1.0/Nito.Disposables.dll",
+        "lib/netstandard1.0/Nito.Disposables.pdb",
+        "lib/netstandard1.0/Nito.Disposables.xml",
+        "lib/netstandard2.0/Nito.Disposables.dll",
+        "lib/netstandard2.0/Nito.Disposables.pdb",
+        "lib/netstandard2.0/Nito.Disposables.xml",
+        "nito.disposables.2.0.0.nupkg.sha512",
+        "nito.disposables.nuspec"
+      ]
+    },
     "OpenAI/1.10.0": {
       "sha512": "XITFdMPZXa4otWfA2oBZSaFkiEy+bK8DqmERtG8PKQO+15IWL+Rf27sVlX0vQd+CCliZGW5ZqtaZiPWd7uVHZw==",
       "type": "package",
@@ -5083,6 +5223,18 @@
         "lib/netstandard2.0/StackExchange.Redis.xml",
         "stackexchange.redis.2.7.10.nupkg.sha512",
         "stackexchange.redis.nuspec"
+      ]
+    },
+    "StackExchange.Redis.MultiplexerPool/2.0.1": {
+      "sha512": "z2b/YCnvZR9id1EE4+XZi/DgmhAi8Fm41SUGLWdK3mluueAy2A7M6uUim3izT9+HuifnnK0cPwhlSe0EJXHazA==",
+      "type": "package",
+      "path": "stackexchange.redis.multiplexerpool/2.0.1",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "lib/netstandard2.1/StackExchange.Redis.MultiplexerPool.dll",
+        "stackexchange.redis.multiplexerpool.2.0.1.nupkg.sha512",
+        "stackexchange.redis.multiplexerpool.nuspec"
       ]
     },
     "Swashbuckle.AspNetCore/6.2.3": {
@@ -8762,6 +8914,7 @@
       "Microsoft.Extensions.Configuration >= 6.0.0",
       "Microsoft.Extensions.Configuration.Json >= 6.0.0",
       "StackExchange.Redis >= 2.7.10",
+      "StackExchange.Redis.MultiplexerPool >= 2.0.1",
       "Swashbuckle.AspNetCore >= 6.2.3",
       "ThinkTank.Service >= 1.0.0"
     ]
@@ -8881,6 +9034,10 @@
           "StackExchange.Redis": {
             "target": "Package",
             "version": "[2.7.10, )"
+          },
+          "StackExchange.Redis.MultiplexerPool": {
+            "target": "Package",
+            "version": "[2.0.1, )"
           },
           "Swashbuckle.AspNetCore": {
             "target": "Package",

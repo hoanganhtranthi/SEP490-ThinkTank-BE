@@ -22,7 +22,7 @@ namespace ThinkTank.API.Controllers
         /// <param name="pagingRequest"></param>
         /// <param name="reportRequest"></param>
         /// <returns></returns>
-        [Authorize(Policy = "Admin")]
+      [Authorize(Policy = "Admin")]
         [HttpGet]
         public async Task<ActionResult<List<ReportResponse>>> GetReports([FromQuery] PagingRequest pagingRequest, [FromQuery] ReportRequest reportRequest)
         {

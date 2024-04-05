@@ -42,7 +42,7 @@ namespace ThinkTank.Service.Services.ImpService
                         GameId = x.Topic.GameId,
                         Status = x.Status,
                         Version = x.Version,
-                        Answer = x.Topic.GameId == 2 ? System.IO.Path.GetFileName(new Uri(x.Value).LocalPath) : null,
+                        Answer = x.Topic.GameId == 2 ? System.IO.Path.GetFileName(new Uri(x.Value).LocalPath).Substring(0, System.IO.Path.GetFileName(new Uri(x.Value).LocalPath).LastIndexOf('.')) : null,
                         GameName = x.Topic.Game.Name,
                         Value = x.Value
                     }).SingleOrDefault(x => x.Id == id);
@@ -76,7 +76,7 @@ namespace ThinkTank.Service.Services.ImpService
                     TopicName = x.Topic.Name,
                     Status = x.Status,
                     Version=x.Version,
-                    Answer = x.Topic.GameId==2?System.IO.Path.GetFileName(new Uri(x.Value).LocalPath):null,
+                    Answer = x.Topic.GameId == 2 ? System.IO.Path.GetFileName(new Uri(x.Value).LocalPath).Substring(0, System.IO.Path.GetFileName(new Uri(x.Value).LocalPath).LastIndexOf('.')) : null,
                     GameId = x.Topic.GameId,
                     GameName = x.Topic.Game.Name,
                     Value = x.Value

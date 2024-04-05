@@ -53,8 +53,10 @@ namespace MuTote.API.Mapper
             CreateMap<Icon, IconResponse>();
             CreateMap<CreateIconRequest, Icon>();
 
+            CreateMap<CreateIconOfAccountRequest, IconOfAccount>();
+            CreateMap<IconOfAccount, IconOfAccountResponse>();
+            CreateMap<IconOfAccountRequest, IconOfAccountResponse>();
             CreateMap<IconOfAccountRequest, IconOfAccount>();
-            CreateMap<IconOfAccount,IconOfAccountResponse>();
 
 
             CreateMap<CreateAndUpdateContestRequest, Contest>();

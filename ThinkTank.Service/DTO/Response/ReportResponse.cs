@@ -15,9 +15,9 @@ namespace ThinkTank.Service.DTO.Response
         public int AccountId1 { get; set; }
         [IntAttribute]
         public int AccountId2 { get; set; }
-        public string Titile { get; set; } = null!;
+        public string Title { get; set; } = null!;
         public string UserName1 { get; set; }
         public string UserName2 { get; set; }
-        public DateTime? DateTime { get; set; }
+        public DateTime? DateReport { get; set; }
     }
 }

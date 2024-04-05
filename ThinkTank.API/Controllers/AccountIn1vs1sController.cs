@@ -22,7 +22,7 @@ namespace ThinkTank.API.Controllers
         /// <param name="pagingRequest"></param>
         /// <param name="accountIn1Vs1Request"></param>
         /// <returns></returns>
-         [Authorize(Policy = "All")]
+         [Authorize(Policy = "Admin")]
         [HttpGet]
         public async Task<ActionResult<List<AccountIn1vs1Response>>> GetAccountIn1vs1s([FromQuery] PagingRequest pagingRequest, [FromQuery] AccountIn1vs1Request accountIn1Vs1Request)
         {
@@ -48,7 +48,7 @@ namespace ThinkTank.API.Controllers
         /// </summary>
         /// <param name="request"></param>
         /// <returns></returns>
-       [Authorize(Policy = "Player")]
+     [Authorize(Policy = "Player")]
         [HttpPost]
         public async Task<ActionResult<AccountInContestResponse>> CreateAccountIn1vs1([FromBody] CreateAccountIn1vs1Request request)
         {
@@ -64,9 +64,23 @@ namespace ThinkTank.API.Controllers
         /// <returns></returns>
         [Authorize(Policy = "Player")]
         [HttpGet("opponent-of-account")]
-        public async Task<ActionResult<int>> FindAccountIn1vs1([FromQuery] int accountId, [FromQuery] int gameId, [FromQuery] int coin)
+        public async Task<ActionResult<dynamic>> FindAccountIn1vs1([FromQuery] int accountId, [FromQuery] int gameId, [FromQuery] int coin)
         {
             var rs = await accountIn1Vs1Service.FindAccountTo1vs1(accountId,coin,gameId);
+            return Ok(rs);
+        }
+        /// <summary>
+        /// Remove Account From Cache
+        /// </summary>
+        /// <param name="accountId"></param>
+        ///  <param name="gameId"></param>
+        ///   <param name="coin"></param>
+        /// <returns></returns>
+       [Authorize(Policy = "Player")]
+        [HttpGet("account-removed")]
+        public async Task<ActionResult<bool>> RemoveAccountFromCache([FromQuery] int accountId, [FromQuery] int gameId, [FromQuery] int coin)
+        {
+            var rs = await accountIn1Vs1Service.RemoveAccountFromCache(accountId, coin, gameId);
             return Ok(rs);
         }
     }

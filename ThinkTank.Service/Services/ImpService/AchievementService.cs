@@ -151,7 +151,7 @@ namespace ThinkTank.Service.Services.ImpService
                     {
                         AccountId = account.Id,
                         Avatar = challage.Avatar,
-                        DateTime = DateTime.Now,
+                        DateNotification = DateTime.Now,
                         Status = false,
                         Description = $"You have received {challage.Name} badge.",
                         Title = "ThinkTank"
@@ -207,7 +207,7 @@ namespace ThinkTank.Service.Services.ImpService
                     {
                         AccountId = account.Id,
                         Avatar = challage.Avatar,
-                        DateTime = DateTime.Now,
+                        DateNotification = DateTime.Now,
                         Description = $"You have received {challage.Name} badge.",
                         Status=false,
                         Title = "ThinkTank"
@@ -283,7 +283,7 @@ namespace ThinkTank.Service.Services.ImpService
                 throw new CrudException(HttpStatusCode.InternalServerError, "Get achievement list error!!!!!", ex.Message);
             }
         }
-        public async Task<PagedResults<LeaderboardResponse>> GetLeaderboard(int id, PagingRequest paging)
+        public async Task<PagedResults<LeaderboardResponse>> GetLeaderboard(int id, PagingRequest paging,int? accountId)
         {
             try
             {
@@ -292,7 +292,7 @@ namespace ThinkTank.Service.Services.ImpService
                     throw new CrudException(HttpStatusCode.NotFound, $"Game Id {id} not found", "");
                 var achievements = _unitOfWork.Repository<Achievement>().GetAll().Include(c => c.Account).Include(c => c.Game)
                     .Where(x => x.GameId == id).ToList();
-
+                
                 IList<LeaderboardResponse> responses = new List<LeaderboardResponse>();
                 List<Achievement> achievementsList = new List<Achievement>();
                 if (achievements.Count() > 0)
@@ -338,6 +338,8 @@ namespace ThinkTank.Service.Services.ImpService
                             rank++;
                         }
                     }
+                    if (accountId != null)
+                        responses = responses.Where(x => x.AccountId == accountId).ToList();
 
                 }
                 return PageHelper<LeaderboardResponse>.Paging(responses.ToList(), paging.Page, paging.PageSize);

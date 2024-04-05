@@ -22,7 +22,7 @@ namespace ThinkTank.API.Controllers
         /// <param name="pagingRequest"></param>
         /// <param name="request"></param>
         /// <returns></returns>
-       [Authorize(Policy ="All")]
+       [Authorize(Policy ="Admin")]
         [HttpGet]
         public async Task<ActionResult<List<AchievementResponse>>> GetAchievements([FromQuery] PagingRequest pagingRequest, [FromQuery] AchievementRequest request)
         {
@@ -34,7 +34,7 @@ namespace ThinkTank.API.Controllers
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
-       [Authorize(Policy ="All")]
+       [Authorize(Policy ="Admin")]
         [HttpGet("{id:int}")]
         public async Task<ActionResult<AchievementResponse>> GetAchievement(int id)
         {
@@ -60,9 +60,9 @@ namespace ThinkTank.API.Controllers
         /// <returns></returns>
         [Authorize(Policy = "All")]
         [HttpGet("{gameId:int}/leaderboard")]
-        public async Task<ActionResult<List<LeaderboardResponse>>> GetLeaderboard(int gameId, [FromQuery] PagingRequest request)
+        public async Task<ActionResult<List<LeaderboardResponse>>> GetLeaderboard(int gameId, [FromQuery] PagingRequest request, [FromQuery] int? accountId)
         {
-            var rs = await _achievementService.GetLeaderboard(gameId,request);
+            var rs = await _achievementService.GetLeaderboard(gameId,request,accountId);
             return Ok(rs);
         }
     }

@@ -80,7 +80,7 @@ namespace ThinkTank.Service.Services.ImpService
                 customer.RegistrationDate = DateTime.Now;
                 if (createAccountRequest.Fcm == null || createAccountRequest.Fcm == "")
                     customer.Fcm = null;
-                customer.Coin = 0;
+                customer.Coin = 1000;
                 Guid id = Guid.NewGuid();
                 customer.Code = id.ToString().Substring(0, 8).ToUpper();
                 await _unitOfWork.Repository<Account>().CreateAsync(customer);
@@ -260,7 +260,7 @@ namespace ThinkTank.Service.Services.ImpService
                                 {
                                     AccountId = user.Id,
                                     Avatar = challage.Avatar,
-                                    DateTime = DateTime.Now,
+                                    DateNotification = DateTime.Now,
                                     Description = $"You have received {challage.Name} badge.",
                                     Title = "ThinkTank",
                                     Status=false,
@@ -306,16 +306,17 @@ namespace ThinkTank.Service.Services.ImpService
                     if (!request.Password.Equals(_config["PasswordAdmin"]))
                         throw new CrudException(HttpStatusCode.BadRequest, "Password is incorrect", "");
                     user.FullName = "Admin";
-                    var token = GenerateRefreshToken(user);
                    rs = _mapper.Map<Account, AccountResponse>(user);
                     rs.UserName = "Admin";
-                    rs.AccessToken = GenerateJwtToken(user);
-                    rs.RefreshToken = token;
                     var expiryTime = DateTime.MaxValue;
                     var adminAccount = _firebaseRealtimeDatabaseService.GetAsync<AdminAccountResponse>("AdminAccount").Result;
                     if (adminAccount != null)
                     {
                         adminAccount.VersionTokenAdmin += 1;
+                        user.VersionToken=adminAccount.VersionTokenAdmin;
+                        rs.AccessToken = GenerateJwtToken(user);
+                        var token = GenerateRefreshToken(user);
+                        rs.RefreshToken = token;
                         adminAccount.RefreshTokenAdmin = token;
                         _firebaseRealtimeDatabaseService.SetAsync<AdminAccountResponse>("AdminAccount", adminAccount);
                     }
@@ -323,6 +324,10 @@ namespace ThinkTank.Service.Services.ImpService
                     {
                         adminAccount = new AdminAccountResponse();
                         adminAccount.VersionTokenAdmin = 1;
+                        user.VersionToken= adminAccount.VersionTokenAdmin;
+                        rs.AccessToken = GenerateJwtToken(user);
+                        var token = GenerateRefreshToken(user);
+                        rs.RefreshToken = token;
                         adminAccount.RefreshTokenAdmin = token;
                         _firebaseRealtimeDatabaseService.SetAsync<AdminAccountResponse>("AdminAccount", adminAccount);
                     }
@@ -380,7 +385,7 @@ namespace ThinkTank.Service.Services.ImpService
                 var adminAccountResponse =_firebaseRealtimeDatabaseService.GetAsync<AdminAccountResponse>("AdminAccount").Result;
                 var t = 0;
                 if (adminAccountResponse != null)
-                    t = adminAccountResponse.VersionTokenAdmin + 1;
+                    t = (int)customer.VersionToken;
                 else t = 1;
                 tokenDescriptor.Subject = new ClaimsIdentity(new Claim[]
                 {
@@ -417,7 +422,7 @@ namespace ThinkTank.Service.Services.ImpService
                 var adminAccountResponse = _firebaseRealtimeDatabaseService.GetAsync<AdminAccountResponse>("AdminAccount").Result;
                 var t = 0;
                 if (adminAccountResponse != null)
-                    t = adminAccountResponse.VersionTokenAdmin + 1;
+                    t = (int)customer.VersionToken;
                 else t = 1;
                 tokenDescriptor.Subject = new ClaimsIdentity(new Claim[]
                 {
@@ -447,7 +452,7 @@ namespace ThinkTank.Service.Services.ImpService
                     user.RegistrationDate = DateTime.Now;
                     if (request.FCM == null || request.FCM == "")
                         user.Fcm = null;
-                    user.Coin = 0;
+                    user.Coin = 1000;
                     if (request.Avatar == "" || request.Avatar == null)
                         user.Avatar = "https://firebasestorage.googleapis.com/v0/b/thinktank-79ead.appspot.com/o/System%2Favatar-trang-4.jpg?alt=media&token=2ab24327-c484-485a-938a-ed30dc3b1688";
                     Guid id = Guid.NewGuid();
@@ -455,6 +460,7 @@ namespace ThinkTank.Service.Services.ImpService
                    user.UserName = $"player_{user.Code}";
                     var token = GenerateRefreshToken(user);
                     user.RefreshToken = token;
+                    user.Fcm = request.FCM;
                     await _unitOfWork.Repository<Account>().CreateAsync(user);
                 }
                 else
@@ -463,6 +469,9 @@ namespace ThinkTank.Service.Services.ImpService
                     user.VersionToken = user.VersionToken + 1;
                     var token = GenerateRefreshToken(user);
                     user.RefreshToken = token;
+                    if (request.FCM == null || request.FCM == "")
+                        user.Fcm = null;
+                    else user.Fcm = request.FCM;
                     await _unitOfWork.Repository<Account>().Update(user, user.Id);
                 }                
                 await _unitOfWork.CommitAsync();
@@ -643,21 +652,18 @@ namespace ThinkTank.Service.Services.ImpService
                 AccountResponse cus = new AccountResponse();
                 Account acc = new Account();
                 var jwtTokenHandler = new JwtSecurityTokenHandler();
-                var key = Encoding.ASCII.GetBytes(_config["ApiSetting:Secret"]);
-                TokenValidationParameters tokenValidationParameters = new TokenValidationParameters
+                JwtSecurityToken tokenPrincipal;
+                try
                 {
-                    ValidateIssuerSigningKey = true,
-                    IssuerSigningKey = new SymmetricSecurityKey(key),
-                    ValidateIssuer = false,
-                    ValidateAudience = false,
-                };
-                var tokenInVerification = jwtTokenHandler.ValidateToken(request.AccessToken, tokenValidationParameters, out var tokenValidation);
-                if (tokenValidation is not JwtSecurityToken securityToken)
+                    tokenPrincipal = jwtTokenHandler.ReadJwtToken(request.AccessToken);
+                }
+                catch (ArgumentException)
+                {
                     throw new CrudException(HttpStatusCode.BadRequest, "Invalid Access Token", "");
-                var utcExpiredDate = long.Parse(tokenInVerification.Claims.FirstOrDefault(x => x.Type == JwtRegisteredClaimNames.Exp).Value);
-
-                var expiredDate = DateTimeOffset.FromUnixTimeSeconds(utcExpiredDate).DateTime;
-                if (tokenInVerification.Claims.FirstOrDefault(x => x.Type == ClaimTypes.Role).Value.Equals("Admin"))
+                }
+                var utcExpiredDate = long.Parse(tokenPrincipal.Claims.FirstOrDefault(x => x.Type == JwtRegisteredClaimNames.Exp).Value);
+                var expiredDate = DateTimeOffset.FromUnixTimeSeconds(utcExpiredDate).DateTime;             
+                if (tokenPrincipal.Claims.FirstOrDefault(x => x.Type == "role").Value.Equals("Admin"))
                 {
                     var adminAccountResponse = _firebaseRealtimeDatabaseService.GetAsync<AdminAccountResponse>("AdminAccount").Result;
                     if (adminAccountResponse != null)
@@ -665,25 +671,24 @@ namespace ThinkTank.Service.Services.ImpService
                         if (!request.RefreshToken.Equals(adminAccountResponse.RefreshTokenAdmin))
                             throw new CrudException(HttpStatusCode.BadRequest, "Invalid Refresh Token", "");
                     }
-                    if (expiredDate.AddMinutes(-5) > DateTime.UtcNow) throw new CrudException(HttpStatusCode.BadRequest, "Access Token is not expried", "");
+                    if (expiredDate > DateTime.UtcNow) throw new CrudException(HttpStatusCode.BadRequest, "Access Token is not expried", "");
                     acc.FullName = "Admin";
+                    acc.VersionToken = adminAccountResponse.VersionTokenAdmin + 1;
                     var token = GenerateJwtToken(acc);
                     cus = _mapper.Map<Account, AccountResponse>(acc);
                     cus.AccessToken = token;
                     cus.RefreshToken = GenerateRefreshToken(acc);
                     adminAccountResponse.RefreshTokenAdmin = cus.RefreshToken;
-                    adminAccountResponse.VersionTokenAdmin = adminAccountResponse.VersionTokenAdmin + 1;
+                    adminAccountResponse.VersionTokenAdmin = (int)acc.VersionToken;
                     await _firebaseRealtimeDatabaseService.SetAsync<AdminAccountResponse>("AdminAccount", adminAccountResponse);
                 }
                 else
                 {
-
-                    var list = _unitOfWork.Repository<Account>().GetAll();
-                    if (list != null) acc = list.Where(a => a.RefreshToken != null && a.RefreshToken.Equals(request.RefreshToken)).SingleOrDefault();
+                    acc = _unitOfWork.Repository<Account>().Find(a => a.RefreshToken != null && a.RefreshToken.Equals(request.RefreshToken));
                     if (acc == null) throw new CrudException(HttpStatusCode.BadRequest, "Invalid Refresh Token", "");
-                    if (expiredDate.AddMinutes(-5) > DateTime.UtcNow) throw new CrudException(HttpStatusCode.BadRequest, "Access Token is not expried", "");
+                    if (expiredDate > DateTime.UtcNow) throw new CrudException(HttpStatusCode.BadRequest, "Access Token is not expried", "");
                     if (acc.Status == false) throw new CrudException(HttpStatusCode.BadRequest, "Your account is block", "");
-                    acc.VersionToken=acc.VersionToken+1;
+                    acc.VersionToken = acc.VersionToken + 1;
                     var token = GenerateRefreshToken(acc);
                     acc.RefreshToken = token;
                     await _unitOfWork.Repository<Account>().Update(acc, acc.Id);

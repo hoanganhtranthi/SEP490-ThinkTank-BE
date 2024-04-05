@@ -34,7 +34,38 @@ namespace ThinkTank.Service.Services.ImpService
             _mapper = mapper;
             _firebaseMessagingService = firebaseMessagingService;
         }
-
+        public async Task<AccountResponse> MinusCoinOfAccount(int id, int contestId)
+        {
+            try
+            {
+                var a = _unitOfWork.Repository<Account>().Find(a => a.Id == id);
+                if (a == null)
+                {
+                    throw new CrudException(HttpStatusCode.NotFound, $"Account Id {id} Not Found!!!!!", "");
+                }
+                if (a.Status.Equals(false))
+                {
+                    throw new CrudException(HttpStatusCode.BadRequest, $"Account Id {id} Not Available!!!!!", "");
+                }
+                var contest=_unitOfWork.Repository<Contest>().Find(x=>x.Id==contestId);
+                if(contest == null)
+                    throw new CrudException(HttpStatusCode.NotFound, $"Contest Id {contestId} Not Found!!!!!", "");
+                a.Coin -= contest.CoinBetting;
+                if (a.Coin < contest.CoinBetting)
+                    throw new CrudException(HttpStatusCode.BadRequest, "Not enough coin for this contest", "");
+                await _unitOfWork.Repository<Account>().Update(a, id);
+                await _unitOfWork.CommitAsync();
+                return _mapper.Map<AccountResponse>(a);
+            }
+            catch (CrudException ex)
+            {
+                throw ex;
+            }
+            catch (Exception ex)
+            {
+                throw new CrudException(HttpStatusCode.InternalServerError, "Minus coin of account error!!!", ex?.Message);
+            }
+        }
         public async Task<AccountInContestResponse> CreateAccountInContest(CreateAccountInContestRequest request)
         {
             try
@@ -66,9 +97,6 @@ namespace ThinkTank.Service.Services.ImpService
                 {
                     throw new CrudException(HttpStatusCode.BadRequest, "Contest Not Available!!!!!", "");
                 }
-                a.Coin -= c.CoinBetting;
-                if (a.Coin < c.CoinBetting)
-                    throw new CrudException(HttpStatusCode.BadRequest, "Not enough coin for this contest", "");
                 acc.Prize = request.Mark / 10;
                 acc.ContestId = c.Id;
                 acc.CompletedTime = DateTime.Now;
@@ -89,7 +117,7 @@ namespace ThinkTank.Service.Services.ImpService
                 var rs = _mapper.Map<AccountInContestResponse>(acc);
                 rs.ContestName = c.Name;
                 rs.UserName = a.UserName;
-
+                rs.Avatar = a.Avatar;
                 return rs;
             }
             catch (CrudException ex)
@@ -138,7 +166,7 @@ namespace ThinkTank.Service.Services.ImpService
                     {
                         AccountId = account.Id,
                         Avatar = challage.Avatar,
-                        DateTime = DateTime.Now,
+                        DateNotification = DateTime.Now,
                         Description = $"You have received {challage.Name} badge.",
                         Status=false, 
                         Title = "ThinkTank"
@@ -175,6 +203,7 @@ namespace ThinkTank.Service.Services.ImpService
                 var rs = _mapper.Map<AccountInContestResponse>(response);
                 rs.ContestName = response.Contest.Name;
                 rs.UserName = response.Account.UserName;
+                rs.Avatar = response.Account.Avatar;
                 return rs;
             }
             catch (CrudException ex)
@@ -209,6 +238,7 @@ namespace ThinkTank.Service.Services.ImpService
                         AccountId = x.AccountId,
                         ContestId=x.ContestId,
                         Mark = x.Mark,
+                        Avatar=x.Account.Avatar,
                         Prize = x.Prize
                     }).DynamicFilter(filter).ToList();
                     var sort = PageHelper<AccountInContestResponse>.Sorting(paging.SortType, accountInContests, paging.ColName);

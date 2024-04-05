@@ -11,6 +11,6 @@ namespace ThinkTank.Service.DTO.Request
         public string? Description { get; set; } = null!;
         public int? AccountId1 { get; set; }
         public int? AccountId2 { get; set; }
-        public string? Titile { get; set; } = null!;
+        public string? Title { get; set; } = null!;
     }
 }
