@@ -24,7 +24,7 @@ namespace ThinkTank.API.Controllers
         /// <param name="pagingRequest"></param>
         /// <param name="anonymousRequest"></param>
         /// <returns></returns>
-        [AllowAnonymous]
+        [Authorize(Policy ="All")]
         [HttpGet]
         public async Task<ActionResult<List<TopicResponse>>> GetTopics([FromQuery] PagingRequest pagingRequest, [FromQuery] TopicRequest request)
         {
@@ -36,7 +36,7 @@ namespace ThinkTank.API.Controllers
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        [AllowAnonymous]
+        [Authorize(Policy ="All")]
         [HttpGet("{id:int}")]
         public async Task<ActionResult<TopicResponse>> GetTopic(int id)
         {

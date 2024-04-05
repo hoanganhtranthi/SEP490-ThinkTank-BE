@@ -52,6 +52,6 @@ namespace ThinkTank.API.Controllers
             var rs = await _gameService.GetReportOGame();
             return Ok(rs);
         }
-
+      
     }
 }

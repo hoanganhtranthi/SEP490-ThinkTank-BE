@@ -95,6 +95,9 @@ namespace ThinkTank.Data.Entities
 
                 entity.Property(e => e.StartTime).HasColumnType("datetime");
 
+                entity.Property(e => e.RoomOfAccountIn1vs1Id)
+                   .HasMaxLength(8)
+                   .IsUnicode(false);
                 entity.HasOne(d => d.AccountId1Navigation)
                     .WithMany(p => p.AccountIn1vs1AccountId1Navigations)
                     .HasForeignKey(d => d.AccountId1)
@@ -252,6 +255,7 @@ namespace ThinkTank.Data.Entities
                 entity.Property(e => e.EndTime).HasColumnType("datetime");
 
                 entity.Property(e => e.Name).HasMaxLength(50);
+                entity.Property(e => e.PlayTime).HasColumnType("decimal(18, 1)");
 
                 entity.Property(e => e.StartTime).HasColumnType("datetime");
 
@@ -322,7 +326,7 @@ namespace ThinkTank.Data.Entities
 
                 entity.Property(e => e.Avatar).IsUnicode(false);
 
-                entity.Property(e => e.DateTime).HasColumnType("datetime");
+                entity.Property(e => e.DateNotification).HasColumnType("datetime");
 
                 entity.Property(e => e.Description).HasMaxLength(500);
 
@@ -339,11 +343,11 @@ namespace ThinkTank.Data.Entities
             {
                 entity.ToTable("Report");
 
-                entity.Property(e => e.DateTime).HasColumnType("datetime");
+                entity.Property(e => e.DateReport).HasColumnType("datetime");
 
                 entity.Property(e => e.Description).HasMaxLength(500);
 
-                entity.Property(e => e.Titile).HasMaxLength(200);
+                entity.Property(e => e.Title).HasMaxLength(200);
 
                 entity.HasOne(d => d.AccountId1Navigation)
                     .WithMany(p => p.ReportAccountId1Navigations)

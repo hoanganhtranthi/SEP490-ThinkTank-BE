@@ -12,6 +12,5 @@ namespace ThinkTank.Service.DTO.Request
         public int? MinPrice { get; set; }
         public int? MaxPrice { get; set; }
         public bool? Status { get; set; }
-        public int? AccountId { get; set; }
     }
 }

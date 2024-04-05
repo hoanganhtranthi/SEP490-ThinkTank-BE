@@ -22,6 +22,7 @@ namespace ThinkTank.Service.DTO.Response
         public decimal? Duration { get; set; }
         public int? Mark { get; set; }
         public int? Prize { get; set; }
+        public string? Avatar { get; set; }
         
     }
 }

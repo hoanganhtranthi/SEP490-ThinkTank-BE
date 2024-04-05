@@ -31,6 +31,7 @@
     <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="6.0.0" />
     <PackageReference Include="OpenAI" Version="1.10.0" />
     <PackageReference Include="StackExchange.Redis" Version="2.7.10" />
+    <PackageReference Include="StackExchange.Redis.MultiplexerPool" Version="2.0.1" />
     <PackageReference Include="System.Linq.Dynamic.Core" Version="1.3.7" />
   </ItemGroup>
 

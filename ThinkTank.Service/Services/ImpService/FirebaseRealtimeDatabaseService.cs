@@ -44,7 +44,7 @@ namespace ThinkTank.Service.Services.ImpService
                 return default(T);
             }
         }
-        public async Task<bool> RemoveData<T>(string key)
+        public async Task<bool> RemoveData(string key)
         {
             var _exist = await client.GetAsync(key);
             Console.WriteLine(_exist.ToString());

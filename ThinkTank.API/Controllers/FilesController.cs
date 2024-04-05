@@ -59,7 +59,7 @@ namespace ThinkTank.API.Controllers
             {
                 if (fileItem.Length > MAX_UPLOAD_FILE_SIZE)
                     return BadRequest("Exceed 25MB");
-                string url = await _fileStorageService.UploadFileResourceAsync(fileItem.OpenReadStream(), fileItem.FileName, type, "Resources");
+                string url = await _fileStorageService.UploadFileResourceAsync(fileItem.OpenReadStream(), fileItem.FileName, type, "Contest");
                 list.Add(url);
             }
             return list;

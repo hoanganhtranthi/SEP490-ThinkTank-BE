@@ -102,27 +102,32 @@ namespace ThinkTank.Service.Services.ImpService
                 throw new CrudException(HttpStatusCode.InternalServerError, "Get Analysis of Account error!!!!!", ex.Message);
             }
         }
-        public async Task<dynamic> GetAnalysisOfAccountIdAndGameId(int accountId, int gameId)
+        public async Task<dynamic> GetAnalysisOfAccountIdAndGameId(AnalysisRequest request)
         {
             try
             {
                 var account = _unitOfWork.Repository<Account>()
                                 .GetAll()
-                                .Include(x => x.Achievements.Where(x => x.GameId == gameId))
-                                .SingleOrDefault(x => x.Id == accountId);
+                                .Include(x => x.Achievements.Where(x => x.GameId == request.GameId))
+                                .SingleOrDefault(x => x.Id == request.AccountId);
 
                 if (account == null)
-                    throw new CrudException(HttpStatusCode.NotFound, $"Account Id {accountId} not found ", "");
+                    throw new CrudException(HttpStatusCode.NotFound, $"Account Id {request.AccountId} not found ", "");
 
                 var result = account.Achievements
                     .Where(achievement => achievement.Duration > 0)
                     .Select(achievement => new
                     {
                         EndTime = achievement.CompletedTime.Date,
-                        Value = (double)achievement.Duration / achievement.PieceOfInformation
+                        Value = (double)(achievement.PieceOfInformation / achievement.Duration)
                     })
                     .ToList();
-
+                if(request.FilterMonth != null && request.FilterYear==null || request.FilterMonth==null && request.FilterYear !=null)
+                    throw new CrudException(HttpStatusCode.BadRequest, "Please enter year and month ", "");
+                if (request.FilterMonth != null && request.FilterYear != null)
+                {                        
+                    result = result.Where(x => x.EndTime.Month == request.FilterMonth && x.EndTime.Year == request.FilterYear).ToList();
+                }
                 return result;
             }
             catch (CrudException ex)
@@ -134,6 +139,43 @@ namespace ThinkTank.Service.Services.ImpService
                 throw new CrudException(HttpStatusCode.InternalServerError, "Get Analysis of Account error!!!!!", ex.Message);
             }
         }
+        public async Task<dynamic> GetAnalysisOfMemoryTypeByAccountId(int accountId)
+        {
+            try
+            {
+                var account = _unitOfWork.Repository<Account>()
+                                .GetAll()
+                                .Include(x => x.Achievements)
+                                .SingleOrDefault(x => x.Id == accountId);
 
+                if (account == null)
+                    throw new CrudException(HttpStatusCode.NotFound, $"Account Id {accountId} not found ", "");
+                var listGameLevel = GetGameLevelByAccountId(accountId);
+
+                var levelOfFlipcard = listGameLevel.FirstOrDefault(x => x.GameName == "Flip Card")?.Level ?? 0;
+                var levelOfMusicPassword = listGameLevel.FirstOrDefault(x => x.GameName == "Music Password")?.Level ?? 0;
+                var levelOfImagesWalkthrough = listGameLevel.FirstOrDefault(x => x.GameName == "Images Walkthrough")?.Level ?? 0;
+                var levelOfFindTheAnonymous = listGameLevel.FirstOrDefault(x => x.GameName == "Find The Anonymous")?.Level ?? 0;
+                var percentOfImagesMemory = ((double)(levelOfFlipcard + levelOfImagesWalkthrough + levelOfFindTheAnonymous));
+                var percentOfAudioMemory=levelOfMusicPassword;
+                var percentOfSequentialMemory = ((double)(levelOfMusicPassword + levelOfImagesWalkthrough));
+                var totalPercent = percentOfAudioMemory + percentOfImagesMemory + percentOfSequentialMemory;
+
+                return new
+                {
+                    PercentOfImagesMemory= percentOfImagesMemory==0?0 :percentOfImagesMemory/totalPercent*100,
+                    PercentOfAudioMemory=percentOfAudioMemory==0? 0:percentOfAudioMemory/totalPercent*100,  
+                    PercentOfSequentialMemory=percentOfSequentialMemory==0?0: percentOfSequentialMemory /totalPercent * 100
+                };
+            }
+            catch (CrudException ex)
+            {
+                throw ex;
+            }
+            catch (Exception ex)
+            {
+                throw new CrudException(HttpStatusCode.InternalServerError, "Get Analysis of Account's Memory Type error!!!!!", ex.Message);
+            }
+        }
     }
 }

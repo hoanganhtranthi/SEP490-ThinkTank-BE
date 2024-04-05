@@ -47,11 +47,16 @@ D:\SEP490-ThinkTank-BE\ThinkTank.API\obj\Release\net6.0\PubTmp\Out\System.Servic
 D:\SEP490-ThinkTank-BE\ThinkTank.API\obj\Release\net6.0\PubTmp\Out\Microsoft.OpenApi.dll
 D:\SEP490-ThinkTank-BE\ThinkTank.API\obj\Release\net6.0\PubTmp\Out\Microsoft.Win32.SystemEvents.dll
 D:\SEP490-ThinkTank-BE\ThinkTank.API\obj\Release\net6.0\PubTmp\Out\Newtonsoft.Json.dll
+D:\SEP490-ThinkTank-BE\ThinkTank.API\obj\Release\net6.0\PubTmp\Out\Nito.AsyncEx.Coordination.dll
+D:\SEP490-ThinkTank-BE\ThinkTank.API\obj\Release\net6.0\PubTmp\Out\Nito.AsyncEx.Tasks.dll
+D:\SEP490-ThinkTank-BE\ThinkTank.API\obj\Release\net6.0\PubTmp\Out\Nito.Collections.Deque.dll
+D:\SEP490-ThinkTank-BE\ThinkTank.API\obj\Release\net6.0\PubTmp\Out\Nito.Disposables.dll
 D:\SEP490-ThinkTank-BE\ThinkTank.API\obj\Release\net6.0\PubTmp\Out\OpenAI_API.dll
 D:\SEP490-ThinkTank-BE\ThinkTank.API\obj\Release\net6.0\PubTmp\Out\Pipelines.Sockets.Unofficial.dll
 D:\SEP490-ThinkTank-BE\ThinkTank.API\obj\Release\net6.0\PubTmp\Out\RedLockNet.Abstractions.dll
 D:\SEP490-ThinkTank-BE\ThinkTank.API\obj\Release\net6.0\PubTmp\Out\RedLockNet.SERedis.dll
 D:\SEP490-ThinkTank-BE\ThinkTank.API\obj\Release\net6.0\PubTmp\Out\StackExchange.Redis.dll
+D:\SEP490-ThinkTank-BE\ThinkTank.API\obj\Release\net6.0\PubTmp\Out\StackExchange.Redis.MultiplexerPool.dll
 D:\SEP490-ThinkTank-BE\ThinkTank.API\obj\Release\net6.0\PubTmp\Out\Swashbuckle.AspNetCore.Swagger.dll
 D:\SEP490-ThinkTank-BE\ThinkTank.API\obj\Release\net6.0\PubTmp\Out\Swashbuckle.AspNetCore.SwaggerGen.dll
 D:\SEP490-ThinkTank-BE\ThinkTank.API\obj\Release\net6.0\PubTmp\Out\Swashbuckle.AspNetCore.SwaggerUI.dll

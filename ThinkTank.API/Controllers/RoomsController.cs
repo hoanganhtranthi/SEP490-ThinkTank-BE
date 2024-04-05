@@ -22,7 +22,7 @@ namespace ThinkTank.API.Controllers
         /// <param name="pagingRequest"></param>
         /// <param name="roomRequest"></param>
         /// <returns></returns>
-       // [Authorize(Policy = "All")]
+       [Authorize(Policy = "Admin")]
         [HttpGet]
         public async Task<ActionResult<List<RoomResponse>>> GetRooms([FromQuery] PagingRequest pagingRequest, [FromQuery] RoomRequest roomRequest)
         {
@@ -30,11 +30,11 @@ namespace ThinkTank.API.Controllers
             return Ok(rs);
         }
         /// <summary>
-        /// Get type of room  by Id
+        /// Get room  by Id
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        [Authorize(Policy = "All")]
+        [Authorize(Policy = "Admin")]
         [HttpGet("{id:int}")]
         public async Task<ActionResult<RoomResponse>> GetRoomsById(int id)
         {
@@ -46,7 +46,7 @@ namespace ThinkTank.API.Controllers
         /// </summary>
         /// <param name="room"></param>
         /// <returns></returns>
-       // [Authorize(Policy = "Player")]
+       [Authorize(Policy = "Player")]
         [HttpPost()]
         public async Task<ActionResult<RoomResponse>> CreateRoom([FromBody] CreateRoomRequest room)
         {
@@ -59,7 +59,7 @@ namespace ThinkTank.API.Controllers
         /// <param name="id"></param>
         ///  <param name="accountId"></param>
         /// <returns></returns>
-       // [Authorize(Policy = "Player")]
+       [Authorize(Policy = "Player")]
         [HttpDelete("{id}")]
         public async Task<ActionResult<RoomResponse>> DeleteRoom(int id, int accountId)
         {
@@ -72,7 +72,7 @@ namespace ThinkTank.API.Controllers
         /// </summary>
         /// <param name="roomId"></param>
         /// <returns></returns>
-       // [Authorize(Policy = "All")]
+        [Authorize(Policy = "Player")]
         [HttpGet("{roomId:int}/leaderboard")]
         public async Task<ActionResult<List<LeaderboardResponse>>> GetLeaderboard(int roomId)
         {
@@ -85,7 +85,7 @@ namespace ThinkTank.API.Controllers
         /// <param name="roomId"></param>
         /// <param name="accountId"></param>
         /// <returns></returns>
-      //  [Authorize(Policy = "Player")]
+       [Authorize(Policy = "Player")]
         [HttpPut("{roomId:int}")]
         public async Task<ActionResult<List<LeaderboardResponse>>> UpdateRoom(int roomId, [FromBody] List<CreateAndUpdateAccountInRoomRequest> createAccountInRoomRequests)
         {
@@ -97,7 +97,7 @@ namespace ThinkTank.API.Controllers
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        // [Authorize(Policy = "Player")]
+         [Authorize(Policy = "Player")]
         [HttpGet("{id}/ended-room")]
         public async Task<ActionResult<RoomResponse>> GetToUpdateStatusRoom(int id)
         {

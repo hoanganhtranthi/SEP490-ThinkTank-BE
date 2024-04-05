@@ -21,7 +21,7 @@ namespace ThinkTank.API.Controllers
         /// <param name="pagingRequest"></param>
         /// <param name="accountInRoomRequest"></param>
         /// <returns></returns>
-       // [Authorize(Policy = "All")]
+        [Authorize(Policy = "Admin")]
         [HttpGet]
         public async Task<ActionResult<List<AccountInRoomResponse>>> GetAccountInRooms([FromQuery] PagingRequest pagingRequest, [FromQuery] AccountInRoomRequest accountInRoomRequest)
         {
@@ -34,7 +34,7 @@ namespace ThinkTank.API.Controllers
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        //[Authorize(Policy = "All")]
+        [Authorize(Policy = "Admin")]
         [HttpGet("{id:int}")]
         public async Task<ActionResult<AccountInContestResponse>> GetAccountInRoomById(int id)
         {
@@ -47,7 +47,7 @@ namespace ThinkTank.API.Controllers
         /// </summary>
         /// <param name="request"></param>
         /// <returns></returns>
-        //[Authorize(Policy = "Player")]
+        [Authorize(Policy = "Player")]
         [HttpPut]
         public async Task<ActionResult<AccountInContestResponse>> UpdateAccountInRoom([FromBody] CreateAndUpdateAccountInRoomRequest request)
         {

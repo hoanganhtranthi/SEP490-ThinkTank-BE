@@ -7,7 +7,7 @@ namespace ThinkTank.Data.Entities
     {
         public int Id { get; set; }
         public string Description { get; set; } = null!;
-        public DateTime DateTime { get; set; }
+        public DateTime DateNotification { get; set; }
         public string Avatar { get; set; } = null!;
         public int AccountId { get; set; }
         public string? Title { get; set; }

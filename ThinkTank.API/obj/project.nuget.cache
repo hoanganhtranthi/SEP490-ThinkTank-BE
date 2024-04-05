@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "Rdt1nmbpJMXobiYAl0+V8AQnGwgtEsWbfQqp722/tzxKsIxCxa6VrGIvIbX6IQalWhKvfhqvxYWE5thRq+azLA==",
+  "dgSpecHash": "CQp2HZ1Tr1hlc0pC3m/IK2105UBc08Do3We/3arjSrL9sQOVXZNvna3zcOAQb4Zc8vu2srQMXCyPlk/0ad/wnQ==",
   "success": true,
   "projectFilePath": "D:\\SEP490-ThinkTank-BE\\ThinkTank.API\\ThinkTank.API.csproj",
   "expectedPackageFiles": [
@@ -75,6 +75,10 @@
     "C:\\Users\\Hoang Anh\\.nuget\\packages\\microsoft.win32.systemevents\\4.7.0\\microsoft.win32.systemevents.4.7.0.nupkg.sha512",
     "C:\\Users\\Hoang Anh\\.nuget\\packages\\netstandard.library\\1.6.1\\netstandard.library.1.6.1.nupkg.sha512",
     "C:\\Users\\Hoang Anh\\.nuget\\packages\\newtonsoft.json\\13.0.3\\newtonsoft.json.13.0.3.nupkg.sha512",
+    "C:\\Users\\Hoang Anh\\.nuget\\packages\\nito.asyncex.coordination\\5.0.0\\nito.asyncex.coordination.5.0.0.nupkg.sha512",
+    "C:\\Users\\Hoang Anh\\.nuget\\packages\\nito.asyncex.tasks\\5.0.0\\nito.asyncex.tasks.5.0.0.nupkg.sha512",
+    "C:\\Users\\Hoang Anh\\.nuget\\packages\\nito.collections.deque\\1.0.4\\nito.collections.deque.1.0.4.nupkg.sha512",
+    "C:\\Users\\Hoang Anh\\.nuget\\packages\\nito.disposables\\2.0.0\\nito.disposables.2.0.0.nupkg.sha512",
     "C:\\Users\\Hoang Anh\\.nuget\\packages\\openai\\1.10.0\\openai.1.10.0.nupkg.sha512",
     "C:\\Users\\Hoang Anh\\.nuget\\packages\\pipelines.sockets.unofficial\\2.2.8\\pipelines.sockets.unofficial.2.2.8.nupkg.sha512",
     "C:\\Users\\Hoang Anh\\.nuget\\packages\\redlock.net\\2.3.2\\redlock.net.2.3.2.nupkg.sha512",
@@ -95,6 +99,7 @@
     "C:\\Users\\Hoang Anh\\.nuget\\packages\\runtime.ubuntu.16.04-x64.runtime.native.system.security.cryptography.openssl\\4.3.0\\runtime.ubuntu.16.04-x64.runtime.native.system.security.cryptography.openssl.4.3.0.nupkg.sha512",
     "C:\\Users\\Hoang Anh\\.nuget\\packages\\runtime.ubuntu.16.10-x64.runtime.native.system.security.cryptography.openssl\\4.3.0\\runtime.ubuntu.16.10-x64.runtime.native.system.security.cryptography.openssl.4.3.0.nupkg.sha512",
     "C:\\Users\\Hoang Anh\\.nuget\\packages\\stackexchange.redis\\2.7.10\\stackexchange.redis.2.7.10.nupkg.sha512",
+    "C:\\Users\\Hoang Anh\\.nuget\\packages\\stackexchange.redis.multiplexerpool\\2.0.1\\stackexchange.redis.multiplexerpool.2.0.1.nupkg.sha512",
     "C:\\Users\\Hoang Anh\\.nuget\\packages\\swashbuckle.aspnetcore\\6.2.3\\swashbuckle.aspnetcore.6.2.3.nupkg.sha512",
     "C:\\Users\\Hoang Anh\\.nuget\\packages\\swashbuckle.aspnetcore.swagger\\6.2.3\\swashbuckle.aspnetcore.swagger.6.2.3.nupkg.sha512",
     "C:\\Users\\Hoang Anh\\.nuget\\packages\\swashbuckle.aspnetcore.swaggergen\\6.2.3\\swashbuckle.aspnetcore.swaggergen.6.2.3.nupkg.sha512",

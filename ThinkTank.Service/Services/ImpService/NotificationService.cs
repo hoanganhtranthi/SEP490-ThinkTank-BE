@@ -67,7 +67,7 @@ namespace ThinkTank.Service.Services.ImpService
                 {
                     AccountId=x.AccountId,
                     Title=x.Title,
-                    DateTime=x.DateTime,
+                    DateNotification=x.DateNotification,
                     Description = x.Description,
                     Id = x.Id,
                     Avatar=x.Avatar,

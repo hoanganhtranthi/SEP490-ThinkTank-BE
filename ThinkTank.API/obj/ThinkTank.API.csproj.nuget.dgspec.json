@@ -116,6 +116,10 @@
               "target": "Package",
               "version": "[2.7.10, )"
             },
+            "StackExchange.Redis.MultiplexerPool": {
+              "target": "Package",
+              "version": "[2.0.1, )"
+            },
             "Swashbuckle.AspNetCore": {
               "target": "Package",
               "version": "[6.2.3, )"
@@ -259,6 +263,10 @@
             "StackExchange.Redis": {
               "target": "Package",
               "version": "[2.7.10, )"
+            },
+            "StackExchange.Redis.MultiplexerPool": {
+              "target": "Package",
+              "version": "[2.0.1, )"
             },
             "System.Linq.Dynamic.Core": {
               "target": "Package",
@@ -408,6 +416,10 @@
             "StackExchange.Redis": {
               "target": "Package",
               "version": "[2.7.10, )"
+            },
+            "StackExchange.Redis.MultiplexerPool": {
+              "target": "Package",
+              "version": "[2.0.1, )"
             },
             "System.Linq.Dynamic.Core": {
               "target": "Package",

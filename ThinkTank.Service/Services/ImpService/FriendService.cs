@@ -86,7 +86,7 @@ namespace ThinkTank.Service.Services.ImpService
                 {
                     AccountId = cus.Id,
                     Avatar = s.Avatar,
-                    DateTime = DateTime.Now,
+                    DateNotification = DateTime.Now,
                     Description = $"{s.FullName} sent you a friend request.",
                     Status = false,
                     Title= "ThinkTank Community"
@@ -175,34 +175,44 @@ namespace ThinkTank.Service.Services.ImpService
         {
             try
             {
-                if (request.Status == null)
-                    throw new CrudException(HttpStatusCode.BadRequest, "Please enter Status", "");
-                var friends = _unitOfWork.Repository<Friend>().GetAll().Include(a=>a.AccountId1Navigation)
-                    .Include(a=>a.AccountId2Navigation).Select(x=>new FriendResponse
+                var friendsQuery = _unitOfWork.Repository<Friend>().GetAll()
+                .Include(f => f.AccountId1Navigation)
+                .Include(f => f.AccountId2Navigation)
+                .Select(x => new FriendResponse
                 {
                     Id = x.Id,
-                    AccountId1=x.AccountId1,
-                    AccountId2=x.AccountId2,
-                    Status=x.Status,
-                    UserName1=x.AccountId1Navigation.UserName,
-                    UserName2=x.AccountId2Navigation.UserName,
+                    AccountId1 = x.AccountId1,
+                    AccountId2 = x.AccountId2,
+                    Status = x.Status,
+                    UserName1 = x.AccountId1Navigation.UserName,
+                    UserName2 = x.AccountId2Navigation.UserName,
                     Avatar1 = x.AccountId1Navigation.Avatar,
                     Avatar2 = x.AccountId2Navigation.Avatar,
-                    UserCode1=x.AccountId1Navigation.Code,
-                    UserCode2=x.AccountId2Navigation.Code,
-            }) .ToList();
+                    UserCode1 = x.AccountId1Navigation.Code,
+                    UserCode2 = x.AccountId2Navigation.Code,
+                });
+
+                var friends = friendsQuery.ToList();
 
                 if (request.AccountId != null)
                 {
                     friends = await GetFriendsByAccountId(request);
                 }
-                friends = friends.Where(a =>
-                                            (string.IsNullOrEmpty(request.UserCode) ||
-                                             ((!string.IsNullOrEmpty(a.UserCode1) && a.UserCode1.Contains(request.UserCode)) ||
-                                              (!string.IsNullOrEmpty(a.UserCode2) && a.UserCode2.Contains(request.UserCode)))) &&
-                                                (string.IsNullOrEmpty(request.UserName) ||
-                                                ((!string.IsNullOrEmpty(a.UserName1) && a.UserName1.Contains(request.UserName)) ||
-                                                (!string.IsNullOrEmpty(a.UserName2) && a.UserName2.Contains(request.UserName))))).ToList();
+
+                if (!string.IsNullOrEmpty(request.UserCode))
+                {
+                    friends = friends.Where(a => !string.IsNullOrEmpty(a.UserCode1) && a.UserCode1.Contains(request.UserCode)
+                                               || !string.IsNullOrEmpty(a.UserCode2) && a.UserCode2.Contains(request.UserCode))
+                                    .ToList();
+                }
+
+                if (!string.IsNullOrEmpty(request.UserName))
+                {
+                    friends = friends.Where(a => !string.IsNullOrEmpty(a.UserName1) && a.UserName1.Contains(request.UserName)
+                                               || !string.IsNullOrEmpty(a.UserName2) && a.UserName2.Contains(request.UserName))
+                                    .ToList();
+                }
+
                 if (request.Status != Helpers.Enum.StatusType.All)
                 {
                     bool? status = null;
@@ -226,17 +236,28 @@ namespace ThinkTank.Service.Services.ImpService
             try
             {
                 var response = new List<FriendResponse>();
-                var accounts = _unitOfWork.Repository<Account>().GetAll().Include(x => x.FriendAccountId1Navigations)
-                    .Include(x => x.FriendAccountId2Navigations).Where(a => a.Id != request.AccountId).ToList();
-                var account= _unitOfWork.Repository<Account>().GetAll().Include(x => x.FriendAccountId1Navigations)
-                    .Include(x => x.FriendAccountId2Navigations).SingleOrDefault(a => a.Id == request.AccountId);
-                foreach (var acc in accounts)
+                var accountsWithFriends = _unitOfWork.Repository<Account>().GetAll()
+                    .Include(a => a.FriendAccountId1Navigations)
+                    .Include(a => a.FriendAccountId2Navigations)
+                    .Where(a => a.Id != request.AccountId)
+                    .ToList();
+
+                var currentAccount = _unitOfWork.Repository<Account>().GetAll()
+                    .Include(a => a.FriendAccountId1Navigations)
+                    .Include(a => a.FriendAccountId2Navigations)
+                    .SingleOrDefault(a => a.Id == request.AccountId);
+
+                foreach (var acc in accountsWithFriends)
                 {
-                    var friend = _unitOfWork.Repository<Friend>().Find(x => x.AccountId1 == request.AccountId && x.AccountId2 == acc.Id
-                    || x.AccountId1 == acc.Id && x.AccountId2 == request.AccountId);
+                    var friend = acc.FriendAccountId1Navigations
+                        .Concat(acc.FriendAccountId2Navigations)
+                        .SingleOrDefault(f => (f.AccountId1 == request.AccountId && f.AccountId2 == acc.Id)
+                        || (f.AccountId1 == acc.Id && f.AccountId2 == request.AccountId));
+
                     FriendResponse friendResponse = new FriendResponse();
-                    friendResponse.Id = friend?.Id??0;
-                    if (account.FriendAccountId2Navigations.SingleOrDefault(a => a.AccountId1 == acc.Id) != null)
+                    friendResponse.Id = friend?.Id ?? 0;
+
+                    if (currentAccount.FriendAccountId2Navigations.Any(f => f.AccountId1 == acc.Id))
                     {
                         friendResponse.AccountId1 = acc.Id;
                         friendResponse.Avatar1 = acc.Avatar;
@@ -250,10 +271,12 @@ namespace ThinkTank.Service.Services.ImpService
                         friendResponse.UserCode2 = acc.Code;
                         friendResponse.UserName2 = acc.UserName;
                     }
-                    friendResponse.Status= friend?.Status ?? null;
+                    friendResponse.Status = friend?.Status;
                     response.Add(friendResponse);
                 }
+
                 return response;
+
             }
             catch (CrudException ex)
             {
@@ -305,7 +328,7 @@ namespace ThinkTank.Service.Services.ImpService
                 {
                     AccountId = friend.AccountId1,
                     Avatar = friend.AccountId2Navigation.Avatar,
-                    DateTime = DateTime.Now,
+                    DateNotification = DateTime.Now,
                     Status = false,
                     Description = $"{friend.AccountId2Navigation.FullName}  has agreed to be friends. ",
                     Title = "ThinkTank Community"
@@ -376,7 +399,7 @@ namespace ThinkTank.Service.Services.ImpService
                     {
                         AccountId = account.Id,
                         Avatar = challage.Avatar,
-                        DateTime = DateTime.Now,
+                        DateNotification = DateTime.Now,
                         Description = $"You have received {challage.Name} badge.",
                         Status=false,
                         Title = "ThinkTank"

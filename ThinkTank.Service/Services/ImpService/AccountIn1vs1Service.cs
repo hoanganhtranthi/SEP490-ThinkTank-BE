@@ -31,14 +31,12 @@ namespace ThinkTank.Service.Services.ImpService
         private readonly IMapper _mapper;
         private readonly IFirebaseMessagingService _firebaseMessagingService;
         private readonly ICacheService _cacheService;
-        private readonly IFirebaseRealtimeDatabaseService firebaseRealtimeDatabaseService;
-        public AccountIn1vs1Service(IUnitOfWork unitOfWork, IMapper mapper, IFirebaseMessagingService firebaseMessagingService, ICacheService cacheService, IFirebaseRealtimeDatabaseService firebaseRealtimeDatabaseService)
+        public AccountIn1vs1Service(IUnitOfWork unitOfWork, IMapper mapper, IFirebaseMessagingService firebaseMessagingService, ICacheService cacheService)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
             _firebaseMessagingService = firebaseMessagingService;
             _cacheService = cacheService;
-            this.firebaseRealtimeDatabaseService = firebaseRealtimeDatabaseService;
         }
 
         public async Task<AccountIn1vs1Response> CreateAccount1vs1(CreateAccountIn1vs1Request createAccount1vs1Request)
@@ -69,10 +67,13 @@ namespace ThinkTank.Service.Services.ImpService
                 {
                     throw new CrudException(HttpStatusCode.NotFound, "Game Not Found!!!!!", "");
                 }
-                if (createAccount1vs1Request.WinnerId != 0 && (createAccount1vs1Request.WinnerId != createAccount1vs1Request.AccountId1 || createAccount1vs1Request.WinnerId != createAccount1vs1Request.AccountId2))
+  
+                if (createAccount1vs1Request.WinnerId != 0 && createAccount1vs1Request.WinnerId != createAccount1vs1Request.AccountId1  && createAccount1vs1Request.WinnerId != createAccount1vs1Request.AccountId2)
                     throw new CrudException(HttpStatusCode.BadRequest, $"Winner Id {createAccount1vs1Request.WinnerId} is invalid !!!!!", "");
-                var room=firebaseRealtimeDatabaseService.GetAsync <RoomsOfAccount1vs1>($"roomsOfAccount1vs1/roomId{createAccount1vs1Request.RoomId}").Result ;
-                if(room != null)
+                var accountIn1vs1 = _unitOfWork.Repository<AccountIn1vs1>().Find(x => x.AccountId1 == createAccount1vs1Request.AccountId1 && x.AccountId2 == createAccount1vs1Request.AccountId2 && x.RoomOfAccountIn1vs1Id == createAccount1vs1Request.RoomOfAccountIn1vs1Id);
+                if (accountIn1vs1 != null)
+                    throw new CrudException(HttpStatusCode.BadRequest, $"These two accounts have already played against this room id {createAccount1vs1Request.RoomOfAccountIn1vs1Id} together", "");
+               /* if(room != null)
                 {
                     if (room.TimeId1 == 0 && room.TimeId2 == 0 || room.TimeId1 == room.TimeId2)
                     {
@@ -143,10 +144,30 @@ namespace ThinkTank.Service.Services.ImpService
                             a2.Coin += createAccount1vs1Request.Coin * 2;
                         }
                     }
-                }
+                }*/
                 accIn1vs1.EndTime = DateTime.Now;
+                accIn1vs1.Game = c;
+                accIn1vs1.AccountId1Navigation = a;
+                accIn1vs1.AccountId2Navigation = a2;
                 a.Coin -= createAccount1vs1Request.Coin;
                 a2.Coin -= createAccount1vs1Request.Coin;
+                if (createAccount1vs1Request.WinnerId == a.Id) 
+                {
+                    a.Coin += (createAccount1vs1Request.Coin * 2);
+                    GetBadge(a, "Athlete");
+                }
+
+                if (createAccount1vs1Request.WinnerId == a2.Id)
+                {
+                    a2.Coin += createAccount1vs1Request.Coin * 2;
+                    GetBadge(a, "Athlete");
+                }
+                   
+                if(createAccount1vs1Request.WinnerId==0 ||createAccount1vs1Request.WinnerId ==null)
+                {
+                    a.Coin = createAccount1vs1Request.Coin;
+                    a2.Coin = createAccount1vs1Request.Coin;
+                }
                 await _unitOfWork.Repository<AccountIn1vs1>().CreateAsync(accIn1vs1);
                 await _unitOfWork.Repository<Account>().Update(a, a.Id);
                 await _unitOfWork.Repository<Account>().Update(a2, a2.Id);
@@ -154,17 +175,11 @@ namespace ThinkTank.Service.Services.ImpService
                     GetBadge(a, "The Tycoon");
                 if (a2.Coin == 4000)
                     GetBadge(a2, "The Tycoon");
-                if (a.AccountIn1vs1AccountId1Navigations.Count() > 5 || a.AccountIn1vs1AccountId2Navigations.Count() > 5 ||
-                    (a.AccountIn1vs1AccountId2Navigations.Count() + a.AccountIn1vs1AccountId1Navigations.Count()) > 5)
-                {
-                    GetBadge(a, "Athlete");
-                }
                 await _unitOfWork.CommitAsync();
                 var rs = _mapper.Map<AccountIn1vs1Response>(accIn1vs1);
                 rs.GameName = c.Name;
                 rs.Username1 = a.UserName;
                 rs.Username2 = a2.UserName;
-                firebaseRealtimeDatabaseService.RemoveData<RoomsOfAccount1vs1>($"roomsOfAccount1vs1/roomId{createAccount1vs1Request.RoomId}");
                 return rs;
             }
             catch (CrudException ex)
@@ -214,7 +229,7 @@ namespace ThinkTank.Service.Services.ImpService
                     {
                         AccountId = account.Id,
                         Avatar = challage.Avatar,
-                        DateTime = DateTime.Now,
+                        DateNotification = DateTime.Now,
                         Description = $"You have received {challage.Name} badge.",
                         Status = false,
                         Title = "ThinkTank"
@@ -263,35 +278,68 @@ namespace ThinkTank.Service.Services.ImpService
                 throw new CrudException(HttpStatusCode.InternalServerError, "Get Account 1vs1 By ID Error!!!", ex.InnerException?.Message);
             }
         }
-        private async Task AddToCacheAsync(int id, int coin, int gameId)
+        private async Task AddToCacheAsync(int id, int coin, int gameId, string uniqueId)
         {
-            var cacheKey = $"{id}+{coin}+{gameId}";
+
+            var cacheKey = $"{id}+{coin}+{gameId}+{uniqueId}";
             var cacheResult = await _cacheService.GetJobsAsync(cacheKey);               
                 if (cacheResult == null || !cacheResult.Any())
                 {
-                    await _cacheService.AddJobAsync(cacheKey, $"{coin}+{gameId}");
+                    await CacheService.Instance.AddJobAsync(cacheKey, "account1vs1");
                 }
         }
 
-        private async Task RemoveFromCacheAsync(int coin, int gameId,string accountInfo)
+        private async Task RemoveFromCacheAsync(string accountInfo)
         {
-            await _cacheService.DeleteJobAsync($"{coin}+{gameId}",accountInfo);
+            await CacheService.Instance.DeleteJobAsync("account1vs1",accountInfo);
         }
-
-        public async Task<dynamic> FindAccountTo1vs1(int id, int coin, int gameId)
+        public async Task<bool> RemoveAccountFromCache(int id, int coin, int gameId)
         {
             try
             {
-                using (var redLock = _cacheService.AcquireLock($"{coin}+{gameId}"))
+                if (id <= 0)
                 {
-                    if (redLock.IsAcquired)
-                    {
+                    throw new CrudException(HttpStatusCode.BadRequest, "Id Account  Invalid", "");
+                }
+
+                var account = await _unitOfWork.Repository<Account>().FindAsync(a => a.Id == id);
+                if (account == null)
+                {
+                    throw new CrudException(HttpStatusCode.NotFound, $"Account Id {id} Not Found!!!!!", "");
+                }
+
+                if (account.Status == false)
+                {
+                    throw new CrudException(HttpStatusCode.BadRequest, $"Account Id {id} Not Available!!!!!", "");
+                }
+
+                var game = await _unitOfWork.Repository<Game>().FindAsync(x => x.Id == gameId);
+                var list = await _cacheService.GetJobsAsync($"{coin}+{gameId}");
+                string acc = list.SingleOrDefault(x => x == $"{id}+{coin}+{gameId}");
+                if (acc == null)
+                    throw new CrudException(HttpStatusCode.BadRequest, $"Account Id {id} Not Found In Cache!!!!!", "");
+                else await RemoveFromCacheAsync( acc);
+                return true;
+            }
+            catch (CrudException ex)
+            {
+                throw;
+            }
+            catch (Exception ex)
+            {
+                throw new CrudException(HttpStatusCode.InternalServerError, "Remove account from cache Error!!!", ex.InnerException?.Message);
+            }
+        }
+            public async Task<dynamic> FindAccountTo1vs1(int id, int coin, int gameId)
+        {
+            try
+            {
                         await _semaphore.WaitAsync(); // Di chuyển semaphore vào bên trong để giảm thiểu thời gian chờ đợi
                         try
                         {
                             if (id <= 0)
                             {
-                                throw new CrudException(HttpStatusCode.BadRequest, "Id Account 1vs1 Invalid", "");
+                                throw new CrudException(HttpStatusCode.BadRequest, "Id Account  Invalid", "");
                             }
 
                             var account = await _unitOfWork.Repository<Account>().FindAsync(a => a.Id == id);
@@ -308,7 +356,8 @@ namespace ThinkTank.Service.Services.ImpService
                             var game = await _unitOfWork.Repository<Game>().FindAsync(x => x.Id == gameId);
                             var accountId = 0;
                             var uniqueId = "";
-                            var list = await _cacheService.GetJobsAsync($"{coin}+{gameId}");
+                            var accountFind = new Account();
+                            var list = await CacheService.Instance.GetJobsAsync("account1vs1");
                             if (list?.Any() == true)
                             {
                                 foreach (var accountInfo in list)
@@ -318,32 +367,36 @@ namespace ThinkTank.Service.Services.ImpService
                                     var accountIdFromCache = Int32.Parse(accountValues[0]);
                                     var coinFromCache = Int32.Parse(accountValues[1]);
                                     var gameIdFromCache = Int32.Parse(accountValues[2]);
-
-                                    if (coinFromCache == coin && gameIdFromCache == gameId && accountIdFromCache != id)
+                                    if (coinFromCache == coin && gameIdFromCache == gameId && accountIdFromCache == id)
+                                        throw new CrudException(HttpStatusCode.BadRequest, $"Account Id {id} has been added to the queue", "");
+                                    if (coinFromCache == coin && gameIdFromCache == gameId)
                                     {
                                         accountId = accountIdFromCache;
-                                        uniqueId = Guid.NewGuid().ToString();
-                                        await Create1vs1Room(id, accountId, uniqueId);
-                                        await SendNotificationToAccounts(account, accountId, game, uniqueId);
-                                        await RemoveFromCacheAsync(coin, gameId, accountInfo); // Xóa dữ liệu khỏi cache sau khi tìm thấy tài khoản
-
+                                        accountFind = _unitOfWork.Repository<Account>().Find(x => x.Id == accountId);
+                                        await RemoveFromCacheAsync(accountInfo); // Xóa dữ liệu khỏi cache sau khi tìm thấy tài khoản
+                                        uniqueId = accountValues[3];
                                         break;
                                     }
                                 }
 
                                 if (accountId == 0)
                                 {
-                                    await AddToCacheAsync(id, coin, gameId).ConfigureAwait(false);
+                                    uniqueId = Guid.NewGuid().ToString().Substring(0, 8).ToUpper();
+                                    await AddToCacheAsync(id, coin, gameId,uniqueId).ConfigureAwait(false);
                                 }
                             }
                             else
                             {
-                                await AddToCacheAsync(id, coin, gameId).ConfigureAwait(false);
+                                uniqueId = Guid.NewGuid().ToString().Substring(0, 8).ToUpper();
+                                await AddToCacheAsync(id, coin, gameId,uniqueId).ConfigureAwait(false);
                             }
                             return new
                             {
                                 AccountId = accountId,
-                                RoomId=uniqueId
+                                Avatar=accountFind.Avatar,
+                                Coin=accountFind.Coin,
+                                RoomId=uniqueId,
+                                Username=accountFind.UserName
                             };
                         }
                         finally
@@ -351,13 +404,6 @@ namespace ThinkTank.Service.Services.ImpService
                             _semaphore.Release();
                         }
                     }
-                }
-                return new
-                {
-                    AccountId = 0,
-                    RoomId = ""
-                };
-            }
             catch (CrudException ex)
             {
                 throw;
@@ -366,106 +412,8 @@ namespace ThinkTank.Service.Services.ImpService
             {
                 throw new CrudException(HttpStatusCode.InternalServerError, "Find account 1vs1 Error!!!", ex.InnerException?.Message);
             }
-        }
-            private async Task Create1vs1Room(int accountId1, int accountId2,string uniqueId)
-        {
-            var roomAccount1vs1 = new RoomsOfAccount1vs1()
-            {
-                Id = uniqueId,
-                AccountId1 = accountId1,
-                AccountId2 = accountId2,
-                TimeId1 = 0,
-                TimeId2 = 0,
-                Message = ""
-            };
-            await firebaseRealtimeDatabaseService.SetAsync<RoomsOfAccount1vs1>($"roomsOfAccount1vs1/roomId{uniqueId}", roomAccount1vs1);
-        }
-
-        private async Task SendNotificationToAccounts(Account account1, int accountId2, Game game,string uniqueId)
-        {
-            var data = new Dictionary<string, string>()
-            {
-                ["click_action"] = "FLUTTER_NOTIFICATION_CLICK",
-                ["Action"] = "home",
-                ["Argument"] = JsonConvert.SerializeObject(new JsonSerializerSettings
-                {
-                    ContractResolver = new DefaultContractResolver
-                    {
-                        NamingStrategy = new SnakeCaseNamingStrategy()
-                    }
-                }),
-            };
-
-            var fcmTokens = new Dictionary<int, string>();
-            if (!string.IsNullOrEmpty(account1.Fcm))
-            {
-                fcmTokens.Add(account1.Id, account1.Fcm);
-            }
-
-            var account2 = await _unitOfWork.Repository<Account>().FindAsync(x => x.Id == accountId2);
-            if (!string.IsNullOrEmpty(account2.Fcm))
-            {
-                fcmTokens.Add(account2.Id, account2.Fcm);
-            }
-
-            foreach (var token in fcmTokens)
-            {
-                var notification = new FirebaseAdmin.Messaging.Notification()
-                {
-                    Title = "ThinkTank Account1vs1 Mode",
-                    Body = $"Having found your opponent, you can start playing the game {game.Name} in countervailing mode",
-               };
-
-                var count = await _firebaseMessagingService.SendMessage(new List<string> { token.Value }, notification, data);
-
-                if (count == 0 && fcmTokens.Count > 1)
-                {
-                    await SendNotificationForAccountNotFound(game, token.Key,uniqueId);
-                }
-            }
-
-            if (fcmTokens.Count == 1)
-            {
-                // Gửi thông báo cho tài khoản còn lại (nếu có)
-                var remainingToken = fcmTokens.First();
-                var notification = new FirebaseAdmin.Messaging.Notification()
-                {
-                    Title = "ThinkTank Account1vs1 Mode",
-                    Body = $"Could not find an opponent for the game {game.Name}, please find another opponent.",
-                };
-
-                await _firebaseMessagingService.SendMessage(new List<string> { remainingToken.Value }, notification, data);
-                await firebaseRealtimeDatabaseService.RemoveData<RoomsOfAccount1vs1>("roomsOfAccount1vs1/roomId" + uniqueId);
-            }
-        }
-
-        private async Task SendNotificationForAccountNotFound(Game game, int accountId,string uniqueId)
-        {
-            var accountRequest = await _unitOfWork.Repository<Account>().FindAsync(x => x.Id == accountId);
-            if (!string.IsNullOrEmpty(accountRequest.Fcm))
-            {
-                var dataFCM = new Dictionary<string, string>()
-                {
-                    ["click_action"] = "FLUTTER_NOTIFICATION_CLICK",
-                    ["Action"] = "home",
-                    ["Argument"] = JsonConvert.SerializeObject(new JsonSerializerSettings
-                    {
-                        ContractResolver = new DefaultContractResolver
-                        {
-                            NamingStrategy = new SnakeCaseNamingStrategy()
-                        }
-                    }),
-                };
-                var notification = new FirebaseAdmin.Messaging.Notification()
-                {
-                    Title = "ThinkTank Account1vs1 Mode",
-                    Body = $"Could not find an opponent for the game {game.Name}, please find another opponent.",
-                };
-                _firebaseMessagingService.SendToDevices(
-                    new List<string> { accountRequest.Fcm }, notification, dataFCM);
-              await  firebaseRealtimeDatabaseService.RemoveData<RoomsOfAccount1vs1>("roomsOfAccount1vs1/roomId" + uniqueId);
-            }
-        }
+       }
+          
 
 
 
@@ -486,6 +434,7 @@ namespace ThinkTank.Service.Services.ImpService
                         EndTime = x.EndTime,
                         StartTime = x.StartTime,
                         GameId = (int)x.GameId,
+                        RoomOfAccountIn1vs1Id=x.RoomOfAccountIn1vs1Id,
                         Username1 = x.AccountId1Navigation.UserName,
                         Username2 = x.AccountId2Navigation.UserName,
                         WinnerId = x.WinnerId

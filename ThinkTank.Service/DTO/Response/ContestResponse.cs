@@ -22,7 +22,7 @@ namespace ThinkTank.Service.DTO.Response
         public bool? Status { get; set; }
         [IntAttribute]
         public int? GameId { get; set; }
-        public int? PlayTime { get; set; }
+        public decimal? PlayTime { get; set; }
         public string?  GameName { get; set; }
         public int? AmoutPlayer { get; set; }
         public int? CoinBetting { get; set; }

@@ -35,12 +35,29 @@
               <param name="coin"></param>
             <returns></returns>
         </member>
+        <member name="M:ThinkTank.API.Controllers.AccountIn1vs1sController.RemoveAccountFromCache(System.Int32,System.Int32,System.Int32)">
+            <summary>
+            Remove Account From Cache
+            </summary>
+            <param name="accountId"></param>
+             <param name="gameId"></param>
+              <param name="coin"></param>
+            <returns></returns>
+        </member>
         <member name="M:ThinkTank.API.Controllers.AccountInContestsController.GetAccountInContests(ThinkTank.Service.DTO.Request.PagingRequest,ThinkTank.Service.DTO.Request.AccountInContestRequest)">
             <summary>
             Get list of account in contest 
             </summary>
             <param name="pagingRequest"></param>
             <param name="accountInContestRequest"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ThinkTank.API.Controllers.AccountInContestsController.MinusCoinOfContest(System.Int32,System.Int32)">
+            <summary>
+            Minus coin of account
+            </summary>
+            <param name="id"></param>
+            <param name="contestId"></param>
             <returns></returns>
         </member>
         <member name="M:ThinkTank.API.Controllers.AccountInContestsController.GetAccountInContestById(System.Int32)">
@@ -201,7 +218,7 @@
             <param name="request"></param>
             <returns></returns>
         </member>
-        <member name="M:ThinkTank.API.Controllers.AchieviementsController.GetLeaderboard(System.Int32,ThinkTank.Service.DTO.Request.PagingRequest)">
+        <member name="M:ThinkTank.API.Controllers.AchieviementsController.GetLeaderboard(System.Int32,ThinkTank.Service.DTO.Request.PagingRequest,System.Nullable{System.Int32})">
             <summary>
             Get lederboard of a level of the game
             </summary>
@@ -215,9 +232,15 @@
             <param name="accountId"></param>
             <returns></returns>
         </member>
-        <member name="M:ThinkTank.API.Controllers.AnalysesController.GetAnalysisOfAccount(System.Int32,System.Int32)">
+        <member name="M:ThinkTank.API.Controllers.AnalysesController.GetAnalysisOfAccount(ThinkTank.Service.DTO.Request.AnalysisRequest)">
             <summary>
             Get analysis of account by account Id and game Id
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:ThinkTank.API.Controllers.AnalysesController.GetAnalysisOfEachTypeOfMemoryOfAccount(System.Int32)">
+            <summary>
+            Get analysis of each type of account's memory by account Id 
             </summary>
             <param name="accountId"></param>
             <param name="gameId"></param>
@@ -397,6 +420,28 @@
             </summary>
             <returns></returns>
         </member>
+        <member name="M:ThinkTank.API.Controllers.IconOfAccountsController.GetIconOfAccounts(ThinkTank.Service.DTO.Request.PagingRequest,ThinkTank.Service.DTO.Request.IconOfAccountRequest)">
+            <summary>
+            Get list of icon of account by account Id 
+            </summary>
+            <param name="pagingRequest"></param>
+            <param name="iconOfAccountRequest"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ThinkTank.API.Controllers.IconOfAccountsController.GetIconOfAccountById(System.Int32)">
+            <summary>
+            Get icon of account by id
+            </summary>
+            <param name="id"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ThinkTank.API.Controllers.IconOfAccountsController.CreateIconOfAccount(ThinkTank.Service.DTO.Request.CreateIconOfAccountRequest)">
+            <summary>
+            Buy Icon
+            </summary>
+            <param name="request"></param>
+            <returns></returns>
+        </member>
         <member name="M:ThinkTank.API.Controllers.IconsController.GetIcons(ThinkTank.Service.DTO.Request.PagingRequest,ThinkTank.Service.DTO.Request.IconRequest)">
             <summary>
             Get list of icons
@@ -417,20 +462,6 @@
             Update status of icon
             </summary>
             <param name="iconId"></param>
-            <returns></returns>
-        </member>
-        <member name="M:ThinkTank.API.Controllers.IconsController.AddIcon(ThinkTank.Service.DTO.Request.CreateIconRequest)">
-            <summary>
-            Add icon
-            </summary>
-            <param name="icon"></param>
-            <returns></returns>
-        </member>
-        <member name="M:ThinkTank.API.Controllers.IconsController.AddIconOfAccount(ThinkTank.Service.DTO.Request.IconOfAccountRequest)">
-            <summary>
-            Buy Icon 
-            </summary>
-            <param name="icon"></param>
             <returns></returns>
         </member>
         <member name="M:ThinkTank.API.Controllers.NotificationsController.GetNotifications(ThinkTank.Service.DTO.Request.PagingRequest,ThinkTank.Service.DTO.Request.NotificationRequest)">
@@ -494,7 +525,7 @@
         </member>
         <member name="M:ThinkTank.API.Controllers.RoomsController.GetRoomsById(System.Int32)">
             <summary>
-            Get type of room  by Id
+            Get room  by Id
             </summary>
             <param name="id"></param>
             <returns></returns>

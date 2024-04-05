@@ -11,16 +11,9 @@ namespace Repository.Extensions
 {
     public interface ICacheService
     {
-        T GetData<T>(string key);
-        void SetData<T>(string key, T value, DateTimeOffset expirationTime);
-        object RemoveData(string key);
-        //Task Finish(string key, bool success = true);   
-       // void AddJob(RedisValue job);
         Task AddJobAsync<T>(T value, string key);
         Task<List<string>> GetJobsAsync(string key);
         Task<bool> DeleteJobAsync<T>(string key, T value);
-        IRedLock AcquireLock(string key);
-        // Task AddJobAsync(Dictionary<RedisValue, RedisValue> parametersDictionary);
 
     }
 }
