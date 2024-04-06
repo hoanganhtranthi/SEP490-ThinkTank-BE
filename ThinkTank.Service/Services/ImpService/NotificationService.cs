@@ -40,7 +40,7 @@ namespace ThinkTank.Service.Services.ImpService
 
                 if (response == null)
                 {
-                    throw new CrudException(HttpStatusCode.NotFound, $"Not found notification with id {id.ToString()}", "");
+                    throw new CrudException(HttpStatusCode.NotFound, $"Not found notification with id {id}", "");
                 }
 
                 var rs = _mapper.Map<NotificationResponse>(response);
@@ -92,7 +92,7 @@ namespace ThinkTank.Service.Services.ImpService
                 {
                     throw new CrudException(HttpStatusCode.BadRequest, "Id Notificationship Invalid", "");
                 }
-                Notification notification = _unitOfWork.Repository<Notification>().GetAll().Include(x => x.Account).FirstOrDefault(u => u.Id == id);
+                var notification = _unitOfWork.Repository<Notification>().GetAll().Include(x => x.Account).FirstOrDefault(u => u.Id == id);
 
                 if (notification == null)
                 {
@@ -114,18 +114,18 @@ namespace ThinkTank.Service.Services.ImpService
                 throw new CrudException(HttpStatusCode.InternalServerError, "Update status notification error!!!!!", ex.Message);
             }
         }
-        public async Task<List<NotificationResponse>> DeleteNotification(List<int> id)
+        public async Task<List<NotificationResponse>> DeleteNotification(List<int> listId)
         {
             try
             {
                 var result = new List<NotificationResponse>();
-                foreach (var i in id)
+                foreach (var id in listId)
                 {
-                    if (i <= 0)
+                    if (id <= 0)
                     {
                         throw new CrudException(HttpStatusCode.BadRequest, "Id Notificationship Invalid", "");
                     }
-                    Notification notification = _unitOfWork.Repository<Notification>().GetAll().Include(x => x.Account).FirstOrDefault(u => u.Id == i);
+                    var notification = _unitOfWork.Repository<Notification>().GetAll().Include(x => x.Account).FirstOrDefault(u => u.Id == id);
 
                     if (notification == null)
                     {

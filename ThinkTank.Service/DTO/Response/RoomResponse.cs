@@ -26,6 +26,6 @@ namespace ThinkTank.Service.DTO.Response
         public int? TopicId { get; set; }
         public string? TopicName { get; set; }
         public string? GameName { get; set; }
-        public List<AccountInRoomResponse> AccountIn1Vs1Responses { get; set; }
+        public List<AccountInRoomResponse> AccountInRoomResponses { get; set; }
     }
 }

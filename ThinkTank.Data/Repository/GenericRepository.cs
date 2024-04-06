@@ -88,7 +88,7 @@ namespace ThinkTank.Data.Repository
             return Table;
         }
 
-        public void DeleteRange(T[] entity)
+        public async Task DeleteRange(T[] entity)
         {
             Context.RemoveRange(entity);
         }

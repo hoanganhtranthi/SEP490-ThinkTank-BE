@@ -16,12 +16,9 @@ namespace MuTote.API.Utility
         }
         private static Task HandleExceptionAsync(HttpContext context, CrudException exception)
         {
-            HttpStatusCode status;
-            var stackTrace = String.Empty;
-            string message;
-            message = exception.Message;
-            status = exception.Status;
-            stackTrace = exception.StackTrace;
+            var message = exception.Message;
+            var status = exception.Status;
+            var stackTrace = exception.StackTrace;
             
             var exceptionResult = JsonSerializer.Serialize(new
             {

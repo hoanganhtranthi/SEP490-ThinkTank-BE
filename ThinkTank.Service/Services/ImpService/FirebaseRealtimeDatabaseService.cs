@@ -18,14 +18,17 @@ namespace ThinkTank.Service.Services.ImpService
 {
     public class FirebaseRealtimeDatabaseService:IFirebaseRealtimeDatabaseService
     {
-        IFirebaseConfig config = new FirebaseConfig
+        private readonly IFirebaseConfig config; 
+        private readonly IFirebaseClient client;
+        private readonly IConfiguration configuration;
+        public FirebaseRealtimeDatabaseService(IConfiguration configuration)
         {
-            AuthSecret = "JVXT4lY97hJW3FR4HQ3U7FU3VQSr0sfGibYJkYXZ",
-            BasePath = "https://thinktank-79ead-default-rtdb.firebaseio.com/"
-        };
-        IFirebaseClient client;
-        public FirebaseRealtimeDatabaseService()
-        {
+            this.configuration = configuration;
+            config = new FirebaseConfig
+            {
+                AuthSecret = configuration["Firebase:AuthSecret"],
+                BasePath = configuration["Firebase:BasePath"]
+            };
             client = new FirebaseClient(config);
         }
         public async Task SetAsync<T>(string key,T value)

@@ -156,17 +156,13 @@ namespace ThinkTank.Service.Services.ImpService
                 {
                     Id = x.Id,
                     Name=x.Name,
-                    Topics=new List<TopicResponse>(x.Topics.Select(a=>new TopicResponse
+                    AmoutPlayer= _unitOfWork.Repository<Achievement>().GetAll().Include(x => x.Game).Where(a => a.GameId == x.Id).Select(a => a.AccountId).Distinct().Count(),
+                Topics =new List<TopicResponse>(x.Topics.Select(a=>new TopicResponse
                     {
                         Id=a.Id,
                         Name=a.Name
                     }))
             })  .DynamicFilter(filter) .ToList();
-                foreach(var game in games)
-                {
-                    game.AmoutPlayer = _unitOfWork.Repository<Achievement>().GetAll().Include(x => x.Game).Where(x => x.GameId == game.Id).Select(a => a.AccountId).Distinct().Count();
-                  
-                }
                 var sort = PageHelper<GameResponse>.Sorting(paging.SortType, games, paging.ColName);
                 var result = PageHelper<GameResponse>.Paging(sort, paging.Page, paging.PageSize);
                 return result;

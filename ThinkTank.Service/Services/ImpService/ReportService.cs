@@ -110,7 +110,7 @@ namespace ThinkTank.Service.Services.ImpService
 
                 if (response == null)
                 {
-                    throw new CrudException(HttpStatusCode.NotFound, $"Not found report with id {id.ToString()}", "");
+                    throw new CrudException(HttpStatusCode.NotFound, $"Not found report with id {id}", "");
                 }
 
                 var rs = _mapper.Map<ReportResponse>(response);

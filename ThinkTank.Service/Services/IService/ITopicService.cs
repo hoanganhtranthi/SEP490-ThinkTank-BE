@@ -13,6 +13,5 @@ namespace ThinkTank.Service.Services.IService
         Task<PagedResults<TopicResponse>> GetTopics(TopicRequest request, PagingRequest paging);
         Task<TopicResponse> GetTopicById(int id);
         Task<TopicResponse> CreateTopic(TopicRequest request);
-        Task<TopicResponse> UpdateTopic(int id, TopicRequest request);
     }
 }

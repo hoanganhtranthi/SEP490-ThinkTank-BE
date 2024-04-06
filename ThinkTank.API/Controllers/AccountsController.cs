@@ -87,8 +87,8 @@ namespace ThinkTank.API.Controllers
         /// <param name="username"></param>
         /// <returns></returns>
         [AllowAnonymous]
-        [HttpPost("verification-code")]
-        public async Task<ActionResult<string>> Verification([FromQuery] string username)
+        [HttpPost("{username}/verification-code")]
+        public async Task<ActionResult<string>> Verification(string username)
         {
             var rs = await _accountService.CreateMailMessage(username);
             return Ok(rs);
@@ -161,7 +161,7 @@ namespace ThinkTank.API.Controllers
         /// <param name="userId"></param>
         /// <returns></returns>
         [AllowAnonymous]
-        [HttpPost("token-revoke")]
+        [HttpPost("{userId:int}/token-revoke")]
         public async Task<ActionResult<AccountResponse>> RevokeRefreshToken(int userId)
         {
             var rs = await _accountService.RevokeRefreshToken(userId);
@@ -186,8 +186,8 @@ namespace ThinkTank.API.Controllers
         /// <param name="accountId"></param>
         /// <returns></returns>
         [Authorize(Policy = "All")]
-        [HttpGet("game-level-of-account")]
-        public async Task<ActionResult<List<GameLevelOfAccountResponse>>> GetGameLevelByAccountId([FromQuery] int accountId)
+        [HttpGet("{accountId:int}/game-level-of-account")]
+        public async Task<ActionResult<List<GameLevelOfAccountResponse>>> GetGameLevelByAccountId( int accountId)
         {
             var rs = await _accountService.GetGameLevelByAccountId(accountId);
             return Ok(rs);

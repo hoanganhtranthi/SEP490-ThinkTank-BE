@@ -93,7 +93,7 @@ namespace ThinkTank.API.Controllers
         /// <param name="id"></param>
         /// <returns></returns>
         [Authorize(Policy = "Admin")]
-        [HttpDelete("{id}")]
+        [HttpDelete("{id:int}")]
         public async Task<ActionResult<ContestResponse>> DeleteContest(int id)
         {
             var rs = await _contestService.DeleteContest(id);
@@ -106,7 +106,7 @@ namespace ThinkTank.API.Controllers
         /// <param name="id"></param>
         /// <returns></returns>
         [Authorize(Policy = "Admin")]
-        [HttpGet("{id}/ended-contest")]
+        [HttpGet("{id:int}/ended-contest")]
         public async Task<ActionResult<ContestResponse>> GetToUpdateStatusContest(int id)
         {
             var rs = await _contestService.UpdateStateContest(id);

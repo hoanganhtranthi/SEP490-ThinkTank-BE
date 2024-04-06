@@ -83,6 +83,13 @@ namespace ThinkTank.Service.Services.ImpService
                 customer.Coin = 1000;
                 Guid id = Guid.NewGuid();
                 customer.Code = id.ToString().Substring(0, 8).ToUpper();
+                CreateBadgeRequest createBadgeRequest = new CreateBadgeRequest();
+                createBadgeRequest.AccountId = customer.Id;
+                createBadgeRequest.CompletedLevel = 1000;
+                createBadgeRequest.ChallengeId = _unitOfWork.Repository<Challenge>().Find(x => x.Name == "The Tycoon").Id;
+                var b = _mapper.Map<CreateBadgeRequest, Badge>(createBadgeRequest);
+                b.Status = false;
+                customer.Badges.Add(b);
                 await _unitOfWork.Repository<Account>().CreateAsync(customer);
                 await _unitOfWork.CommitAsync();
                 return _mapper.Map<AccountResponse>(customer);
@@ -207,8 +214,7 @@ namespace ThinkTank.Service.Services.ImpService
         {
             try
             {
-                Account user = _unitOfWork.Repository<Account>().GetAll()
-                  .FirstOrDefault(u => u.UserName.Equals(request.UserName));
+                Account user = _unitOfWork.Repository<Account>().Find(u => u.UserName.Equals(request.UserName));
                     if (user == null) throw new CrudException(HttpStatusCode.BadRequest, "Account Not Found", "");
                 if (user.GoogleId != null && user.GoogleId != "")
                     throw new CrudException(HttpStatusCode.BadRequest, "Login Google cannot login by username and password", "");
@@ -223,64 +229,7 @@ namespace ThinkTank.Service.Services.ImpService
                     await _unitOfWork.Repository<Account>().Update(user, user.Id);
                     DateTime newDateTime = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day, 21, 0, 0);
                     if (DateTime.Now > newDateTime)
-                {
-                    var badge = _unitOfWork.Repository<Badge>().GetAll().Include(x => x.Challenge).SingleOrDefault(x => x.AccountId == user.Id && x.Challenge.Name.Equals("Nocturnal"));
-                    var challage = _unitOfWork.Repository<Challenge>().Find(x => x.Name.Equals("Nocturnal"));
-                    var noti = _unitOfWork.Repository<Notification>().Find(x => x.Title == $"You have received {challage.Name} badge.");
-                    if (badge != null)
-                    {
-                        if(badge.CompletedLevel != challage.CompletedMilestone)
-                        badge.CompletedLevel += 1;
-                        if(badge.CompletedLevel==challage.CompletedMilestone && noti ==null)
-                        {
-                            badge.Status = true;
-                            badge.CompletedDate = DateTime.Now;
-                            await _unitOfWork.Repository<Badge>().Update(badge, badge.Id);
-                            #region send noti for account
-                            List<string> fcmTokens = new List<string>();
-                            if (user.Fcm != null)
-                                fcmTokens.Add(user.Fcm);
-                            var data = new Dictionary<string, string>()
-                            {
-                                ["click_action"] = "FLUTTER_NOTIFICATION_CLICK",
-                                ["Action"] = "home",
-                                ["Argument"] = JsonConvert.SerializeObject(new JsonSerializerSettings
-                                {
-                                    ContractResolver = new DefaultContractResolver
-                                    {
-                                        NamingStrategy = new SnakeCaseNamingStrategy()
-                                    }
-                                }),
-                            };
-                            if (fcmTokens.Any())
-                                _firebaseMessagingService.SendToDevices(fcmTokens,
-                                                                       new FirebaseAdmin.Messaging.Notification() { Title = "ThinkTank", Body = $"You have received {challage.Name} badge.", ImageUrl = challage.Avatar }, data);
-                            #endregion
-                                Notification notification = new Notification
-                                {
-                                    AccountId = user.Id,
-                                    Avatar = challage.Avatar,
-                                    DateNotification = DateTime.Now,
-                                    Description = $"You have received {challage.Name} badge.",
-                                    Title = "ThinkTank",
-                                    Status=false,
-                                };
-                                await _unitOfWork.Repository<Notification>().CreateAsync(notification);
-                            user.Coin += 20;
-                            await _unitOfWork.Repository<Account>().Update(user, user.Id);
-                        }
-                    }
-                    else
-                    {
-                        CreateBadgeRequest createBadgeRequest = new CreateBadgeRequest();
-                        createBadgeRequest.AccountId = user.Id;
-                        createBadgeRequest.CompletedLevel = 1;
-                        createBadgeRequest.ChallengeId = challage.Id;
-                       var b= _mapper.Map<CreateBadgeRequest, Badge>(createBadgeRequest);
-                       await _unitOfWork.Repository<Badge>().CreateAsync(b);
-                    }
-
-                }
+                    await GetBadge(user, "Nocturnal");
                 await _unitOfWork.CommitAsync();
                 var rs = _mapper.Map<Account, AccountResponse>(user);
                     rs.AccessToken = GenerateJwtToken(user);
@@ -318,7 +267,7 @@ namespace ThinkTank.Service.Services.ImpService
                         var token = GenerateRefreshToken(user);
                         rs.RefreshToken = token;
                         adminAccount.RefreshTokenAdmin = token;
-                        _firebaseRealtimeDatabaseService.SetAsync<AdminAccountResponse>("AdminAccount", adminAccount);
+                       await _firebaseRealtimeDatabaseService.SetAsync<AdminAccountResponse>("AdminAccount", adminAccount);
                     }
                     else
                     {
@@ -329,7 +278,7 @@ namespace ThinkTank.Service.Services.ImpService
                         var token = GenerateRefreshToken(user);
                         rs.RefreshToken = token;
                         adminAccount.RefreshTokenAdmin = token;
-                        _firebaseRealtimeDatabaseService.SetAsync<AdminAccountResponse>("AdminAccount", adminAccount);
+                       await _firebaseRealtimeDatabaseService.SetAsync<AdminAccountResponse>("AdminAccount", adminAccount);
                     }
                 }
                 else throw new CrudException(HttpStatusCode.BadRequest, "Account Not Found", "");
@@ -373,34 +322,21 @@ namespace ThinkTank.Service.Services.ImpService
                 new Claim(ClaimTypes.Role, "Player"),
                 new Claim("version", customer.VersionToken.ToString()),
                 new Claim(ClaimTypes.Email , customer.Email),
-                 });
-                tokenDescriptor.Expires = DateTime.Now.AddMinutes(20);
-                tokenDescriptor.SigningCredentials = new(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature);
-                var token = tokenHandler.CreateToken(tokenDescriptor);
-                var rs = tokenHandler.WriteToken(token);
-                return rs;
+                 });              
             }
             else
             {
-                var adminAccountResponse =_firebaseRealtimeDatabaseService.GetAsync<AdminAccountResponse>("AdminAccount").Result;
-                var t = 0;
-                if (adminAccountResponse != null)
-                    t = (int)customer.VersionToken;
-                else t = 1;
                 tokenDescriptor.Subject = new ClaimsIdentity(new Claim[]
                 {
                 new Claim(ClaimTypes.NameIdentifier, customer.Id.ToString()),
                 new Claim(ClaimTypes.Role, "Admin"),
-                new Claim("version",t.ToString()),
-                });
-                tokenDescriptor.Expires = DateTime.Now.AddMinutes(20);
-                tokenDescriptor.SigningCredentials = new(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature);
-                var token = tokenHandler.CreateToken(tokenDescriptor);
-                var rs = tokenHandler.WriteToken(token);
-                return rs;
+                new Claim("version",customer.VersionToken.ToString()),
+                });             
             }
-
-
+            tokenDescriptor.Expires = DateTime.Now.AddMinutes(20);
+            tokenDescriptor.SigningCredentials = new(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature);
+            var token = tokenHandler.CreateToken(tokenDescriptor);
+            return tokenHandler.WriteToken(token);
         }
         private string GenerateRefreshToken(Account? customer)
         {
@@ -419,16 +355,11 @@ namespace ThinkTank.Service.Services.ImpService
             }
             else
             {
-                var adminAccountResponse = _firebaseRealtimeDatabaseService.GetAsync<AdminAccountResponse>("AdminAccount").Result;
-                var t = 0;
-                if (adminAccountResponse != null)
-                    t = (int)customer.VersionToken;
-                else t = 1;
                 tokenDescriptor.Subject = new ClaimsIdentity(new Claim[]
                 {
                 new Claim(ClaimTypes.NameIdentifier, customer.Id.ToString()),
                 new Claim(ClaimTypes.Role, "Admin"),
-                 new Claim("version", t.ToString()),
+                 new Claim("version", customer.VersionToken.ToString()),
                 });
             }
             tokenDescriptor.Expires = DateTime.Now.AddMonths(6);
@@ -440,8 +371,7 @@ namespace ThinkTank.Service.Services.ImpService
         {
             try
             {
-                Account user = _unitOfWork.Repository<Account>().GetAll()
-               .FirstOrDefault(u => u.GoogleId.Equals(request.GoogleId) );
+                Account user = _unitOfWork.Repository<Account>().Find(u => u.GoogleId.Equals(request.GoogleId) );
                 if (user == null)
                 {
                     if(_unitOfWork.Repository<Account>().Find(x=>x.Email == request.Email) != null)
@@ -457,10 +387,17 @@ namespace ThinkTank.Service.Services.ImpService
                         user.Avatar = "https://firebasestorage.googleapis.com/v0/b/thinktank-79ead.appspot.com/o/System%2Favatar-trang-4.jpg?alt=media&token=2ab24327-c484-485a-938a-ed30dc3b1688";
                     Guid id = Guid.NewGuid();
                     user.Code = id.ToString().Substring(0, 8).ToUpper();
-                   user.UserName = $"player_{user.Code}";
+                    user.UserName = $"player_{user.Code}";
                     var token = GenerateRefreshToken(user);
                     user.RefreshToken = token;
                     user.Fcm = request.FCM;
+                    CreateBadgeRequest createBadgeRequest = new CreateBadgeRequest();
+                    createBadgeRequest.AccountId = user.Id;
+                    createBadgeRequest.CompletedLevel = 1000;
+                    createBadgeRequest.ChallengeId = _unitOfWork.Repository<Challenge>().Find(x => x.Name == "The Tycoon").Id;
+                    var b = _mapper.Map<CreateBadgeRequest, Badge>(createBadgeRequest);
+                    b.Status = false;
+                    user.Badges.Add(b);
                     await _unitOfWork.Repository<Account>().CreateAsync(user);
                 }
                 else
@@ -473,7 +410,11 @@ namespace ThinkTank.Service.Services.ImpService
                         user.Fcm = null;
                     else user.Fcm = request.FCM;
                     await _unitOfWork.Repository<Account>().Update(user, user.Id);
-                }                
+                    DateTime newDateTime = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day, 21, 0, 0);
+                    if (DateTime.Now > newDateTime)
+                       await GetBadge(user, "Nocturnal");
+                }
+                
                 await _unitOfWork.CommitAsync();
                 var rs = _mapper.Map<Account, AccountResponse>(user);
                 rs.AccessToken = GenerateJwtToken(user);
@@ -486,6 +427,62 @@ namespace ThinkTank.Service.Services.ImpService
             catch (Exception ex)
             {
                 throw new CrudException(HttpStatusCode.InternalServerError, "Login Google Fail!!!", ex.InnerException?.Message);
+            }
+        }
+        private async Task GetBadge(Account account, string name)
+        {
+            var badge = _unitOfWork.Repository<Badge>().GetAll().Include(x => x.Challenge).SingleOrDefault(x => x.AccountId == account.Id && x.Challenge.Name.Equals(name));
+            var challage = _unitOfWork.Repository<Challenge>().Find(x => x.Name.Equals(name));
+            var noti = _unitOfWork.Repository<Notification>().Find(x => x.Title == $"You have received {challage.Name} badge.");
+            if (badge != null)
+            {
+                if (badge.CompletedLevel < challage.CompletedMilestone)
+                 badge.CompletedLevel += 1;
+                if (badge.CompletedLevel == challage.CompletedMilestone && noti == null )
+                {
+                    badge.CompletedDate = DateTime.Now;
+                    #region send noti for account
+                    List<string> fcmTokens = new List<string>();
+                    if (account.Fcm != null)
+                        fcmTokens.Add(account.Fcm);
+                    var data = new Dictionary<string, string>()
+                    {
+                        ["click_action"] = "FLUTTER_NOTIFICATION_CLICK",
+                        ["Action"] = "home",
+                        ["Argument"] = JsonConvert.SerializeObject(new JsonSerializerSettings
+                        {
+                            ContractResolver = new DefaultContractResolver
+                            {
+                                NamingStrategy = new SnakeCaseNamingStrategy()
+                            }
+                        }),
+                    };
+                    if (fcmTokens.Any())
+                        _firebaseMessagingService.SendToDevices(fcmTokens,
+                                                               new FirebaseAdmin.Messaging.Notification() { Title = "ThinkTank", Body = $"You have received {challage.Name} badge.", ImageUrl = challage.Avatar }, data);
+                    #endregion
+                    Notification notification = new Notification
+                    {
+                        AccountId = account.Id,
+                        Avatar = challage.Avatar,
+                        DateNotification = DateTime.Now,
+                        Description = $"You have received {challage.Name} badge.",
+                        Status=false, 
+                        Title = "ThinkTank"
+                    };
+                    await _unitOfWork.Repository<Notification>().CreateAsync(notification);
+                }
+                await _unitOfWork.Repository<Badge>().Update(badge, badge.Id);
+            }
+            else
+            {
+                CreateBadgeRequest createBadgeRequest = new CreateBadgeRequest();
+                createBadgeRequest.AccountId = account.Id;
+                createBadgeRequest.CompletedLevel = 1;
+                createBadgeRequest.ChallengeId = challage.Id;
+                var b = _mapper.Map<CreateBadgeRequest, Badge>(createBadgeRequest);
+                b.Status = false;
+                await _unitOfWork.Repository<Badge>().CreateAsync(b);
             }
         }
 
@@ -545,13 +542,12 @@ namespace ThinkTank.Service.Services.ImpService
                 if (DateTime.Now.Year - request.DateOfBirth.Value.Year < 5 )
                     throw new CrudException(HttpStatusCode.BadRequest, "Date Of Birth is invalid", "");
 
-                var existingEmailAccount = _unitOfWork.Repository<Account>().GetAll().FirstOrDefault(c => c.Email.Equals(request.Email) && c.Id != accountId);
+                var existingEmailAccount = _unitOfWork.Repository<Account>().Find(c => c.Email.Equals(request.Email) && c.Id != accountId);
                 if (existingEmailAccount != null)
                     throw new CrudException(HttpStatusCode.BadRequest, "Email has already been registered", "");                                 
                 _mapper.Map<UpdateAccountRequest, Account>(request, account);
 
-                if (request.Avatar == null) account.Avatar = account.Avatar;
-                else account.Avatar = request.Avatar;
+                account.Avatar = request.Avatar ?? account.Avatar;
                 account.Id = accountId;
                 account.VersionToken = account.VersionToken + 1;
                 if (request.OldPassword != null && request.NewPassword != null && request.OldPassword != "" && request.NewPassword != "")

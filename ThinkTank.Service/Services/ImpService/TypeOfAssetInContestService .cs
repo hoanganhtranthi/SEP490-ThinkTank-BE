@@ -23,12 +23,10 @@ namespace ThinkTank.Service.Services.ImpService
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
-        private readonly ICacheService _cacheService;
-        public TypeOfAssetInContestService(IUnitOfWork unitOfWork, IMapper mapper,ICacheService cacheService)
+        public TypeOfAssetInContestService(IUnitOfWork unitOfWork, IMapper mapper)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
-            _cacheService = cacheService;
         }
 
         public async Task<PagedResults<TypeOfAssetInContestResponse>> GetTypeOfAssetInContests(TypeOfAssetInContestRequest request, PagingRequest paging)
@@ -91,7 +89,7 @@ namespace ThinkTank.Service.Services.ImpService
 
                 if (response == null)
                 {
-                    throw new CrudException(HttpStatusCode.NotFound, $"Not found type of asset in contest with id {id.ToString()}", "");
+                    throw new CrudException(HttpStatusCode.NotFound, $"Not found type of asset in contest with id {id}", "");
                 }
                 return response;
             }
@@ -101,7 +99,7 @@ namespace ThinkTank.Service.Services.ImpService
             }
             catch (Exception ex)
             {
-                throw new CrudException(HttpStatusCode.InternalServerError, "Get type of asset in contest by id Error!!!", ex.InnerException?.Message);
+                throw new CrudException(HttpStatusCode.InternalServerError, "Get type of asset in contest by id error!!!", ex.InnerException?.Message);
             }
         }
     }

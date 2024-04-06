@@ -16,6 +16,8 @@ namespace ThinkTank.Service.Services.IService
         Task<List<LeaderboardResponse>> GetLeaderboardOfRoom(int roomId);
         Task<RoomResponse> DeleteRoom(int roomId, int accountId);
         Task<RoomResponse> GetToUpdateStatusRoom(int roomId);
-        Task<RoomResponse> UpdateRoom(int roomId, List<CreateAndUpdateAccountInRoomRequest> createAccountInRoomRequests);
+        Task<RoomResponse> LeaveRoom(int roomId, int accountId);
+        Task<RoomResponse> UpdateRoom(string roomCode, List<CreateAndUpdateAccountInRoomRequest> createAccountInRoomRequests);
+        Task<RoomResponse> GetToStartRoom(int roomId);
     }
 }

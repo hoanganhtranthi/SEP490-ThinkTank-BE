@@ -55,20 +55,5 @@ namespace ThinkTank.API.Controllers
             var rs = await _topicService.CreateTopic(request);
             return Ok(rs);
         }
-        /// <summary>
-        /// Update topic
-        /// </summary>
-        /// <param name="request"></param>
-        /// <param name="id"></param>
-        /// <returns></returns>
-        [Authorize(Policy = "Admin")]
-        [HttpPut("{id:int}")]
-        public async Task<ActionResult<TopicResponse>> UpdateTopic([FromBody] TopicRequest request, int id)
-        {
-            var rs = await _topicService.UpdateTopic(id, request);
-            if (rs == null) return NotFound();
-            return Ok(rs);
-        }
-        
     }
 }

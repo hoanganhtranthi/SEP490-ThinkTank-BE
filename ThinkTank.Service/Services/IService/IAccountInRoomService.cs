@@ -11,7 +11,7 @@ namespace ThinkTank.Service.Services.IService
     public interface IAccountInRoomService
     {
         Task<PagedResults<AccountInRoomResponse>> GetAccountInRooms(AccountInRoomRequest accountInRoomRequest, PagingRequest paging);
-        Task<AccountInRoomResponse> UpdateAccountInRoom(CreateAndUpdateAccountInRoomRequest createAccountInRoomRequest);
+        Task<AccountInRoomResponse> UpdateAccountInRoom(int accountInRoomId,CreateAndUpdateAccountInRoomRequest createAccountInRoomRequest);
         Task<AccountInRoomResponse> GetAccountInRoomById(int id);
 
     }

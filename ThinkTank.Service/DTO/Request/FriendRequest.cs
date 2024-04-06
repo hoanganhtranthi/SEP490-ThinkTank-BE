@@ -11,7 +11,7 @@ namespace ThinkTank.Service.DTO.Request
     public class FriendRequest
     {
         [Required]
-        public StatusType? Status { get; set; }
+        public StatusType Status { get; set; }
         public int? AccountId { get; set; }
         public string? UserName { get; set; }
         public string? UserCode { get; set; }

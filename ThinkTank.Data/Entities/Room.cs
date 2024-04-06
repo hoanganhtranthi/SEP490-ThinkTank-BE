@@ -15,7 +15,7 @@ namespace ThinkTank.Data.Entities
         public int AmountPlayer { get; set; }
         public DateTime? StartTime { get; set; }
         public DateTime? EndTime { get; set; }
-        public bool Status { get; set; }
+        public bool? Status { get; set; }
         public int TopicId { get; set; }
         public string Name { get; set; } = null!;
 

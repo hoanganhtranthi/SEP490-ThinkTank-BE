@@ -53,7 +53,7 @@ namespace ThinkTank.Service.Services.ImpService
 
                 if (response == null)
                 {
-                    throw new CrudException(HttpStatusCode.NotFound, $"Not found type of asset with id {id.ToString()}", "");
+                    throw new CrudException(HttpStatusCode.NotFound, $"Not found type of asset with id {id}", "");
                 }
                 return response;
             }

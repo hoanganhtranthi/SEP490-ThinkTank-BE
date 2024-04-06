@@ -48,10 +48,10 @@ namespace ThinkTank.API.Controllers
         /// <param name="request"></param>
         /// <returns></returns>
         [Authorize(Policy = "Player")]
-        [HttpPut]
-        public async Task<ActionResult<AccountInContestResponse>> UpdateAccountInRoom([FromBody] CreateAndUpdateAccountInRoomRequest request)
+        [HttpPut("{id:int}")]
+        public async Task<ActionResult<AccountInContestResponse>> UpdateAccountInRoom(int id,[FromBody] CreateAndUpdateAccountInRoomRequest request)
         {
-            var rs = await accountIn1Vs1Service.UpdateAccountInRoom(request);
+            var rs = await accountIn1Vs1Service.UpdateAccountInRoom(id,request);
             return Ok(rs);
         }
     }

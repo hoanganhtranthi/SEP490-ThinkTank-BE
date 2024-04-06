@@ -19,6 +19,7 @@ namespace ThinkTank.Service.DTO.Response
         public string? Username { get; set; }
         [IntAttribute]
         public int? RoomId { get; set; }
+        public string? Avatar { get; set; }
         public DateTime? CompletedTime { get; set; }
         public decimal? Duration { get; set; }
         public int? Mark { get; set; }
