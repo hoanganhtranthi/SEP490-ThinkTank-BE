@@ -89,7 +89,6 @@ namespace ThinkTank.Service.Services.ImpService
                     assetOfContest.TypeOfAssetId = type.TypeOfAssetId;
                     assetOfContest.ContestId = contest.Id;
                     assetOfContest.Contest = contest;
-                    await _unitOfWork.Repository<AssetOfContest>().CreateAsync(assetOfContest);
                     AssetOfContestResponse response = new AssetOfContestResponse();
                     response.Id = assetOfContest.Id;
                     response.Value = assetOfContest.Value;
@@ -107,11 +106,11 @@ namespace ThinkTank.Service.Services.ImpService
                 var id = BackgroundJob.Schedule(() =>
                   SendNotification(contest.Id),
                  contest.StartTime.Subtract(date));
-                firebaseRealtimeDatabaseService.SetAsync<string>($"Contest{contest.Id}JobIdStartTime", id);
+               await firebaseRealtimeDatabaseService.SetAsync<string>($"Contest{contest.Id}JobIdStartTime", id);
                 var endId = BackgroundJob.Schedule(() =>
                   UpdateStateContest(contest.Id),
                           contest.EndTime.Subtract(date));
-                firebaseRealtimeDatabaseService.SetAsync<string>($"Contest{contest.Id}JobIdEndTime", endId);
+               await firebaseRealtimeDatabaseService.SetAsync<string>($"Contest{contest.Id}JobIdEndTime", endId);
                 return _mapper.Map<ContestResponse>(contest);
             }
             catch (CrudException ex)
@@ -230,7 +229,7 @@ namespace ThinkTank.Service.Services.ImpService
                     if (jobId != null)
                     {
                         BackgroundJob.Delete(jobId);
-                        firebaseRealtimeDatabaseService.RemoveData(jobId);
+                       await firebaseRealtimeDatabaseService.RemoveData(jobId);
                     }
                 }
                 var leaderboard = await GetLeaderboardOfContest(id);
@@ -275,8 +274,7 @@ namespace ThinkTank.Service.Services.ImpService
                         };
 
                     await _unitOfWork.Repository<Notification>().CreateAsync(notification);
-                    if (account.Coin == 4000)
-                        GetBadge(account, "The Tycoon");
+                     await  GetBadge(account, "The Tycoon");
                 }
 
                 await _unitOfWork.CommitAsync();
@@ -299,12 +297,11 @@ namespace ThinkTank.Service.Services.ImpService
             if (badge != null)
             {
                 if (badge.CompletedLevel < challage.CompletedMilestone)
-                    badge.CompletedLevel += 1;
+                        badge.CompletedLevel = (int)account.Coin;
                 if (badge.CompletedLevel == challage.CompletedMilestone && noti ==null)
                 {
                     badge.Status = true;
                     badge.CompletedDate = DateTime.Now;
-                    await _unitOfWork.Repository<Badge>().Update(badge, badge.Id);
                     #region send noti for account
                     List<string> fcmTokens = new List<string>();
                     if (account.Fcm != null)
@@ -335,18 +332,8 @@ namespace ThinkTank.Service.Services.ImpService
                         Title = "ThinkTank"
                     };
                     await _unitOfWork.Repository<Notification>().CreateAsync(notification);
-                    account.Coin += 20;
-                    await _unitOfWork.Repository<Account>().Update(account, account.Id);
                 }
-            }
-            else
-            {
-                CreateBadgeRequest createBadgeRequest = new CreateBadgeRequest();
-                createBadgeRequest.AccountId = account.Id;
-                createBadgeRequest.CompletedLevel = 1;
-                createBadgeRequest.ChallengeId = challage.Id;
-                var b = _mapper.Map<CreateBadgeRequest, Badge>(createBadgeRequest);
-                await _unitOfWork.Repository<Badge>().CreateAsync(b);
+                await _unitOfWork.Repository<Badge>().Update(badge, badge.Id);
             }
         }
         public async Task<ContestResponse> GetContestById(int id)
@@ -384,7 +371,7 @@ namespace ThinkTank.Service.Services.ImpService
 
                 if (response == null)
                 {
-                    throw new CrudException(HttpStatusCode.NotFound, $"Not found contest with id {id.ToString()}", "");
+                    throw new CrudException(HttpStatusCode.NotFound, $"Not found contest with id {id}", "");
                 }
                 return response;
             }
@@ -594,7 +581,7 @@ namespace ThinkTank.Service.Services.ImpService
                 var jobId = firebaseRealtimeDatabaseService.GetAsync<string>($"Contest{contest.Id}JobIdEndTime").Result;
                 if (jobId != null)
                     BackgroundJob.Delete(jobId);
-                _unitOfWork.Repository<AssetOfContest>().DeleteRange(contest.AssetOfContests.ToArray());
+              await  _unitOfWork.Repository<AssetOfContest>().DeleteRange(contest.AssetOfContests.ToArray());
                 List<AssetOfContestResponse> result = new List<AssetOfContestResponse>();
                 List<AssetOfContest> list = new List<AssetOfContest>();
                 foreach (var type in request.Assets)
@@ -629,11 +616,11 @@ namespace ThinkTank.Service.Services.ImpService
                 var id = BackgroundJob.Schedule(() =>
                   SendNotification(contest.Id),
                  contest.StartTime.Subtract(date));
-                firebaseRealtimeDatabaseService.SetAsync<string>($"Contest{contest.Id}JobIdStartTime", id);
+               await firebaseRealtimeDatabaseService.SetAsync<string>($"Contest{contest.Id}JobIdStartTime", id);
                 var endId = BackgroundJob.Schedule(() =>
                     UpdateStateContest(contest.Id),
                             contest.EndTime.Subtract(date));
-                firebaseRealtimeDatabaseService.SetAsync<string>($"Contest{contest.Id}JobIdEndTime", endId);
+              await  firebaseRealtimeDatabaseService.SetAsync<string>($"Contest{contest.Id}JobIdEndTime", endId);
                 return _mapper.Map<Contest, ContestResponse>(contest);
             }
             catch (CrudException ex)
@@ -656,25 +643,22 @@ namespace ThinkTank.Service.Services.ImpService
                 {
                     throw new CrudException(HttpStatusCode.NotFound, $"Not found contest with id{id.ToString()}", "");
                 }
-                var date = DateTime.Now;
-                if (date < DateTime.Now)
-                    date = date.AddHours(7);
-                if (contest.StartTime <= date)
+                if (contest.StartTime <= DateTime.Now)
                     throw new CrudException(HttpStatusCode.BadRequest, "The contest has already started and you cannot update it", "");
-                _unitOfWork.Repository<AssetOfContest>().DeleteRange(contest.AssetOfContests.ToArray());
+               await _unitOfWork.Repository<AssetOfContest>().DeleteRange(contest.AssetOfContests.ToArray());
                 await _unitOfWork.Repository<Contest>().RemoveAsync(contest);
                 await _unitOfWork.CommitAsync();
                 var job =firebaseRealtimeDatabaseService.GetAsync<string>($"Contest{contest.Id}JobIdStartTime").Result;
                 if (job != null)
                 {
                     BackgroundJob.Delete(job);
-                    firebaseRealtimeDatabaseService.RemoveData(job);
+                  await  firebaseRealtimeDatabaseService.RemoveData(job);
                 }
                 var jobId = firebaseRealtimeDatabaseService.GetAsync<string>($"Contest{contest.Id}JobIdEndTime").Result;
                 if (jobId != null)
                 {
                     BackgroundJob.Delete(jobId);
-                    firebaseRealtimeDatabaseService.RemoveData(jobId);
+                    await firebaseRealtimeDatabaseService.RemoveData(jobId);
                 }
                 return _mapper.Map<ContestResponse>(contest);
             }

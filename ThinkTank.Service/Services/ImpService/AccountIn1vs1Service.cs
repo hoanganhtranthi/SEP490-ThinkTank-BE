@@ -30,13 +30,11 @@ namespace ThinkTank.Service.Services.ImpService
         private static SemaphoreSlim _semaphore = new SemaphoreSlim(1, 1);
         private readonly IMapper _mapper;
         private readonly IFirebaseMessagingService _firebaseMessagingService;
-        private readonly ICacheService _cacheService;
-        public AccountIn1vs1Service(IUnitOfWork unitOfWork, IMapper mapper, IFirebaseMessagingService firebaseMessagingService, ICacheService cacheService)
+        public AccountIn1vs1Service(IUnitOfWork unitOfWork, IMapper mapper, IFirebaseMessagingService firebaseMessagingService)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
             _firebaseMessagingService = firebaseMessagingService;
-            _cacheService = cacheService;
         }
 
         public async Task<AccountIn1vs1Response> CreateAccount1vs1(CreateAccountIn1vs1Request createAccount1vs1Request)
@@ -154,13 +152,13 @@ namespace ThinkTank.Service.Services.ImpService
                 if (createAccount1vs1Request.WinnerId == a.Id) 
                 {
                     a.Coin += (createAccount1vs1Request.Coin * 2);
-                    GetBadge(a, "Athlete");
+                   await GetBadge(a, "Athlete");
                 }
 
                 if (createAccount1vs1Request.WinnerId == a2.Id)
                 {
                     a2.Coin += createAccount1vs1Request.Coin * 2;
-                    GetBadge(a, "Athlete");
+                   await GetBadge(a, "Athlete");
                 }
                    
                 if(createAccount1vs1Request.WinnerId==0 ||createAccount1vs1Request.WinnerId ==null)
@@ -171,10 +169,8 @@ namespace ThinkTank.Service.Services.ImpService
                 await _unitOfWork.Repository<AccountIn1vs1>().CreateAsync(accIn1vs1);
                 await _unitOfWork.Repository<Account>().Update(a, a.Id);
                 await _unitOfWork.Repository<Account>().Update(a2, a2.Id);
-                if (a.Coin == 4000)
-                    GetBadge(a, "The Tycoon");
-                if (a2.Coin == 4000)
-                    GetBadge(a2, "The Tycoon");
+                await GetBadge(a, "The Tycoon");
+                await GetBadge(a2, "The Tycoon");
                 await _unitOfWork.CommitAsync();
                 var rs = _mapper.Map<AccountIn1vs1Response>(accIn1vs1);
                 rs.GameName = c.Name;
@@ -200,11 +196,14 @@ namespace ThinkTank.Service.Services.ImpService
             if (badge != null)
             {
                 if (badge.CompletedLevel < challage.CompletedMilestone)
-                    badge.CompletedLevel += 1;
+                {
+                    if (name.Equals("The Tycoon"))
+                        badge.CompletedLevel =(int) account.Coin;
+                    else badge.CompletedLevel += 1;
+                }
                 if (badge.CompletedLevel == challage.CompletedMilestone && noti == null)
                 {
                     badge.CompletedDate = DateTime.Now;
-                    await _unitOfWork.Repository<Badge>().Update(badge, badge.Id);
                     #region send noti for account
                     List<string> fcmTokens = new List<string>();
                     if (account.Fcm != null)
@@ -236,6 +235,7 @@ namespace ThinkTank.Service.Services.ImpService
                     };
                     await _unitOfWork.Repository<Notification>().CreateAsync(notification);
                 }
+                await _unitOfWork.Repository<Badge>().Update(badge, badge.Id);
             }
             else
             {
@@ -261,7 +261,7 @@ namespace ThinkTank.Service.Services.ImpService
 
                 if (response == null)
                 {
-                    throw new CrudException(HttpStatusCode.NotFound, $"Not found account 1vs1 with id {id.ToString()}", "");
+                    throw new CrudException(HttpStatusCode.NotFound, $"Not found account 1vs1 with id {id}", "");
                 }
                 var rs = _mapper.Map<AccountIn1vs1Response>(response);
                 rs.Username1 = response.AccountId1Navigation.UserName;
@@ -282,7 +282,7 @@ namespace ThinkTank.Service.Services.ImpService
         {
 
             var cacheKey = $"{id}+{coin}+{gameId}+{uniqueId}";
-            var cacheResult = await _cacheService.GetJobsAsync(cacheKey);               
+            var cacheResult = await CacheService.Instance.GetJobsAsync(cacheKey);               
                 if (cacheResult == null || !cacheResult.Any())
                 {
                     await CacheService.Instance.AddJobAsync(cacheKey, "account1vs1");
@@ -293,7 +293,7 @@ namespace ThinkTank.Service.Services.ImpService
         {
             await CacheService.Instance.DeleteJobAsync("account1vs1",accountInfo);
         }
-        public async Task<bool> RemoveAccountFromCache(int id, int coin, int gameId)
+        public async Task<bool> RemoveAccountFromCache(int id, int coin, int gameId,string uniqueId)
         {
             try
             {
@@ -314,11 +314,11 @@ namespace ThinkTank.Service.Services.ImpService
                 }
 
                 var game = await _unitOfWork.Repository<Game>().FindAsync(x => x.Id == gameId);
-                var list = await _cacheService.GetJobsAsync($"{coin}+{gameId}");
-                string acc = list.SingleOrDefault(x => x == $"{id}+{coin}+{gameId}");
+                var list = await CacheService.Instance.GetJobsAsync("account1vs1");
+                string acc =  list.SingleOrDefault(x => x == $"{id}+{coin}+{gameId}+{uniqueId}");
                 if (acc == null)
                     throw new CrudException(HttpStatusCode.BadRequest, $"Account Id {id} Not Found In Cache!!!!!", "");
-                else await RemoveFromCacheAsync( acc);
+                 await RemoveFromCacheAsync( acc);
                 return true;
             }
             catch (CrudException ex)
@@ -352,8 +352,6 @@ namespace ThinkTank.Service.Services.ImpService
                             {
                                 throw new CrudException(HttpStatusCode.BadRequest, $"Account Id {id} Not Available!!!!!", "");
                             }
-
-                            var game = await _unitOfWork.Repository<Game>().FindAsync(x => x.Id == gameId);
                             var accountId = 0;
                             var uniqueId = "";
                             var accountFind = new Account();
@@ -382,13 +380,13 @@ namespace ThinkTank.Service.Services.ImpService
                                 if (accountId == 0)
                                 {
                                     uniqueId = Guid.NewGuid().ToString().Substring(0, 8).ToUpper();
-                                    await AddToCacheAsync(id, coin, gameId,uniqueId).ConfigureAwait(false);
+                                    await AddToCacheAsync(id, coin, gameId,uniqueId);
                                 }
                             }
                             else
                             {
                                 uniqueId = Guid.NewGuid().ToString().Substring(0, 8).ToUpper();
-                                await AddToCacheAsync(id, coin, gameId,uniqueId).ConfigureAwait(false);
+                                await AddToCacheAsync(id, coin, gameId,uniqueId);
                             }
                             return new
                             {
@@ -439,8 +437,6 @@ namespace ThinkTank.Service.Services.ImpService
                         Username2 = x.AccountId2Navigation.UserName,
                         WinnerId = x.WinnerId
                     }).DynamicFilter(filter).ToList();
-                if (request.GameId != null)
-                    account1vs1s = account1vs1s.Where(x => x.GameId == request.GameId).ToList();
                 var sort = PageHelper<AccountIn1vs1Response>.Sorting(paging.SortType, account1vs1s, paging.ColName);
                 var result = PageHelper<AccountIn1vs1Response>.Paging(sort, paging.Page, paging.PageSize);
                 return result;

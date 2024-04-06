@@ -59,7 +59,7 @@ namespace ThinkTank.API.Controllers
         /// <param name="notificationId"></param>
         /// <returns></returns>
         [Authorize(Policy = "Player")]
-        [HttpDelete]
+        [HttpDelete()]
         public async Task<ActionResult<NotificationResponse>> DeleteNotification([FromQuery] List<int> notificationId)
         {
             var rs = await _notificationService.DeleteNotification(notificationId);

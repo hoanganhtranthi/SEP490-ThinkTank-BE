@@ -63,8 +63,8 @@ namespace ThinkTank.API.Controllers
         ///   <param name="coin"></param>
         /// <returns></returns>
         [Authorize(Policy = "Player")]
-        [HttpGet("opponent-of-account")]
-        public async Task<ActionResult<dynamic>> FindAccountIn1vs1([FromQuery] int accountId, [FromQuery] int gameId, [FromQuery] int coin)
+        [HttpGet("{accountId:int},{gameId:int},{coin:int}/opponent-of-account")]
+        public async Task<ActionResult<dynamic>> FindAccountIn1vs1( int accountId,  int gameId,  int coin)
         {
             var rs = await accountIn1Vs1Service.FindAccountTo1vs1(accountId,coin,gameId);
             return Ok(rs);
@@ -75,12 +75,13 @@ namespace ThinkTank.API.Controllers
         /// <param name="accountId"></param>
         ///  <param name="gameId"></param>
         ///   <param name="coin"></param>
+        ///    <param name="roomOfAccount1vs1Id"></param>
         /// <returns></returns>
-       [Authorize(Policy = "Player")]
-        [HttpGet("account-removed")]
-        public async Task<ActionResult<bool>> RemoveAccountFromCache([FromQuery] int accountId, [FromQuery] int gameId, [FromQuery] int coin)
+        [Authorize(Policy = "Player")]
+        [HttpGet("{accountId:int},{gameId:int},{coin:int},{roomOfAccount1vs1Id}/account-removed")]
+        public async Task<ActionResult<bool>> RemoveAccountFromCache(int accountId,  int gameId,  int coin, string roomOfAccount1vs1Id)
         {
-            var rs = await accountIn1Vs1Service.RemoveAccountFromCache(accountId, coin, gameId);
+            var rs = await accountIn1Vs1Service.RemoveAccountFromCache(accountId, coin, gameId,roomOfAccount1vs1Id);
             return Ok(rs);
         }
     }

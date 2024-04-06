@@ -49,7 +49,7 @@ namespace ThinkTank.Service.Services.ImpService
 
                 if (response == null)
                 {
-                    throw new CrudException(HttpStatusCode.NotFound, $"Not found asset with id {id.ToString()}", "");
+                    throw new CrudException(HttpStatusCode.NotFound, $"Not found asset with id {id}", "");
                 }
                 return response;
             }
@@ -108,7 +108,7 @@ namespace ThinkTank.Service.Services.ImpService
                     var existingAsset = _unitOfWork.Repository<Asset>().Find(s => s.Value == a.Value && s.TopicId == a.TopicId);
                     if (existingAsset != null)
                         throw new CrudException(HttpStatusCode.BadRequest, "This resource has already !!!", "");
-                   var typeOfAsset = _unitOfWork.Repository<TypeOfAsset>().GetAll().SingleOrDefault(x => x.Id == a.TypeOfAssetId);
+                   var typeOfAsset = _unitOfWork.Repository<TypeOfAsset>().Find(x => x.Id == a.TypeOfAssetId);
                     if (typeOfAsset == null)
                         throw new CrudException(HttpStatusCode.NotFound, $"This type of asset {a.TypeOfAssetId} is not found !!!", "");
                     var asset = _mapper.Map<CreateAssetRequest, Asset>(a);

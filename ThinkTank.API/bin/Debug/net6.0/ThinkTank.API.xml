@@ -35,13 +35,14 @@
               <param name="coin"></param>
             <returns></returns>
         </member>
-        <member name="M:ThinkTank.API.Controllers.AccountIn1vs1sController.RemoveAccountFromCache(System.Int32,System.Int32,System.Int32)">
+        <member name="M:ThinkTank.API.Controllers.AccountIn1vs1sController.RemoveAccountFromCache(System.Int32,System.Int32,System.Int32,System.String)">
             <summary>
             Remove Account From Cache
             </summary>
             <param name="accountId"></param>
              <param name="gameId"></param>
               <param name="coin"></param>
+               <param name="roomOfAccount1vs1Id"></param>
             <returns></returns>
         </member>
         <member name="M:ThinkTank.API.Controllers.AccountInContestsController.GetAccountInContests(ThinkTank.Service.DTO.Request.PagingRequest,ThinkTank.Service.DTO.Request.AccountInContestRequest)">
@@ -89,7 +90,7 @@
             <param name="id"></param>
             <returns></returns>
         </member>
-        <member name="M:ThinkTank.API.Controllers.AccountInRoomsController.UpdateAccountInRoom(ThinkTank.Service.DTO.Request.CreateAndUpdateAccountInRoomRequest)">
+        <member name="M:ThinkTank.API.Controllers.AccountInRoomsController.UpdateAccountInRoom(System.Int32,ThinkTank.Service.DTO.Request.CreateAndUpdateAccountInRoomRequest)">
             <summary>
             Create Account In Room
             </summary>
@@ -243,7 +244,6 @@
             Get analysis of each type of account's memory by account Id 
             </summary>
             <param name="accountId"></param>
-            <param name="gameId"></param>
             <returns></returns>
         </member>
         <member name="M:ThinkTank.API.Controllers.AssetsController.GetAssets(ThinkTank.Service.DTO.Request.PagingRequest,ThinkTank.Service.DTO.Request.AssetRequest)">
@@ -355,7 +355,7 @@
         </member>
         <member name="M:ThinkTank.API.Controllers.FilesController.UploadFileResource(System.Collections.Generic.List{Microsoft.AspNetCore.Http.IFormFile},ThinkTank.Service.Helpers.Enum.ResourceType)">
             <summary>
-            Upload file for resources game ( ResourceType: Anonymous=1,MusicPassword=2,FlipCard=3,ImagesWalkthrough=4,StoryTeller=5)
+            Upload file for resources game ( ResourceType: Anonymous=1,MusicPassword=2,FlipCard=3,ImagesWalkthrough=4)
             </summary>
         </member>
         <member name="M:ThinkTank.API.Controllers.FilesController.UploadFileContestResource(System.Collections.Generic.List{Microsoft.AspNetCore.Http.IFormFile},ThinkTank.Service.Helpers.Enum.ResourceType)">
@@ -552,17 +552,32 @@
             <param name="roomId"></param>
             <returns></returns>
         </member>
-        <member name="M:ThinkTank.API.Controllers.RoomsController.UpdateRoom(System.Int32,System.Collections.Generic.List{ThinkTank.Service.DTO.Request.CreateAndUpdateAccountInRoomRequest})">
+        <member name="M:ThinkTank.API.Controllers.RoomsController.UpdateRoom(System.String,System.Collections.Generic.List{ThinkTank.Service.DTO.Request.CreateAndUpdateAccountInRoomRequest})">
             <summary>
-            Update Room
+            Add Member To Room
+            </summary>
+            <param name="roomCode"></param>
+            <param name="createAccountInRoomRequests"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ThinkTank.API.Controllers.RoomsController.LeaveRoom(System.Int32,System.Int32)">
+            <summary>
+            Member leave room
             </summary>
             <param name="roomId"></param>
             <param name="accountId"></param>
             <returns></returns>
         </member>
+        <member name="M:ThinkTank.API.Controllers.RoomsController.GetToStartRoom(System.Int32)">
+            <summary>
+            Start Room To Play Game
+            </summary>
+            <param name="id"></param>
+            <returns></returns>
+        </member>
         <member name="M:ThinkTank.API.Controllers.RoomsController.GetToUpdateStatusRoom(System.Int32)">
             <summary>
-            Update status of room
+            Update status of room when room ended
             </summary>
             <param name="id"></param>
             <returns></returns>
@@ -587,14 +602,6 @@
             Create Topic
             </summary>
             <param name="request"></param>
-            <returns></returns>
-        </member>
-        <member name="M:ThinkTank.API.Controllers.TopicsController.UpdateTopic(ThinkTank.Service.DTO.Request.TopicRequest,System.Int32)">
-            <summary>
-            Update topic
-            </summary>
-            <param name="request"></param>
-            <param name="id"></param>
             <returns></returns>
         </member>
         <member name="M:ThinkTank.API.Controllers.TypeOfAssetInContestsController.GetAssetInContests(ThinkTank.Service.DTO.Request.PagingRequest,ThinkTank.Service.DTO.Request.TypeOfAssetInContestRequest)">

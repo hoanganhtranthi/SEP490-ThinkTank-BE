@@ -82,18 +82,10 @@ namespace ThinkTank.Service.Services.ImpService
                     if (badge.CompletedLevel != challenge.CompletedMilestone)
                         throw new CrudException(HttpStatusCode.BadRequest, $"Account Id {accountId} haven't completed the correct milestones for this challenge ", "");
                     badge.Status = true;
+                    await _unitOfWork.Repository<Badge>().Update(badge, badge.Id);
                     acc.Coin += 20;
                 }
-                List<Challenge> result = new List<Challenge>();
-                foreach(var b in acc.Badges)
-                {
-                    var challenge = _unitOfWork.Repository<Challenge>().Find(x => x.Id == b.ChallengeId);
-                    if (challenge == null)
-                        throw new CrudException(HttpStatusCode.NotFound, $"Challegne Id {b.ChallengeId} is not found ", "");
-                    if (b.CompletedLevel == challenge.CompletedMilestone)
-                        result.Add(challenge);
-                }
-                if (result.Count() == 10)
+                if(acc.Badges.Where(x=>x.CompletedLevel==_unitOfWork.Repository<Challenge>().Find(a=>a.Id==x.ChallengeId).CompletedMilestone).Count()==10)
                     acc.Coin += 100;
                 await _unitOfWork.Repository<Account>().Update(acc, accountId);
                 await _unitOfWork.CommitAsync();

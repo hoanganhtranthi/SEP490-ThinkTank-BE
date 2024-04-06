@@ -33,36 +33,49 @@ namespace ThinkTank.Service.Services.ImpService
             try
             {
                 var room = _mapper.Map<CreateRoomRequest, Room>(createRoomRequest);
+                
                 var topic = _unitOfWork.Repository<Topic>().GetAll().Include(a=>a.Game).SingleOrDefault(a => a.Id == createRoomRequest.TopicId);
                 if (topic == null)
                 {
                     throw new CrudException(HttpStatusCode.NotFound, $"Topic Id {createRoomRequest.TopicId} Not Found!!!!!", "");
                 }
+                
                 if (room.AmountPlayer < 2 || room.AmountPlayer > 8)
                     throw new CrudException(HttpStatusCode.BadRequest, "Amout Player Is Invalid", "");
+                
                 room.StartTime = null;
                 Guid id = Guid.NewGuid();
                 room.Code = id.ToString().Substring(0, 8).ToUpper();
                 AccountInRoom accountInRoom = new AccountInRoom();               
+                
                 var account = _unitOfWork.Repository<Account>().Find(x => x.Id == createRoomRequest.AccountId);
+                
                 if(account == null)
                     throw new CrudException(HttpStatusCode.NotFound, $"Account Id {createRoomRequest.AccountId} Not Found!!!!!", "");
+                
                 if (account.Status.Equals(false))
                 {
                     throw new CrudException(HttpStatusCode.BadRequest, $"Account Id {createRoomRequest.AccountId} Not Available!!!!!", "");
                 }
+                
                 accountInRoom.AccountId = createRoomRequest.AccountId;
                 accountInRoom.IsAdmin = true;
                 accountInRoom.Room = room;
                 room.AccountInRooms.Add(accountInRoom);
+                room.Status = null;
+                
                 await _unitOfWork.Repository<Room>().CreateAsync(room);             
                 await _unitOfWork.CommitAsync();
+                
                 var rs = _mapper.Map<RoomResponse>(room);
                 rs.GameName=topic.Game.Name;
                 rs.TopicName=topic.Name;
                 var accountInRoomResponse = _mapper.Map<AccountInRoomResponse>(accountInRoom);
-                rs.AccountIn1Vs1Responses = new List<AccountInRoomResponse>();
-                rs.AccountIn1Vs1Responses.Add(accountInRoomResponse);
+                accountInRoomResponse.Avatar = account.Avatar;
+                rs.AccountInRoomResponses = new List<AccountInRoomResponse>();
+                rs.AccountInRoomResponses.Add(accountInRoomResponse);
+                accountInRoomResponse.Username = account.UserName;
+               
                 return rs;
             }
             catch (CrudException ex)
@@ -74,43 +87,60 @@ namespace ThinkTank.Service.Services.ImpService
                 throw new CrudException(HttpStatusCode.InternalServerError, "Create Room Error!!!", ex?.Message);
             }
         }
-        public async Task<RoomResponse> UpdateRoom(int roomId,List<CreateAndUpdateAccountInRoomRequest> createAccountInRoomRequests)
+        public async Task<RoomResponse> UpdateRoom(string roomCode,List<CreateAndUpdateAccountInRoomRequest> createAccountInRoomRequests)
         {
             try
             {
-                Room room = _unitOfWork.Repository<Room>().GetAll().Include(x=>x.Topic).Include(x=>x.Topic.Game).Include(x => x.AccountInRooms).SingleOrDefault(x => x.Id == roomId);
+                var room = _unitOfWork.Repository<Room>().GetAll().Include(x=>x.Topic).Include(x=>x.Topic.Game).Include(x => x.AccountInRooms).SingleOrDefault(x => x.Code == roomCode);
+                
                 if(room==null)
-                    throw new CrudException(HttpStatusCode.NotFound, $"Room Id {roomId} Not Found!!!!!", "");
+                    throw new CrudException(HttpStatusCode.NotFound, $"Room Code {roomCode} Not Found!!!!!", "");
+                
                 if (room.Status == false)
                     throw new CrudException(HttpStatusCode.BadRequest, "The room has ended so I can't update", "");
+                
                 List<AccountInRoom> list = new List<AccountInRoom>();
                 list.Add(room.AccountInRooms.SingleOrDefault(x => x.IsAdmin == true));
                 foreach (var accountInRoom in createAccountInRoomRequests)
                 {
-                    AccountInRoom account = new AccountInRoom();
-                    account = _mapper.Map<AccountInRoom>(accountInRoom);
+                    var account = _mapper.Map<AccountInRoom>(accountInRoom);
+                    
                     var acc = _unitOfWork.Repository<Account>().Find(x => x.Id == accountInRoom.AccountId);
                     if (account == null)
                         throw new CrudException(HttpStatusCode.NotFound, $"Account Id {accountInRoom.AccountId} Not Found!!!!!", "");
+                    
                     if (acc.Status.Equals(false))
                     {
                         throw new CrudException(HttpStatusCode.BadRequest, $"Account Id {accountInRoom.AccountId} Not Available!!!!!", "");
                     }
+                    
+                    var accInRoom = _unitOfWork.Repository<AccountInRoom>().Find(x => x.AccountId == accountInRoom.AccountId && x.RoomId == room.Id);
+                    if (accInRoom != null)
+                        throw new CrudException(HttpStatusCode.BadRequest, $"The account id {accInRoom.AccountId} that joined this room", "");
+                    
                     account.Room = room;
+                    account.IsAdmin = false;
+                    account.RoomId = room.Id;
                     list.Add(account);
-                    var accountInRoomResponse = _mapper.Map<AccountInRoomResponse>(account);
                 }
-                room.AccountInRooms=list;              
-                room.StartTime = DateTime.Now;
-                room.Status = true;
-                if (room.AccountInRooms.Count() != room.AmountPlayer)
+                room.AccountInRooms=list;
+                
+                if (room.AccountInRooms.Count() > room.AmountPlayer)
                     throw new CrudException(HttpStatusCode.BadRequest, "The number of participants does not match the amout player", "");
-                await _unitOfWork.Repository<Room>().Update(room,roomId);
+                
+                await _unitOfWork.Repository<Room>().Update(room,room.Id);
                 await _unitOfWork.CommitAsync();
+                
                 var rs = _mapper.Map<RoomResponse>(room);
                 rs.GameName = room.Topic.Game.Name;
                 rs.TopicName = room.Topic.Name;
-                rs.AccountIn1Vs1Responses = _mapper.Map<List<AccountInRoomResponse>>(list);
+                rs.AccountInRoomResponses = _mapper.Map<List<AccountInRoomResponse>>(room.AccountInRooms);
+                
+                foreach (var acc in rs.AccountInRoomResponses)
+                {
+                    acc.Avatar = _unitOfWork.Repository<Account>().Find(x => x.Id == acc.AccountId).Avatar;
+                    acc.Username = _unitOfWork.Repository<Account>().Find(x => x.Id == acc.AccountId).UserName;
+                }
                 return rs;
             }
             catch (CrudException ex)
@@ -119,7 +149,7 @@ namespace ThinkTank.Service.Services.ImpService
             }
             catch (Exception ex)
             {
-                throw new CrudException(HttpStatusCode.InternalServerError, "Update Room Error!!!", ex?.Message);
+                throw new CrudException(HttpStatusCode.InternalServerError, "Add Member To Room Error!!!", ex?.Message);
             }
         }
         public async Task<List<LeaderboardResponse>> GetLeaderboardOfRoom(int roomId)
@@ -202,7 +232,7 @@ namespace ThinkTank.Service.Services.ImpService
                     Name=x.Name,
                     Code=x.Code,
                     GameName = x.Topic.Game.Name,
-                    AccountIn1Vs1Responses = new List<AccountInRoomResponse>(x.AccountInRooms.Select(a => new AccountInRoomResponse
+                    AccountInRoomResponses = new List<AccountInRoomResponse>(x.AccountInRooms.Select(a => new AccountInRoomResponse
                     {
                         Id = a.Id,
                         AccountId = a.AccountId,
@@ -210,6 +240,7 @@ namespace ThinkTank.Service.Services.ImpService
                         Username=a.Account.UserName,
                         Duration = a.Duration,
                         IsAdmin = a.IsAdmin,
+                        Avatar=a.Account.Avatar,
                         Mark = a.Mark,
                         PieceOfInformation = a.PieceOfInformation
                     }))
@@ -249,12 +280,13 @@ namespace ThinkTank.Service.Services.ImpService
                     Name=x.Name,
                     Code = x.Code,
                     GameName = x.Topic.Game.Name,
-                    AccountIn1Vs1Responses=new List<AccountInRoomResponse>(x.AccountInRooms.Select(a=> new AccountInRoomResponse
+                    AccountInRoomResponses =new List<AccountInRoomResponse>(x.AccountInRooms.Select(a=> new AccountInRoomResponse
                     {
                         Id=a.Id,
                         AccountId=a.AccountId,
                         CompletedTime=a.CompletedTime,
                         Duration=a.Duration,
+                        Avatar=a.Account.Avatar,
                         Username = a.Account.UserName,
                         IsAdmin =a.IsAdmin,
                         Mark=a.Mark,
@@ -278,23 +310,33 @@ namespace ThinkTank.Service.Services.ImpService
                 {
                     throw new CrudException(HttpStatusCode.BadRequest, "Id Room Invalid", "");
                 }
-                Room room = _unitOfWork.Repository<Room>().GetAll().Include(x => x.Topic).Include(x=>x.AccountInRooms)
+               var room = _unitOfWork.Repository<Room>().GetAll().Include(x => x.Topic).Include(x=>x.AccountInRooms)
                     .Include(x => x.Topic.Game).FirstOrDefault(u => u.Id == roomId);
 
                 if (room == null)
                 {
                     throw new CrudException(HttpStatusCode.NotFound, $"Not found room with id{roomId.ToString()}", "");
                 }
+                
                 if (room.AccountInRooms.SingleOrDefault(x => x.IsAdmin == true).AccountId != accountId)
                     throw new CrudException(HttpStatusCode.BadRequest, $"Only the admin role has the right to cancel rooms", "");
-                if(room.StartTime < DateTime.Now)
+                
+                if( room.StartTime != null && room.StartTime < DateTime.Now)
                     throw new CrudException(HttpStatusCode.BadRequest, $"Accounts in this room party have already started playing so cannot be canceled", "");
-                _unitOfWork.Repository<Room>().Delete(room);
+                await _unitOfWork.Repository<AccountInRoom>().DeleteRange(room.AccountInRooms.ToArray());
+                await _unitOfWork.Repository<Room>().RemoveAsync(room);
                 await _unitOfWork.CommitAsync();
+                
                 var rs = _mapper.Map<RoomResponse>(room);
                 rs.TopicName = room.Topic.Name;
                 rs.GameName = room.Topic.Game.Name;
-                rs.AccountIn1Vs1Responses = _mapper.Map<List<AccountInRoomResponse>>(room.AccountInRooms);
+                rs.AccountInRoomResponses = _mapper.Map<List<AccountInRoomResponse>>(room.AccountInRooms);
+                
+                foreach (var acc in rs.AccountInRoomResponses)
+                {
+                    acc.Avatar = _unitOfWork.Repository<Account>().Find(x => x.Id == acc.AccountId).Avatar;
+                    acc.Username = _unitOfWork.Repository<Account>().Find(x => x.Id == acc.AccountId).UserName;
+                }
                 return rs ;
             }
             catch (CrudException ex)
@@ -306,7 +348,51 @@ namespace ThinkTank.Service.Services.ImpService
                 throw new CrudException(HttpStatusCode.InternalServerError, "Cancel room error!!!!!", ex.Message);
             }
         }
-
+        public async Task<RoomResponse> LeaveRoom(int roomId, int accountId)
+        {
+            try
+            {
+                if (roomId <= 0)
+                {
+                    throw new CrudException(HttpStatusCode.BadRequest, "Id Room Invalid", "");
+                }
+                var room = _unitOfWork.Repository<Room>().GetAll().Include(x => x.Topic).Include(x => x.AccountInRooms)
+                    .Include(x => x.Topic.Game).FirstOrDefault(u => u.Id == roomId);
+                if (room == null)
+                {
+                    throw new CrudException(HttpStatusCode.NotFound, $"Not found room with id{roomId.ToString()}", "");
+                }
+                var accountInRoom = _unitOfWork.Repository<AccountInRoom>().Find(x => x.AccountId == accountId && x.RoomId==roomId);
+                if (accountInRoom == null)
+                    throw new CrudException(HttpStatusCode.BadRequest, $"This account does not participate in the room {roomId}", "");
+                
+                if (room.StartTime != null && room.StartTime < DateTime.Now)
+                    throw new CrudException(HttpStatusCode.BadRequest, $"The room has started so {accountId} can't leave", "");
+                
+                _unitOfWork.Repository<AccountInRoom>().Delete(accountInRoom);
+                await _unitOfWork.CommitAsync();
+                
+                var rs = _mapper.Map<RoomResponse>(room);
+                rs.TopicName = room.Topic.Name;
+                rs.GameName = room.Topic.Game.Name;
+                rs.AccountInRoomResponses = _mapper.Map<List<AccountInRoomResponse>>(room.AccountInRooms);
+                
+                foreach (var acc in rs.AccountInRoomResponses)
+                {
+                    acc.Avatar = _unitOfWork.Repository<Account>().Find(x => x.Id == acc.AccountId).Avatar;
+                    acc.Username = _unitOfWork.Repository<Account>().Find(x => x.Id == acc.AccountId).UserName;
+                }
+                return rs;
+            }
+            catch (CrudException ex)
+            {
+                throw ex;
+            }
+            catch (Exception ex)
+            {
+                throw new CrudException(HttpStatusCode.InternalServerError, "Leave room error!!!!!", ex.Message);
+            }
+        }
         public async Task<RoomResponse> GetToUpdateStatusRoom(int roomId)
         {
             try
@@ -315,12 +401,12 @@ namespace ThinkTank.Service.Services.ImpService
                 {
                     throw new CrudException(HttpStatusCode.BadRequest, "Id Room Invalid", "");
                 }
-                Room room = _unitOfWork.Repository<Room>().GetAll().Include(x => x.Topic).Include(x => x.AccountInRooms)
+                var room = _unitOfWork.Repository<Room>().GetAll().Include(x => x.Topic).Include(x => x.AccountInRooms)
                     .Include(x => x.Topic.Game).FirstOrDefault(u => u.Id == roomId);
 
                 if (room == null)
                 {
-                    throw new CrudException(HttpStatusCode.NotFound, $"Not found room with id{roomId.ToString()}", "");
+                    throw new CrudException(HttpStatusCode.NotFound, $"Not found room with id {roomId.ToString()}", "");
                 }
                 room.Status = false;
                 room.EndTime = DateTime.Now;
@@ -329,7 +415,12 @@ namespace ThinkTank.Service.Services.ImpService
                 var rs = _mapper.Map<RoomResponse>(room);
                 rs.TopicName = room.Topic.Name;
                 rs.GameName = room.Topic.Game.Name;
-                rs.AccountIn1Vs1Responses = _mapper.Map<List<AccountInRoomResponse>>(room.AccountInRooms);
+                rs.AccountInRoomResponses = _mapper.Map<List<AccountInRoomResponse>>(room.AccountInRooms);
+                foreach (var acc in rs.AccountInRoomResponses)
+                {
+                    acc.Avatar = _unitOfWork.Repository<Account>().Find(x => x.Id == acc.AccountId).Avatar;
+                    acc.Username = _unitOfWork.Repository<Account>().Find(x => x.Id == acc.AccountId).UserName;
+                }
                 return rs;
             }
             catch (CrudException ex)
@@ -339,6 +430,45 @@ namespace ThinkTank.Service.Services.ImpService
             catch (Exception ex)
             {
                 throw new CrudException(HttpStatusCode.InternalServerError, "Cancel room error!!!!!", ex.Message);
+            }
+        }
+        public async Task<RoomResponse> GetToStartRoom(int roomId)
+        {
+            try
+            {
+                if (roomId <= 0)
+                {
+                    throw new CrudException(HttpStatusCode.BadRequest, "Id Room Invalid", "");
+                }
+                var room = _unitOfWork.Repository<Room>().GetAll().Include(x => x.Topic).Include(x => x.AccountInRooms)
+                    .Include(x => x.Topic.Game).FirstOrDefault(u => u.Id == roomId);
+
+                if (room == null)
+                {
+                    throw new CrudException(HttpStatusCode.NotFound, $"Not found room with id {roomId.ToString()}", "");
+                }
+                room.StartTime = DateTime.Now;
+                room.Status = true;
+                await _unitOfWork.Repository<Room>().Update(room, roomId);
+                await _unitOfWork.CommitAsync();
+                var rs = _mapper.Map<RoomResponse>(room);
+                rs.TopicName = room.Topic.Name;
+                rs.GameName = room.Topic.Game.Name;
+                rs.AccountInRoomResponses = _mapper.Map<List<AccountInRoomResponse>>(room.AccountInRooms);
+                foreach (var acc in rs.AccountInRoomResponses)
+                {
+                    acc.Avatar = _unitOfWork.Repository<Account>().Find(x => x.Id == acc.AccountId).Avatar;
+                    acc.Username = _unitOfWork.Repository<Account>().Find(x => x.Id == acc.AccountId).UserName;
+                }
+                return rs;
+            }
+            catch (CrudException ex)
+            {
+                throw ex;
+            }
+            catch (Exception ex)
+            {
+                throw new CrudException(HttpStatusCode.InternalServerError, "Start Room To Play error!!!!!", ex.Message);
             }
         }
     }

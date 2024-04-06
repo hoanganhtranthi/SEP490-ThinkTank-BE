@@ -12,12 +12,10 @@ namespace ThinkTank.API.Controllers
     public class FilesController : Controller
     {
         private readonly IFileStorageService _fileStorageService;
-        private readonly IFirebaseRealtimeDatabaseService _firebaseRealtimeDatabaseService;
         public const long MAX_UPLOAD_FILE_SIZE = 25000000;//File size must lower than 25MB
-        public FilesController(IFileStorageService fileStorageService,IFirebaseRealtimeDatabaseService firebaseRealtimeDatabaseService)
+        public FilesController(IFileStorageService fileStorageService)
         {
             _fileStorageService = fileStorageService;
-            _firebaseRealtimeDatabaseService = firebaseRealtimeDatabaseService;
         }
         /// <summary>
         /// Upload file (FileType: System=1, Player=2)
@@ -32,7 +30,7 @@ namespace ThinkTank.API.Controllers
             return Ok(url);
         }
         /// <summary>
-        /// Upload file for resources game ( ResourceType: Anonymous=1,MusicPassword=2,FlipCard=3,ImagesWalkthrough=4,StoryTeller=5)
+        /// Upload file for resources game ( ResourceType: Anonymous=1,MusicPassword=2,FlipCard=3,ImagesWalkthrough=4)
         /// </summary>
         [HttpPost("resources")]
         public async Task<ActionResult<List<string>>> UploadFileResource(List<IFormFile> file,ResourceType type)

@@ -87,7 +87,7 @@ namespace ThinkTank.Service.Services.ImpService
 
                 if (response == null)
                 {
-                    throw new CrudException(HttpStatusCode.NotFound, $"Not found topic with id {id.ToString()}", "");
+                    throw new CrudException(HttpStatusCode.NotFound, $"Not found topic with id {id}", "");
                 }
                 return response;
             }
@@ -136,41 +136,6 @@ namespace ThinkTank.Service.Services.ImpService
             }
         }
 
-        public async Task<TopicResponse> UpdateTopic(int id, TopicRequest request)
-        {
-            try
-            {
-                if (id <= 0)
-                {
-                    throw new CrudException(HttpStatusCode.BadRequest, "Id Topic Invalid", "");
-                }
-                Topic topic = _unitOfWork.Repository<Topic>()
-                      .Find(c => c.Id == id);
-                _mapper.Map<TopicRequest, Topic>(request,topic);
-                if (topic == null)
-                    throw new CrudException(HttpStatusCode.NotFound, $"Not found topic with id{id.ToString()}", "");
-
-                var s = _unitOfWork.Repository<Topic>().Find(s => s.Name == request.Name && s.Id != id && s.GameId==request.GameId);
-                if (s != null)
-                {
-                    throw new CrudException(HttpStatusCode.BadRequest, $" Topic Name {request.Name} has already !!!", "");
-                }
-                var g = _unitOfWork.Repository<Game>().Find(x => x.Id == request.GameId);
-                if (g == null)
-                    throw new CrudException(HttpStatusCode.BadRequest, $" Game Id {request.GameId} is not found !!!", "");
-                var rs=_mapper.Map<TopicResponse>(topic);
-                await _unitOfWork.Repository<Topic>().Update(topic, id);
-                await _unitOfWork.CommitAsync();
-                return rs;
-            }
-            catch (CrudException ex)
-            {
-                throw ex;
-            }
-            catch (Exception ex)
-            {
-                throw new CrudException(HttpStatusCode.InternalServerError, "Update topic error!!!!!", ex.Message);
-            }
-        }
+       
     }
 }

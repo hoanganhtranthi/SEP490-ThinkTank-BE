@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using ThinkTank.Service.Commons;
 
 namespace ThinkTank.Service.DTO.Response
 {
@@ -15,6 +16,7 @@ namespace ThinkTank.Service.DTO.Response
         public int? WinnerId { get; set; }
         public int? AccountId1 { get; set; }
         public int? AccountId2 { get; set; }
+        [IntAttribute]
         public int? GameId { get; set; }
         public string? GameName { get; set; }
         public string? RoomOfAccountIn1vs1Id { get; set; }

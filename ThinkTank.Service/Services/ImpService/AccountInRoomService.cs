@@ -29,11 +29,10 @@ namespace ThinkTank.Service.Services.ImpService
             _unitOfWork = unitOfWork;
             _mapper = mapper;
         }
-        public async Task<AccountInRoomResponse> UpdateAccountInRoom(CreateAndUpdateAccountInRoomRequest createAccountInRoomRequest)
+        public async Task<AccountInRoomResponse> UpdateAccountInRoom(int accountInRoomId,CreateAndUpdateAccountInRoomRequest createAccountInRoomRequest)
         {
             try
             {
-                var accInRoom = _mapper.Map<CreateAndUpdateAccountInRoomRequest, AccountInRoom>(createAccountInRoomRequest);
                 var a = _unitOfWork.Repository<Account>().Find(a => a.Id == createAccountInRoomRequest.AccountId);
                 if (a == null)
                 {
@@ -43,18 +42,16 @@ namespace ThinkTank.Service.Services.ImpService
                 {
                     throw new CrudException(HttpStatusCode.BadRequest, $"Account Id {createAccountInRoomRequest.AccountId} Not Available!!!!!", "");
                 }                
-                var room = _unitOfWork.Repository<Room>().GetAll().Include(c=>c.AccountInRooms).SingleOrDefault(c => c.Id == createAccountInRoomRequest.RoomId);
-                if (room == null)
-                {
-                    throw new CrudException(HttpStatusCode.NotFound, "Room Not Found!!!!!", "");
-                }
-                if (room.AccountInRooms.SingleOrDefault(x => x.AccountId == createAccountInRoomRequest.AccountId) == null)
-                    throw new CrudException(HttpStatusCode.BadRequest, $"This account id {createAccountInRoomRequest.AccountId} is not in the room id {createAccountInRoomRequest.RoomId} !!!", "");
-                accInRoom.CompletedTime = DateTime.Now;
-                await _unitOfWork.Repository<AccountInRoom>().Update(accInRoom, createAccountInRoomRequest.AccountId);
+                var accountInRoom = _unitOfWork.Repository<AccountInRoom>().Find(x => x.Id == accountInRoomId);
+                if (accountInRoom == null)
+                    throw new CrudException(HttpStatusCode.NotFound, $"This account in room Id {createAccountInRoomRequest.AccountId} is not found !!!", "");
+                _mapper.Map<CreateAndUpdateAccountInRoomRequest, AccountInRoom>(createAccountInRoomRequest,accountInRoom);
+                accountInRoom.CompletedTime = DateTime.Now;
+                await _unitOfWork.Repository<AccountInRoom>().Update(accountInRoom,accountInRoomId);
                 await _unitOfWork.CommitAsync();
-                var rs = _mapper.Map<AccountInRoomResponse>(accInRoom);
+                var rs = _mapper.Map<AccountInRoomResponse>(accountInRoom);
                 rs.Username = a.UserName;
+                rs.Avatar = a.Avatar;
                 return rs;
             }
             catch (CrudException ex)
@@ -80,7 +77,7 @@ namespace ThinkTank.Service.Services.ImpService
 
                 if (response == null)
                 {
-                    throw new CrudException(HttpStatusCode.NotFound, $"Not found account in room with id {id.ToString()}", "");
+                    throw new CrudException(HttpStatusCode.NotFound, $"Not found account in room with id {id}", "");
                 }
                 var rs = _mapper.Map<AccountInRoomResponse>(response);
                 rs.Username = response.Account.UserName;
@@ -105,7 +102,10 @@ namespace ThinkTank.Service.Services.ImpService
                     .ProjectTo<AccountInRoomResponse>(_mapper.ConfigurationProvider)
                     .DynamicFilter(filter).ToList();
                 foreach (var account1 in accountInRooms)
+                {
                     account1.Username = _unitOfWork.Repository<Account>().Find(x => x.Id == account1.AccountId).UserName;
+                    account1.Avatar = _unitOfWork.Repository<Account>().Find(x => x.Id == account1.AccountId).Avatar;
+                }
                 var sort = PageHelper<AccountInRoomResponse>.Sorting(paging.SortType, accountInRooms, paging.ColName);
                 var result = PageHelper<AccountInRoomResponse>.Paging(sort, paging.Page, paging.PageSize);
                 return result;

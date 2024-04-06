@@ -54,7 +54,7 @@ namespace ThinkTank.Service.Services.ImpService
                     throw new CrudException(HttpStatusCode.BadRequest, $"Icon Id {createIconRequest.IconId} is not available", "");
                 var rs = _mapper.Map<CreateIconOfAccountRequest, IconOfAccount>(createIconRequest);
                 rs.IsAvailable = true;
-                if (account.Coin < icon.Price || account.Coin == null)
+                if (account.Coin < icon.Price)
                     throw new CrudException(HttpStatusCode.BadRequest, "Not enough coin to buy icon", "");
                 account.Coin = account.Coin - icon.Price;
                 await _unitOfWork.Repository<IconOfAccount>().CreateAsync(rs);
@@ -124,7 +124,7 @@ namespace ThinkTank.Service.Services.ImpService
 
                 if (response == null)
                 {
-                    throw new CrudException(HttpStatusCode.NotFound, $"Not found icon of account with id {id.ToString()}", "");
+                    throw new CrudException(HttpStatusCode.NotFound, $"Not found icon of account with id {id}", "");
                 }
                 return _mapper.Map<IconOfAccountResponse>(response);
             }

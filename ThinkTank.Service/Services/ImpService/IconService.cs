@@ -35,11 +35,11 @@ namespace ThinkTank.Service.Services.ImpService
                 {
                     throw new CrudException(HttpStatusCode.BadRequest, "Id Icon Invalid", "");
                 }
-                var response = _unitOfWork.Repository<Icon>().GetAll().Include(x=>x.IconOfAccounts).SingleOrDefault(x => x.Id == id);
+                var response = _unitOfWork.Repository<Icon>().Find(x => x.Id == id);
 
                 if (response == null)
                 {
-                    throw new CrudException(HttpStatusCode.NotFound, $"Not found icon with id {id.ToString()}", "");
+                    throw new CrudException(HttpStatusCode.NotFound, $"Not found icon with id {id}", "");
                 }
                 return _mapper.Map<IconResponse>(response);
             }
@@ -91,7 +91,7 @@ namespace ThinkTank.Service.Services.ImpService
 
                 if (icon == null)
                 {
-                    throw new CrudException(HttpStatusCode.NotFound, $"Not found icon with id{id.ToString()}", "");
+                    throw new CrudException(HttpStatusCode.NotFound, $"Not found icon with id{id}", "");
                 }
                 icon.Status = !icon.Status;
                 await _unitOfWork.Repository<Icon>().Update(icon, id);

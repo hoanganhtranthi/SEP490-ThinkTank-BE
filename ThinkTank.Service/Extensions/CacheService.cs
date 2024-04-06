@@ -30,7 +30,6 @@ namespace Repository.Extensions
     {
         private static CacheService _instance;
         private static readonly object SyncRoot = new object();
-        private readonly RedLockFactory _redLockFactory;
         private static readonly Lazy<CacheService> Lazy = new Lazy<CacheService>(() => new CacheService());
         private IDatabase redis;
         private IConnectionMultiplexer connection;

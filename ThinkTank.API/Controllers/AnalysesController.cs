@@ -42,10 +42,9 @@ namespace ThinkTank.API.Controllers
         /// Get analysis of each type of account's memory by account Id 
         /// </summary>
         /// <param name="accountId"></param>
-        /// <param name="gameId"></param>
         /// <returns></returns>
         [Authorize(Policy = "Player")]
-        [HttpGet("{accountId}/by-memory-type")]
+        [HttpGet("{accountId:int}/by-memory-type")]
         public async Task<ActionResult<dynamic>> GetAnalysisOfEachTypeOfMemoryOfAccount(int accountId)
         {
             var rs = await _analysisService.GetAnalysisOfMemoryTypeByAccountId(accountId);

@@ -37,7 +37,7 @@ namespace ThinkTank.API.Controllers
         /// <param name="accountId"></param>
         /// <returns></returns>
          [Authorize(Policy = "Player")]
-        [HttpGet("{accountId}")]
+        [HttpGet("{accountId:int}")]
         public async Task<ActionResult<List<ChallengeResponse>>> GetToRewardCoin(int accountId, [FromQuery] int? challengeId)
         {
             var rs = await _challengeService.GetCoinReward(accountId,challengeId);

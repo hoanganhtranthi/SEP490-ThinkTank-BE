@@ -35,11 +35,7 @@ builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-builder.Services.AddStackExchangeRedisCache(options =>
-{
-    options.Configuration = builder.Configuration.GetConnectionString("RedisConnectionString");
-    options.InstanceName = "SampleInstance";
-});
+
 builder.Services.AddAutoMapper(typeof(Mapping));
 builder.Services.AddScoped<IFileStorageService, FirebaseStorageService>();
 builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
@@ -67,16 +63,29 @@ builder.Services.AddScoped<IAccountIn1vs1Service, AccountIn1vs1Service>();
 builder.Services.AddScoped<IAccountInRoomService, AccountInRoomService>();
 builder.Services.AddScoped<IFirebaseRealtimeDatabaseService, FirebaseRealtimeDatabaseService>();
 builder.Services.AddScoped<IAnalysisService, AnalysisService>();
+builder.Services.AddTransient<IAuthorizationHandler, CustomAuthorizationHandler>();
+//FCM
 System.Environment.SetEnvironmentVariable("GOOGLE_APPLICATION_CREDENTIALS", "thinktank-ad0b3-45e7681d45c6.json");
 FirebaseApp.Create(new AppOptions()
 {
     Credential = GoogleCredential.GetApplicationDefault(),
     ProjectId = builder.Configuration.GetValue<string>("Firebase:ProjectId")
 });
+
+//Redis Connection
+builder.Services.AddStackExchangeRedisCache(options =>
+{
+    options.Configuration = builder.Configuration.GetConnectionString("RedisConnectionString");
+    options.InstanceName = "SampleInstance";
+});
+
+//Database Connection
 builder.Services.AddDbContext<ThinkTankContext>(options =>
 {
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultSQLConnection"));
 });
+
+//CORS
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("_myAllowSpecificOrigins",
@@ -147,7 +156,8 @@ builder.Services.AddAuthentication(x =>
         };
     });
 //end JWT
-builder.Services.AddTransient<IAuthorizationHandler, CustomAuthorizationHandler>();
+
+//Set policy
 builder.Services.AddAuthorization(options =>
 {
     options.AddPolicy("Admin", policy =>
@@ -166,9 +176,7 @@ builder.Services.AddAuthorization(options =>
         policy.AddRequirements(new CustomRequirement());
     });
 });
-builder.Configuration.AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
-builder.Configuration.AddJsonFile($"appsettings.{Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Production"}.json", optional: true);
-builder.Configuration.AddEnvironmentVariables();
+
 var app = builder.Build();
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
