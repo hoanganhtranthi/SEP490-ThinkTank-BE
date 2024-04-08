@@ -587,7 +587,7 @@
             Get list of topic
             </summary>
             <param name="pagingRequest"></param>
-            <param name="anonymousRequest"></param>
+            <param name="request"></param>
             <returns></returns>
         </member>
         <member name="M:ThinkTank.API.Controllers.TopicsController.GetTopic(System.Int32)">

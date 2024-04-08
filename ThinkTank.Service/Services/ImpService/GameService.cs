@@ -36,7 +36,7 @@ namespace ThinkTank.Service.Services.ImpService
                 {
                     throw new CrudException(HttpStatusCode.BadRequest, "Id Game Invalid", "");
                 }
-                var response = _unitOfWork.Repository<Game>().GetAll().Include(x => x.Topics).Select(x => new GameResponse
+                var response = _unitOfWork.Repository<Game>().GetAll().AsNoTracking().Include(x => x.Topics).Select(x => new GameResponse
                 {
                     Id = x.Id,
                     Name = x.Name,
@@ -71,14 +71,14 @@ namespace ThinkTank.Service.Services.ImpService
                 var currentDateMonth = DateTime.Now.Month;
 
                 var totalSinglePlayer = _unitOfWork.Repository<Achievement>()
-                    .GetAll()
+                    .GetAll().AsNoTracking()
                     .Where(x => x.CompletedTime.Month == currentDateMonth)
                     .Select(x => x.AccountId)
                     .Distinct()
                     .Count();
 
                 var totalMultiplayerMode = _unitOfWork.Repository<AccountInRoom>()
-                    .GetAll()
+                    .GetAll().AsNoTracking()
                     .Where(x => x.CompletedTime.Value.Month == currentDateMonth)
                     .Select(x => x.AccountId)
                     .Distinct()
@@ -87,7 +87,7 @@ namespace ThinkTank.Service.Services.ImpService
                 HashSet<int> uniqueAccounts = new HashSet<int>();
 
                 var accountPairs = _unitOfWork.Repository<AccountIn1vs1>()
-                    .GetAll()
+                    .GetAll().AsNoTracking()
                     .Select(x => new { x.AccountId1, x.AccountId2 });
 
                 foreach (var pair in accountPairs)
@@ -100,23 +100,23 @@ namespace ThinkTank.Service.Services.ImpService
 
 
                 var totalContest = _unitOfWork.Repository<Contest>()
-                    .GetAll()
+                    .GetAll().AsNoTracking()
                     .Where(x => x.StartTime.Month == currentDateMonth)
                     .Count();
 
                 var totalRoom = _unitOfWork.Repository<AccountInRoom>()
-                    .GetAll()
+                    .GetAll().AsNoTracking()
                     .Where(x => x.CompletedTime.Value.Month == currentDateMonth)
                     .Select(x => x.AccountId)
                     .Distinct()
                     .Count();
 
                 var totalUser = _unitOfWork.Repository<Account>()
-                    .GetAll()
+                    .GetAll().AsNoTracking()
                     .Count();
 
                 var totalNewbieUser = _unitOfWork.Repository<Account>()
-                    .GetAll()
+                    .GetAll().AsNoTracking()
                     .Where(x => x.RegistrationDate.Value.Month == currentDateMonth)
                     .Count();
 
@@ -152,11 +152,11 @@ namespace ThinkTank.Service.Services.ImpService
             {
 
                 var filter = _mapper.Map<GameResponse>(request);
-                var games = _unitOfWork.Repository<Game>().GetAll().Include(x=>x.Topics).Select(x=>new GameResponse
+                var games = _unitOfWork.Repository<Game>().GetAll().AsNoTracking().Include(x=>x.Topics).Select(x=>new GameResponse
                 {
                     Id = x.Id,
                     Name=x.Name,
-                    AmoutPlayer= _unitOfWork.Repository<Achievement>().GetAll().Include(x => x.Game).Where(a => a.GameId == x.Id).Select(a => a.AccountId).Distinct().Count(),
+                    AmoutPlayer= _unitOfWork.Repository<Achievement>().GetAll().AsNoTracking().Include(x => x.Game).Where(a => a.GameId == x.Id).Select(a => a.AccountId).Distinct().Count(),
                 Topics =new List<TopicResponse>(x.Topics.Select(a=>new TopicResponse
                     {
                         Id=a.Id,

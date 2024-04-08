@@ -58,7 +58,7 @@ namespace ThinkTank.Service.Services.ImpService
             try
             {
                 var filter = _mapper.Map<IconResponse>(request);
-                var query = _unitOfWork.Repository<Icon>().GetAll()
+                var query = _unitOfWork.Repository<Icon>().GetAll().AsNoTracking()
                     .ProjectTo<IconResponse>(_mapper.ConfigurationProvider).DynamicFilter(filter).ToList();
 
                 if (request.MinPrice != null || request.MaxPrice != null)

@@ -65,7 +65,7 @@ namespace ThinkTank.Service.Services.ImpService
                 {
                     throw new CrudException(HttpStatusCode.BadRequest, "Id Topic Invalid", "");
                 }
-                var response = _unitOfWork.Repository<Topic>().GetAll()
+                var response = _unitOfWork.Repository<Topic>().GetAll().AsNoTracking()
                     .Include(c => c.Game).Where(a => a.Id == id).Select(a => new TopicResponse
                     {
                         Id = a.Id,
@@ -107,7 +107,7 @@ namespace ThinkTank.Service.Services.ImpService
             {
 
                 var filter = _mapper.Map<TopicResponse>(request);
-                var friends = _unitOfWork.Repository<Topic>().GetAll().Include(a => a.Game)
+                var friends = _unitOfWork.Repository<Topic>().GetAll().AsNoTracking().Include(a => a.Game)
                     .Select(a => new TopicResponse
                     {
                         Id = a.Id,

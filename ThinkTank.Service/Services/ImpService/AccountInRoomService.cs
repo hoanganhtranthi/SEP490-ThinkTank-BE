@@ -72,7 +72,7 @@ namespace ThinkTank.Service.Services.ImpService
                 {
                     throw new CrudException(HttpStatusCode.BadRequest, "Id Account In Room Invalid", "");
                 }
-                var response = _unitOfWork.Repository<AccountInRoom>().GetAll().Include(x => x.Account)
+                var response = _unitOfWork.Repository<AccountInRoom>().GetAll().AsNoTracking().Include(x => x.Account)
                     .SingleOrDefault(x => x.Id == id);
 
                 if (response == null)
@@ -98,7 +98,7 @@ namespace ThinkTank.Service.Services.ImpService
             try
             {
                 var filter = _mapper.Map<AccountInRoomResponse>(accountInRoomRequest);
-                var accountInRooms = _unitOfWork.Repository<AccountInRoom>().GetAll().Include(x => x.Account)
+                var accountInRooms = _unitOfWork.Repository<AccountInRoom>().GetAll().AsNoTracking().Include(x => x.Account)
                     .ProjectTo<AccountInRoomResponse>(_mapper.ConfigurationProvider)
                     .DynamicFilter(filter).ToList();
                 foreach (var account1 in accountInRooms)

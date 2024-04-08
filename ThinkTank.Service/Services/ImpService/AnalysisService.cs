@@ -32,7 +32,7 @@ namespace ThinkTank.Service.Services.ImpService
                 var account = _unitOfWork.Repository<Account>().Find(x => x.Id == accountId);
                 if (account == null)
                     throw new CrudException(HttpStatusCode.NotFound, $"Account Id {accountId} not found ", "");
-                var achievements = _unitOfWork.Repository<Achievement>().GetAll().Include(x => x.Account).Include(x => x.Game)
+                var achievements = _unitOfWork.Repository<Achievement>().GetAll().AsNoTracking().Include(x => x.Account).Include(x => x.Game)
                     .Where(x => x.AccountId == accountId).ToList();
                 var result = new List<GameLevelOfAccountResponse>();
                 foreach (var achievement in achievements)
@@ -54,7 +54,7 @@ namespace ThinkTank.Service.Services.ImpService
             try
             {
                 var account = _unitOfWork.Repository<Account>()
-                                .GetAll()
+                                .GetAll().AsNoTracking()
                                 .Include(x => x.AccountInContests)
                                 .Include(x => x.Badges)
                                 .SingleOrDefault(x => x.Id == accountId);
@@ -107,7 +107,7 @@ namespace ThinkTank.Service.Services.ImpService
             try
             {
                 var account = _unitOfWork.Repository<Account>()
-                                .GetAll()
+                                .GetAll().AsNoTracking()
                                 .Include(x => x.Achievements.Where(x => x.GameId == request.GameId))
                                 .SingleOrDefault(x => x.Id == request.AccountId);
 
@@ -144,7 +144,7 @@ namespace ThinkTank.Service.Services.ImpService
             try
             {
                 var account = _unitOfWork.Repository<Account>()
-                                .GetAll()
+                                .GetAll().AsNoTracking()
                                 .Include(x => x.Achievements)
                                 .SingleOrDefault(x => x.Id == accountId);
 

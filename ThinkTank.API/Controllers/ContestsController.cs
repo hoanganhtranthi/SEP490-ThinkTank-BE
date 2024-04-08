@@ -105,7 +105,7 @@ namespace ThinkTank.API.Controllers
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        [Authorize(Policy = "Admin")]
+       [Authorize(Policy = "Admin")]
         [HttpGet("{id:int}/ended-contest")]
         public async Task<ActionResult<ContestResponse>> GetToUpdateStatusContest(int id)
         {
