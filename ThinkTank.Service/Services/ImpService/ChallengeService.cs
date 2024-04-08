@@ -35,7 +35,7 @@ namespace ThinkTank.Service.Services.ImpService
         {
             try
             {
-                var challenges = _unitOfWork.Repository<Challenge>().GetAll().Include(x=>x.Badges)
+                var challenges = _unitOfWork.Repository<Challenge>().GetAll().AsNoTracking().Include(x=>x.Badges)
                                            .Select(x=>new ChallengeResponse
                                            {
                                                Id=x.Id,

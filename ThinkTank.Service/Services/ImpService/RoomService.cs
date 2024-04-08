@@ -156,7 +156,7 @@ namespace ThinkTank.Service.Services.ImpService
         {
             try
             {
-                var room = _unitOfWork.Repository<Room>().GetAll().Include(c => c.AccountInRooms)
+                var room = _unitOfWork.Repository<Room>().GetAll().AsNoTracking().Include(c => c.AccountInRooms)
                       .SingleOrDefault(c => c.Id == roomId);
 
                 if (room == null)
@@ -220,7 +220,7 @@ namespace ThinkTank.Service.Services.ImpService
                 {
                     throw new CrudException(HttpStatusCode.BadRequest, "Id Type Of Asset Invalid", "");
                 }
-                var response = _unitOfWork.Repository<Room>().GetAll().Include(x => x.Topic).Include(x => x.Topic.Game).Select(x => new RoomResponse
+                var response = _unitOfWork.Repository<Room>().GetAll().AsNoTracking().Include(x => x.Topic).Include(x => x.Topic.Game).Select(x => new RoomResponse
                 {
                     Id = x.Id,
                     TopicId = x.TopicId,
@@ -268,7 +268,7 @@ namespace ThinkTank.Service.Services.ImpService
             {
 
                 var filter = _mapper.Map<RoomResponse>(request);
-                var response = _unitOfWork.Repository<Room>().GetAll().Include(x => x.Topic).Include(x => x.Topic.Game).Select(x => new RoomResponse
+                var response = _unitOfWork.Repository<Room>().GetAll().AsNoTracking().Include(x => x.Topic).Include(x => x.Topic.Game).Select(x => new RoomResponse
                 {
                     Id = x.Id,
                     TopicId = x.TopicId,

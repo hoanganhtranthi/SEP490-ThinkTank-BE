@@ -68,7 +68,10 @@ namespace ThinkTank.Service.Services.ImpService
                 contest.EndTime = createContestRequest.EndTime;
                 contest.CoinBetting = createContestRequest.CoinBetting;
                 contest.GameId = createContestRequest.GameId;
-                if (contest.StartTime > contest.EndTime || createContestRequest.StartTime < DateTime.Now || createContestRequest.EndTime < DateTime.Now)
+                DateTime date = DateTime.Now;
+                if (TimeZoneInfo.Local.BaseUtcOffset != TimeSpan.FromHours(7))
+                     date = DateTime.UtcNow.ToLocalTime().AddHours(7);
+                if (contest.StartTime > contest.EndTime || createContestRequest.StartTime < date || createContestRequest.EndTime < date)
                 {
                     throw new CrudException(HttpStatusCode.BadRequest, "Start Time or End Time is invalid", "");
                 }
@@ -100,9 +103,6 @@ namespace ThinkTank.Service.Services.ImpService
                 }
                 await _unitOfWork.Repository<Contest>().CreateAsync(contest);
                 await _unitOfWork.CommitAsync();
-                var date = DateTime.Now;
-                if (date < DateTime.Now)
-                    date = date.AddHours(7);
                 var id = BackgroundJob.Schedule(() =>
                   SendNotification(contest.Id),
                  contest.StartTime.Subtract(date));
@@ -187,7 +187,7 @@ namespace ThinkTank.Service.Services.ImpService
 
                 await _unitOfWork.Repository<Contest>().Update(contest, id);
                 #region send noti for account
-                var accounts = _unitOfWork.Repository<AccountInContest>().GetAll().Include(a => a.Account).Where(a => a.ContestId == contest.Id).ToList();
+                var accounts = _unitOfWork.Repository<AccountInContest>().GetAll().Include(a => a.Account).Where(a => a.ContestId == contest.Id && a.Account.Status==true).ToList();
                 var data = new Dictionary<string, string>()
                 {
                     ["click_action"] = "FLUTTER_NOTIFICATION_CLICK",
@@ -223,15 +223,18 @@ namespace ThinkTank.Service.Services.ImpService
                 var fcmTokens = accounts.Where(a => a.Account.Fcm != null && a.Account.Fcm != "").Select(a => a.Account.Fcm).ToList();
                 if (fcmTokens.Any())
                     _firebaseMessagingService.Unsubcribe(fcmTokens, $"/topics/contestId{contest.Id}");
-                if (contest.EndTime > DateTime.Now)
-                {
                     var jobId = firebaseRealtimeDatabaseService.GetAsync<string>($"Contest{contest.Id}JobIdEndTime").Result;
                     if (jobId != null)
                     {
                         BackgroundJob.Delete(jobId);
-                       await firebaseRealtimeDatabaseService.RemoveData(jobId);
+                       await firebaseRealtimeDatabaseService.RemoveData($"Contest{contest.Id}JobIdEndTime");
                     }
-                }
+                    var jobStartId = firebaseRealtimeDatabaseService.GetAsync<string>($"Contest{contest.Id}JobIdStartTime").Result;
+                    if (jobStartId != null)
+                    {
+                        BackgroundJob.Delete(jobStartId);
+                        await firebaseRealtimeDatabaseService.RemoveData($"Contest{contest.Id}JobIdStartTime");
+                    }   
                 var leaderboard = await GetLeaderboardOfContest(id);
 
                 foreach (var contestant in leaderboard.Take(3))
@@ -344,7 +347,7 @@ namespace ThinkTank.Service.Services.ImpService
                 {
                     throw new CrudException(HttpStatusCode.BadRequest, "Id Contest Invalid", "");
                 }
-                var response = _unitOfWork.Repository<Contest>().GetAll().Include(x=>x.Game).Include(x=>x.AccountInContests)
+                var response = _unitOfWork.Repository<Contest>().GetAll().AsNoTracking().Include(x=>x.Game).Include(x=>x.AccountInContests)
                                            .Select(x => new ContestResponse
                                            {
                                                Id = x.Id,
@@ -388,7 +391,7 @@ namespace ThinkTank.Service.Services.ImpService
         {
             try
             {
-                var contest = _unitOfWork.Repository<Contest>().GetAll().Include(c => c.AccountInContests)
+                var contest = _unitOfWork.Repository<Contest>().GetAll().AsNoTracking().Include(c => c.AccountInContests)
                       .SingleOrDefault(c => c.Id == contestId);
 
                 if (contest == null)
@@ -447,7 +450,7 @@ namespace ThinkTank.Service.Services.ImpService
         {
             try
             {
-                var contest = _unitOfWork.Repository<Contest>().GetAll().Include(c => c.AccountInContests)
+                var contest = _unitOfWork.Repository<Contest>().GetAll().AsNoTracking().Include(c => c.AccountInContests)
                       .SingleOrDefault(c => c.Id == contestId);
 
                 if (contest == null)
@@ -507,7 +510,7 @@ namespace ThinkTank.Service.Services.ImpService
             try
             {
                 var filter = _mapper.Map<ContestResponse>(request);
-                var contests = _unitOfWork.Repository<Contest>().GetAll().Include(x => x.AssetOfContests).Include(x=>x.Game)
+                var contests = _unitOfWork.Repository<Contest>().GetAll().AsNoTracking().Include(x => x.AssetOfContests).Include(x=>x.Game)
                                            .Select(x=>new ContestResponse
                                            {
                                                Id = x.Id,
@@ -566,9 +569,9 @@ namespace ThinkTank.Service.Services.ImpService
                     throw new CrudException(HttpStatusCode.NotFound, $"Game {request.GameId} not found !!!", "");
                 }
                 var existingContest = _unitOfWork.Repository<Contest>().GetAll().FirstOrDefault(c => c.Name.Equals(request.Name) && c.Id != contestId);
-                var date = DateTime.Now;
-                if (date < DateTime.Now)
-                    date = date.AddHours(7);
+                DateTime date = DateTime.Now;
+                if (TimeZoneInfo.Local.BaseUtcOffset != TimeSpan.FromHours(7))
+                    date = DateTime.UtcNow.ToLocalTime().AddHours(7);
                 if (existingContest != null)
                     throw new CrudException(HttpStatusCode.BadRequest, "Name of contest has already been taken", "");
                 if (request.StartTime > request.EndTime)
@@ -577,10 +580,16 @@ namespace ThinkTank.Service.Services.ImpService
                     throw new CrudException(HttpStatusCode.BadRequest, "The contest has already started and you cannot update it", "");
                 var job = firebaseRealtimeDatabaseService.GetAsync<string>($"Contest{contest.Id}JobIdStartTime").Result;
                 if (job != null)
+                {
                     BackgroundJob.Delete(job);
+                    await firebaseRealtimeDatabaseService.RemoveData($"Contest{contest.Id}JobIdStartTime");
+                }
                 var jobId = firebaseRealtimeDatabaseService.GetAsync<string>($"Contest{contest.Id}JobIdEndTime").Result;
                 if (jobId != null)
+                {
                     BackgroundJob.Delete(jobId);
+                    await firebaseRealtimeDatabaseService.RemoveData($"Contest{contest.Id}JobIdEndTime");
+                }
               await  _unitOfWork.Repository<AssetOfContest>().DeleteRange(contest.AssetOfContests.ToArray());
                 List<AssetOfContestResponse> result = new List<AssetOfContestResponse>();
                 List<AssetOfContest> list = new List<AssetOfContest>();
@@ -652,13 +661,13 @@ namespace ThinkTank.Service.Services.ImpService
                 if (job != null)
                 {
                     BackgroundJob.Delete(job);
-                  await  firebaseRealtimeDatabaseService.RemoveData(job);
+                  await  firebaseRealtimeDatabaseService.RemoveData($"Contest{contest.Id}JobIdStartTime");
                 }
                 var jobId = firebaseRealtimeDatabaseService.GetAsync<string>($"Contest{contest.Id}JobIdEndTime").Result;
                 if (jobId != null)
                 {
                     BackgroundJob.Delete(jobId);
-                    await firebaseRealtimeDatabaseService.RemoveData(jobId);
+                    await firebaseRealtimeDatabaseService.RemoveData($"Contest{contest.Id}JobIdEndTime");
                 }
                 return _mapper.Map<ContestResponse>(contest);
             }
@@ -677,7 +686,7 @@ namespace ThinkTank.Service.Services.ImpService
             {
                 var contests = _unitOfWork.Repository<Contest>()
                 .GetAll()
-                .Include(x => x.AccountInContests).Include(x=>x.Game)
+                .Include(x => x.AccountInContests).Include(x=>x.Game).AsNoTracking()
                 .Where(x => x.StartTime.Month == DateTime.Now.Month)
                 .OrderByDescending(x => x.AccountInContests.Count())
                  .ToList();

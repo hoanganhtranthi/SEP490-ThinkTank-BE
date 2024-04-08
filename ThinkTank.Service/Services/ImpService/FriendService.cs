@@ -146,7 +146,7 @@ namespace ThinkTank.Service.Services.ImpService
                 {
                     throw new CrudException(HttpStatusCode.BadRequest, "Id Friendship Invalid", "");
                 }
-                var response =  _unitOfWork.Repository<Friend>().GetAll().Include(x=>x.AccountId1Navigation).Include(x=>x.AccountId2Navigation).FirstOrDefault(u => u.Id == id);
+                var response =  _unitOfWork.Repository<Friend>().GetAll().AsNoTracking().Include(x=>x.AccountId1Navigation).Include(x=>x.AccountId2Navigation).FirstOrDefault(u => u.Id == id);
 
                 if (response == null)
                 {
@@ -174,7 +174,7 @@ namespace ThinkTank.Service.Services.ImpService
         {
             try
             {
-                var friendsQuery = _unitOfWork.Repository<Friend>().GetAll()
+                var friendsQuery = _unitOfWork.Repository<Friend>().GetAll().AsNoTracking()
                 .Include(f => f.AccountId1Navigation)
                 .Include(f => f.AccountId2Navigation)
                 .Select(x => new FriendResponse
@@ -235,13 +235,13 @@ namespace ThinkTank.Service.Services.ImpService
             try
             {
                 var response = new List<FriendResponse>();
-                var accountsWithFriends = _unitOfWork.Repository<Account>().GetAll()
+                var accountsWithFriends = _unitOfWork.Repository<Account>().GetAll().AsNoTracking()
                     .Include(a => a.FriendAccountId1Navigations)
                     .Include(a => a.FriendAccountId2Navigations)
                     .Where(a => a.Id != request.AccountId)
                     .ToList();
 
-                var currentAccount = _unitOfWork.Repository<Account>().GetAll()
+                var currentAccount = _unitOfWork.Repository<Account>().GetAll().AsNoTracking()
                     .Include(a => a.FriendAccountId1Navigations)
                     .Include(a => a.FriendAccountId2Navigations)
                     .SingleOrDefault(a => a.Id == request.AccountId);

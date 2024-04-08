@@ -80,7 +80,7 @@ namespace ThinkTank.Service.Services.ImpService
             try
             {
                 var filter = _mapper.Map<IconOfAccountResponse>(request);
-                var query = _unitOfWork.Repository<IconOfAccount>().GetAll().Include(x=>x.Account).Include(x=>x.Icon)
+                var query = _unitOfWork.Repository<IconOfAccount>().GetAll().AsNoTracking().Include(x=>x.Account).Include(x=>x.Icon)
                     .Select(x=>new IconOfAccountResponse
                     {
                         Id = x.Id,
@@ -110,7 +110,7 @@ namespace ThinkTank.Service.Services.ImpService
                 {
                     throw new CrudException(HttpStatusCode.BadRequest, "Id Icon Invalid", "");
                 }
-                var response = _unitOfWork.Repository<IconOfAccount>().GetAll().Include(x => x.Icon).Include(x=>x.Account)
+                var response = _unitOfWork.Repository<IconOfAccount>().GetAll().AsNoTracking().Include(x => x.Icon).Include(x=>x.Account)
                      .Select(x => new IconOfAccountResponse
                      {
                          Id = x.Id,

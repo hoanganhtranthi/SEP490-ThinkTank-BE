@@ -191,7 +191,7 @@ namespace ThinkTank.Service.Services.ImpService
                 {
                     throw new CrudException(HttpStatusCode.BadRequest, "Id Achievement Invalid", "");
                 }
-                var response = _unitOfWork.Repository<AccountInContest>().GetAll().Include(x => x.Account)
+                var response = _unitOfWork.Repository<AccountInContest>().GetAll().AsNoTracking().Include(x => x.Account)
                     .Include(x => x.Contest).Include(x=>x.Contest.Game).SingleOrDefault(x => x.Id == id);
 
                 if (response == null)
@@ -219,7 +219,7 @@ namespace ThinkTank.Service.Services.ImpService
             try
             {
                     var filter = _mapper.Map<AccountInContestResponse>(request);
-                    var accountInContests = _unitOfWork.Repository<AccountInContest>().GetAll().Include(x => x.Account).Include(x => x.Contest)
+                    var accountInContests = _unitOfWork.Repository<AccountInContest>().GetAll().AsNoTracking().Include(x => x.Account).Include(x => x.Contest)
                     .Select(x => new AccountInContestResponse
                     {
                         Id = x.Id,

@@ -256,7 +256,7 @@ namespace ThinkTank.Service.Services.ImpService
                 {
                     throw new CrudException(HttpStatusCode.BadRequest, "Id Account 1vs1 Invalid", "");
                 }
-                var response = _unitOfWork.Repository<AccountIn1vs1>().GetAll().Include(x => x.AccountId1Navigation)
+                var response = _unitOfWork.Repository<AccountIn1vs1>().GetAll().AsNoTracking().Include(x => x.AccountId1Navigation)
                     .Include(x => x.AccountId2Navigation).Include(x => x.Game).SingleOrDefault(x => x.Id == id);
 
                 if (response == null)
@@ -420,7 +420,7 @@ namespace ThinkTank.Service.Services.ImpService
             try
             {
                 var filter = _mapper.Map<AccountIn1vs1Response>(request);
-                var account1vs1s = _unitOfWork.Repository<AccountIn1vs1>().GetAll().Include(x => x.AccountId1Navigation)
+                var account1vs1s = _unitOfWork.Repository<AccountIn1vs1>().GetAll().AsNoTracking().Include(x => x.AccountId1Navigation)
                  .Include(x => x.AccountId2Navigation).Include(x => x.Game)
                     .Select(x => new AccountIn1vs1Response
                     {

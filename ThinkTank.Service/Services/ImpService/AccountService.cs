@@ -90,6 +90,15 @@ namespace ThinkTank.Service.Services.ImpService
                 var b = _mapper.Map<CreateBadgeRequest, Badge>(createBadgeRequest);
                 b.Status = false;
                 customer.Badges.Add(b);
+                var icons=_unitOfWork.Repository<Icon>().GetAll().AsNoTracking().Where(x=>x.Status==true && x.Price==0).ToList();
+                foreach (var icon in icons)
+                {
+                    IconOfAccount iconOfAccount = new IconOfAccount();
+                    iconOfAccount.AccountId=customer.Id;
+                    iconOfAccount.IconId = icon.Id;
+                    iconOfAccount.IsAvailable = true;
+                    customer.IconOfAccounts.Add(iconOfAccount);
+                 }
                 await _unitOfWork.Repository<Account>().CreateAsync(customer);
                 await _unitOfWork.CommitAsync();
                 return _mapper.Map<AccountResponse>(customer);
@@ -193,7 +202,7 @@ namespace ThinkTank.Service.Services.ImpService
             {
 
                 var filter = _mapper.Map<AccountResponse>(request);
-                var customers = _unitOfWork.Repository<Account>().GetAll()
+                var customers = _unitOfWork.Repository<Account>().GetAll().AsNoTracking()
                                            .ProjectTo<AccountResponse>(_mapper.ConfigurationProvider)
                                            .DynamicFilter(filter)
                                            .ToList();
@@ -371,7 +380,7 @@ namespace ThinkTank.Service.Services.ImpService
         {
             try
             {
-                Account user = _unitOfWork.Repository<Account>().Find(u => u.GoogleId.Equals(request.GoogleId) );
+                Account user = _unitOfWork.Repository<Account>().GetAll().SingleOrDefault(u => u.GoogleId.Equals(request.GoogleId));
                 if (user == null)
                 {
                     if(_unitOfWork.Repository<Account>().Find(x=>x.Email == request.Email) != null)
@@ -718,6 +727,8 @@ namespace ThinkTank.Service.Services.ImpService
                     throw new CrudException(HttpStatusCode.NotFound, $"Not found account with id{id.ToString()}", "");
                 }
                 account.Status = !account.Status;
+                account.VersionToken += 1;
+                account.RefreshToken = null;
                 await _unitOfWork.Repository<Account>().Update(account, id);
                 await _unitOfWork.CommitAsync();
                 return _mapper.Map<Account, AccountResponse>(account);

@@ -22,7 +22,7 @@ namespace ThinkTank.API.Controllers
         /// Get list of topic
         /// </summary>
         /// <param name="pagingRequest"></param>
-        /// <param name="anonymousRequest"></param>
+        /// <param name="request"></param>
         /// <returns></returns>
         [Authorize(Policy ="All")]
         [HttpGet]

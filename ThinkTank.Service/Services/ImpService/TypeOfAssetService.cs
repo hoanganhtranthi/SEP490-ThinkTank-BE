@@ -36,7 +36,7 @@ namespace ThinkTank.Service.Services.ImpService
                 {
                     throw new CrudException(HttpStatusCode.BadRequest, "Id Type Of Asset Invalid", "");
                 }
-                var response = _unitOfWork.Repository<TypeOfAsset>().GetAll().Include(x => x.Assets).Select(x=>new TypeOfAssetResponse
+                var response = _unitOfWork.Repository<TypeOfAsset>().GetAll().AsNoTracking().Include(x => x.Assets).Select(x=>new TypeOfAssetResponse
                 {
                     Id=x.Id,
                     Type=x.Type,
@@ -73,7 +73,7 @@ namespace ThinkTank.Service.Services.ImpService
             {
 
                 var filter = _mapper.Map<TypeOfAssetResponse>(request);
-                var typeOfAssetResponses = _unitOfWork.Repository<TypeOfAsset>().GetAll().Include(x => x.Assets)
+                var typeOfAssetResponses = _unitOfWork.Repository<TypeOfAsset>().GetAll().AsNoTracking().Include(x => x.Assets)
                     .Select(x => new TypeOfAssetResponse
                     {
                         Id = x.Id,

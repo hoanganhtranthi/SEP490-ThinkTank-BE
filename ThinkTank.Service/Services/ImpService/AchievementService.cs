@@ -233,7 +233,7 @@ namespace ThinkTank.Service.Services.ImpService
                 {
                     throw new CrudException(HttpStatusCode.BadRequest, "Id Achievement Invalid", "");
                 }
-                var response = _unitOfWork.Repository<Achievement>().GetAll().Include(c=>c.Account).Include(c=>c.Game).SingleOrDefault(x => x.Id == id);
+                var response = _unitOfWork.Repository<Achievement>().GetAll().AsNoTracking().Include(c=>c.Account).Include(c=>c.Game).SingleOrDefault(x => x.Id == id);
 
                 if (response == null)
                 {
@@ -259,7 +259,7 @@ namespace ThinkTank.Service.Services.ImpService
             try
             {
                 var filter = _mapper.Map<AchievementResponse>(request);
-                var achievements = _unitOfWork.Repository<Achievement>().GetAll().Include(x => x.Account).Include(x=>x.Game)
+                var achievements = _unitOfWork.Repository<Achievement>().GetAll().AsNoTracking().Include(x => x.Account).Include(x=>x.Game)
                     .Select(x => new AchievementResponse
                     {
                         Id = x.Id,
@@ -359,7 +359,7 @@ namespace ThinkTank.Service.Services.ImpService
                 var game = _unitOfWork.Repository<Game>().Find(x => x.Id == id);
                 if (game == null)
                     throw new CrudException(HttpStatusCode.NotFound, $"Game Id {id} not found","");
-                var achievements = _unitOfWork.Repository<Achievement>().GetAll().Include(c => c.Account).Include(c => c.Game)
+                var achievements = _unitOfWork.Repository<Achievement>().GetAll().AsNoTracking().Include(c => c.Account).Include(c => c.Game)
                     .Where(x=>x.GameId==id ).ToList();
 
                 IList<LeaderboardResponse> responses = new List<LeaderboardResponse>();

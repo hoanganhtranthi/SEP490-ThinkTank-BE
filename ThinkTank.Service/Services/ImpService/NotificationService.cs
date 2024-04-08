@@ -36,7 +36,7 @@ namespace ThinkTank.Service.Services.ImpService
                 {
                     throw new CrudException(HttpStatusCode.BadRequest, "Id Notification Invalid", "");
                 }
-                var response = _unitOfWork.Repository<Notification>().GetAll().Include(x => x.Account).FirstOrDefault(u => u.Id == id);
+                var response = _unitOfWork.Repository<Notification>().GetAll().AsNoTracking().Include(x => x.Account).FirstOrDefault(u => u.Id == id);
 
                 if (response == null)
                 {
@@ -63,7 +63,7 @@ namespace ThinkTank.Service.Services.ImpService
             {
 
                 var filter = _mapper.Map<NotificationResponse>(request);
-                var notifications = _unitOfWork.Repository<Notification>().GetAll().Include(a => a.Account).Select(x=>new NotificationResponse
+                var notifications = _unitOfWork.Repository<Notification>().GetAll().AsNoTracking().Include(a => a.Account).Select(x=>new NotificationResponse
                 {
                     AccountId=x.AccountId,
                     Title=x.Title,

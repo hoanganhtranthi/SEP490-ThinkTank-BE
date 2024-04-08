@@ -106,7 +106,7 @@ namespace ThinkTank.Service.Services.ImpService
                 {
                     throw new CrudException(HttpStatusCode.BadRequest, "Id Report Invalid", "");
                 }
-                var response = _unitOfWork.Repository<Report>().GetAll().Include(x => x.AccountId1Navigation).Include(x => x.AccountId2Navigation).FirstOrDefault(u => u.Id == id);
+                var response = _unitOfWork.Repository<Report>().GetAll().AsNoTracking().Include(x => x.AccountId1Navigation).Include(x => x.AccountId2Navigation).FirstOrDefault(u => u.Id == id);
 
                 if (response == null)
                 {
@@ -134,7 +134,7 @@ namespace ThinkTank.Service.Services.ImpService
             {
 
                 var filter = _mapper.Map<ReportResponse>(request);
-                var friends = _unitOfWork.Repository<Report>().GetAll().Include(a => a.AccountId1Navigation)
+                var friends = _unitOfWork.Repository<Report>().GetAll().AsNoTracking().Include(a => a.AccountId1Navigation)
                     .Include(a => a.AccountId2Navigation).Select(x => new ReportResponse
                     {
                         Id = x.Id,
