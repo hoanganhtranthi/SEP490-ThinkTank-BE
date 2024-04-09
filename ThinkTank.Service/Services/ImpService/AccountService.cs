@@ -44,10 +44,14 @@ namespace ThinkTank.Service.Services.ImpService
         private readonly IMapper _mapper;
         private readonly IConfiguration _config;
         private readonly IFirebaseMessagingService _firebaseMessagingService;
+        private readonly DateTime date;
         private readonly IFirebaseRealtimeDatabaseService _firebaseRealtimeDatabaseService;
         public AccountService(IUnitOfWork unitOfWork, IMapper mapper, IConfiguration configuration, IFirebaseMessagingService firebaseMessagingService, IFirebaseRealtimeDatabaseService firebaseRealtimeDatabaseService)
         {
             _unitOfWork = unitOfWork;
+            if (TimeZoneInfo.Local.BaseUtcOffset != TimeSpan.FromHours(7))
+                date = DateTime.UtcNow.ToLocalTime().AddHours(7);
+            else date = DateTime.Now;
             _mapper = mapper;
             _config = configuration;
             _firebaseMessagingService = firebaseMessagingService;
@@ -77,7 +81,10 @@ namespace ThinkTank.Service.Services.ImpService
                 customer.VersionToken = 1;
                 customer.Status = true;
                 customer.Avatar = "https://firebasestorage.googleapis.com/v0/b/thinktank-79ead.appspot.com/o/System%2Favatar-trang-4.jpg?alt=media&token=2ab24327-c484-485a-938a-ed30dc3b1688";
-                customer.RegistrationDate = DateTime.Now;
+                DateTime date = DateTime.Now;
+                if (TimeZoneInfo.Local.BaseUtcOffset != TimeSpan.FromHours(7))
+                    date = DateTime.UtcNow.ToLocalTime().AddHours(7);
+                customer.RegistrationDate = date;
                 if (createAccountRequest.Fcm == null || createAccountRequest.Fcm == "")
                     customer.Fcm = null;
                 customer.Coin = 1000;
@@ -237,7 +244,7 @@ namespace ThinkTank.Service.Services.ImpService
                     user.Fcm = request.Fcm;
                     await _unitOfWork.Repository<Account>().Update(user, user.Id);
                     DateTime newDateTime = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day, 21, 0, 0);
-                    if (DateTime.Now > newDateTime)
+                    if (date > newDateTime)
                     await GetBadge(user, "Nocturnal");
                 await _unitOfWork.CommitAsync();
                 var rs = _mapper.Map<Account, AccountResponse>(user);
@@ -266,7 +273,6 @@ namespace ThinkTank.Service.Services.ImpService
                     user.FullName = "Admin";
                    rs = _mapper.Map<Account, AccountResponse>(user);
                     rs.UserName = "Admin";
-                    var expiryTime = DateTime.MaxValue;
                     var adminAccount = _firebaseRealtimeDatabaseService.GetAsync<AdminAccountResponse>("AdminAccount").Result;
                     if (adminAccount != null)
                     {
@@ -342,7 +348,7 @@ namespace ThinkTank.Service.Services.ImpService
                 new Claim("version",customer.VersionToken.ToString()),
                 });             
             }
-            tokenDescriptor.Expires = DateTime.Now.AddMinutes(20);
+            tokenDescriptor.Expires = date.AddMinutes(20);
             tokenDescriptor.SigningCredentials = new(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature);
             var token = tokenHandler.CreateToken(tokenDescriptor);
             return tokenHandler.WriteToken(token);
@@ -371,7 +377,7 @@ namespace ThinkTank.Service.Services.ImpService
                  new Claim("version", customer.VersionToken.ToString()),
                 });
             }
-            tokenDescriptor.Expires = DateTime.Now.AddMonths(6);
+            tokenDescriptor.Expires = date.AddMonths(6);
             tokenDescriptor.SigningCredentials = new(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature);
             var token = tokenHandler.CreateToken(tokenDescriptor);
             return tokenHandler.WriteToken(token);
@@ -388,7 +394,7 @@ namespace ThinkTank.Service.Services.ImpService
                     user = _mapper.Map<Account>(request);
                     user.VersionToken = 1;
                     user.Status = true;
-                    user.RegistrationDate = DateTime.Now;
+                    user.RegistrationDate = date;
                     if (request.FCM == null || request.FCM == "")
                         user.Fcm = null;
                     user.Coin = 1000;
@@ -442,14 +448,14 @@ namespace ThinkTank.Service.Services.ImpService
         {
             var badge = _unitOfWork.Repository<Badge>().GetAll().Include(x => x.Challenge).SingleOrDefault(x => x.AccountId == account.Id && x.Challenge.Name.Equals(name));
             var challage = _unitOfWork.Repository<Challenge>().Find(x => x.Name.Equals(name));
-            var noti = _unitOfWork.Repository<Notification>().Find(x => x.Title == $"You have received {challage.Name} badge.");
+            var noti = _unitOfWork.Repository<Notification>().Find(x => x.Description == $"You have received {challage.Name} badge." && x.AccountId == account.Id);
             if (badge != null)
             {
                 if (badge.CompletedLevel < challage.CompletedMilestone)
                  badge.CompletedLevel += 1;
                 if (badge.CompletedLevel == challage.CompletedMilestone && noti == null )
                 {
-                    badge.CompletedDate = DateTime.Now;
+                    badge.CompletedDate = date;
                     #region send noti for account
                     List<string> fcmTokens = new List<string>();
                     if (account.Fcm != null)
@@ -548,7 +554,7 @@ namespace ThinkTank.Service.Services.ImpService
                 if (account.Status == false) throw new CrudException(HttpStatusCode.BadRequest, "Your account is block", "");
                 if (account == null)
                     throw new CrudException(HttpStatusCode.NotFound, $"Not found account with id{accountId.ToString()}", "");
-                if (DateTime.Now.Year - request.DateOfBirth.Value.Year < 5 )
+                if (date.Year - request.DateOfBirth.Value.Year < 5 )
                     throw new CrudException(HttpStatusCode.BadRequest, "Date Of Birth is invalid", "");
 
                 var existingEmailAccount = _unitOfWork.Repository<Account>().Find(c => c.Email.Equals(request.Email) && c.Id != accountId);

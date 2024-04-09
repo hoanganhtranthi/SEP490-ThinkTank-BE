@@ -22,8 +22,12 @@ namespace ThinkTank.Service.Services.ImpService
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
+        private readonly DateTime date;
         public GameService(IUnitOfWork unitOfWork, IMapper mapper)
         {
+            if (TimeZoneInfo.Local.BaseUtcOffset != TimeSpan.FromHours(7))
+                date = DateTime.UtcNow.ToLocalTime().AddHours(7);
+            else date = DateTime.Now;
             _unitOfWork = unitOfWork;
             _mapper = mapper;
         }     
@@ -68,7 +72,7 @@ namespace ThinkTank.Service.Services.ImpService
         {
             try
             {
-                var currentDateMonth = DateTime.Now.Month;
+                var currentDateMonth = date.Month;
 
                 var totalSinglePlayer = _unitOfWork.Repository<Achievement>()
                     .GetAll().AsNoTracking()

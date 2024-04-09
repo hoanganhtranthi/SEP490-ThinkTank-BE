@@ -26,9 +26,13 @@ namespace ThinkTank.Service.Services.ImpService
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
+        private readonly DateTime date;
         private readonly IFirebaseMessagingService _firebaseMessagingService;
         public AchievementService(IUnitOfWork unitOfWork, IMapper mapper,IFirebaseMessagingService firebaseMessagingService)
         {
+            if (TimeZoneInfo.Local.BaseUtcOffset != TimeSpan.FromHours(7))
+                date = DateTime.UtcNow.ToLocalTime().AddHours(7);
+            else date = DateTime.Now;
             _unitOfWork = unitOfWork;
             _mapper = mapper;
             _firebaseMessagingService = firebaseMessagingService;
@@ -55,7 +59,7 @@ namespace ThinkTank.Service.Services.ImpService
                 if (createAchievementRequest.Level > level + 1 || createAchievementRequest.Level <= 0)
                         throw new CrudException(HttpStatusCode.BadRequest, "Invalid Level", "");
 
-                achievement.CompletedTime = DateTime.Now;
+                achievement.CompletedTime = date;
                 var highScore = account.Achievements.Where(x => x.AccountId == account.Id && x.Level == achievement.Level && x.GameId == game.Id).OrderByDescending(x => x.Mark).FirstOrDefault();
                 if (highScore!= null && createAchievementRequest.Mark > highScore.Mark)
                    await GetBadge(account, "The Breaker");
@@ -117,14 +121,14 @@ namespace ThinkTank.Service.Services.ImpService
         {
             var badge = _unitOfWork.Repository<Badge>().GetAll().Include(x => x.Challenge).SingleOrDefault(x => x.AccountId == account.Id && x.Challenge.Name.Equals("Plow Lord"));
             var challage = _unitOfWork.Repository<Challenge>().Find(x => x.Name.Equals("Plow Lord"));
-            var noti = _unitOfWork.Repository<Notification>().Find(x => x.Title == $"You have received {challage.Name} badge.");
+            var noti = _unitOfWork.Repository<Notification>().Find(x => x.Description == $"You have received {challage.Name} badge." && x.AccountId==account.Id);
             if (badge != null && list.Count() == (badge.CompletedLevel + 1))
             {
                 if (badge.CompletedLevel < challage.CompletedMilestone)
                     badge.CompletedLevel += 1;
                 if (badge.CompletedLevel == challage.CompletedMilestone && noti == null)
                 {
-                    badge.CompletedDate = DateTime.Now;
+                    badge.CompletedDate = date;
                     #region send noti for account
                     List<string> fcmTokens = new List<string>();
                     if (account.Fcm != null)
@@ -149,7 +153,7 @@ namespace ThinkTank.Service.Services.ImpService
                     {
                         AccountId = account.Id,
                         Avatar = challage.Avatar,
-                        DateNotification = DateTime.Now,
+                        DateNotification = date,
                         Status = false,
                         Description = $"You have received {challage.Name} badge.",
                         Title = "ThinkTank"
@@ -173,14 +177,14 @@ namespace ThinkTank.Service.Services.ImpService
         {
           var badge = _unitOfWork.Repository<Badge>().GetAll().Include(x => x.Challenge).SingleOrDefault(x => x.AccountId == account.Id && x.Challenge.Name.Equals(name));
           var challage = _unitOfWork.Repository<Challenge>().Find(x => x.Name.Equals(name));
-          var noti = _unitOfWork.Repository<Notification>().Find(x => x.Title == $"You have received {challage.Name} badge.");
+          var noti = _unitOfWork.Repository<Notification>().Find(x => x.Description == $"You have received {challage.Name} badge." && x.AccountId==account.Id);
            if (badge != null)
            {
                 if (badge.CompletedLevel < challage.CompletedMilestone)
                     badge.CompletedLevel += 1;
                 if (badge.CompletedLevel == challage.CompletedMilestone && noti ==null )
                 {
-                    badge.CompletedDate = DateTime.Now;
+                    badge.CompletedDate = date;
                     #region send noti for account
                     List<string> fcmTokens = new List<string>();
                     if (account.Fcm != null)
@@ -205,7 +209,7 @@ namespace ThinkTank.Service.Services.ImpService
                     {
                         AccountId = account.Id,
                         Avatar = challage.Avatar,
-                        DateNotification = DateTime.Now,
+                        DateNotification = date,
                         Description = $"You have received {challage.Name} badge.",
                         Status=false,
                         Title = "ThinkTank"

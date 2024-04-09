@@ -23,8 +23,12 @@ namespace ThinkTank.Service.Services.ImpService
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
+        private readonly DateTime date;
         public RoomService(IUnitOfWork unitOfWork, IMapper mapper)
         {
+            if (TimeZoneInfo.Local.BaseUtcOffset != TimeSpan.FromHours(7))
+                date = DateTime.UtcNow.ToLocalTime().AddHours(7);
+            else date = DateTime.Now;
             _unitOfWork = unitOfWork;
             _mapper = mapper;
         }
@@ -40,7 +44,7 @@ namespace ThinkTank.Service.Services.ImpService
                     throw new CrudException(HttpStatusCode.NotFound, $"Topic Id {createRoomRequest.TopicId} Not Found!!!!!", "");
                 }
                 
-                if (room.AmountPlayer < 2 || room.AmountPlayer > 8)
+                if (room.AmountPlayer < 2 || room.AmountPlayer > 5)
                     throw new CrudException(HttpStatusCode.BadRequest, "Amout Player Is Invalid", "");
                 
                 room.StartTime = null;
@@ -321,7 +325,7 @@ namespace ThinkTank.Service.Services.ImpService
                 if (room.AccountInRooms.SingleOrDefault(x => x.IsAdmin == true).AccountId != accountId)
                     throw new CrudException(HttpStatusCode.BadRequest, $"Only the admin role has the right to cancel rooms", "");
                 
-                if( room.StartTime != null && room.StartTime < DateTime.Now)
+                if( room.StartTime != null && room.StartTime < date)
                     throw new CrudException(HttpStatusCode.BadRequest, $"Accounts in this room party have already started playing so cannot be canceled", "");
                 await _unitOfWork.Repository<AccountInRoom>().DeleteRange(room.AccountInRooms.ToArray());
                 await _unitOfWork.Repository<Room>().RemoveAsync(room);
@@ -366,7 +370,7 @@ namespace ThinkTank.Service.Services.ImpService
                 if (accountInRoom == null)
                     throw new CrudException(HttpStatusCode.BadRequest, $"This account does not participate in the room {roomId}", "");
                 
-                if (room.StartTime != null && room.StartTime < DateTime.Now)
+                if (room.StartTime != null && room.StartTime < date)
                     throw new CrudException(HttpStatusCode.BadRequest, $"The room has started so {accountId} can't leave", "");
                 
                 _unitOfWork.Repository<AccountInRoom>().Delete(accountInRoom);
@@ -409,7 +413,7 @@ namespace ThinkTank.Service.Services.ImpService
                     throw new CrudException(HttpStatusCode.NotFound, $"Not found room with id {roomId.ToString()}", "");
                 }
                 room.Status = false;
-                room.EndTime = DateTime.Now;
+                room.EndTime = date;
                 await _unitOfWork.Repository<Room>().Update(room, roomId);
                 await _unitOfWork.CommitAsync();
                 var rs = _mapper.Map<RoomResponse>(room);
@@ -447,7 +451,7 @@ namespace ThinkTank.Service.Services.ImpService
                 {
                     throw new CrudException(HttpStatusCode.NotFound, $"Not found room with id {roomId.ToString()}", "");
                 }
-                room.StartTime = DateTime.Now;
+                room.StartTime = date;
                 room.Status = true;
                 await _unitOfWork.Repository<Room>().Update(room, roomId);
                 await _unitOfWork.CommitAsync();

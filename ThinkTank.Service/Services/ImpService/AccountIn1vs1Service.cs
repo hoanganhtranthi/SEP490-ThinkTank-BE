@@ -30,8 +30,12 @@ namespace ThinkTank.Service.Services.ImpService
         private static SemaphoreSlim _semaphore = new SemaphoreSlim(1, 1);
         private readonly IMapper _mapper;
         private readonly IFirebaseMessagingService _firebaseMessagingService;
+        private readonly DateTime date;
         public AccountIn1vs1Service(IUnitOfWork unitOfWork, IMapper mapper, IFirebaseMessagingService firebaseMessagingService)
         {
+            if (TimeZoneInfo.Local.BaseUtcOffset != TimeSpan.FromHours(7))
+                date = DateTime.UtcNow.ToLocalTime().AddHours(7);
+            else date = DateTime.Now;
             _unitOfWork = unitOfWork;
             _mapper = mapper;
             _firebaseMessagingService = firebaseMessagingService;
@@ -71,79 +75,8 @@ namespace ThinkTank.Service.Services.ImpService
                 var accountIn1vs1 = _unitOfWork.Repository<AccountIn1vs1>().Find(x => x.AccountId1 == createAccount1vs1Request.AccountId1 && x.AccountId2 == createAccount1vs1Request.AccountId2 && x.RoomOfAccountIn1vs1Id == createAccount1vs1Request.RoomOfAccountIn1vs1Id);
                 if (accountIn1vs1 != null)
                     throw new CrudException(HttpStatusCode.BadRequest, $"These two accounts have already played against this room id {createAccount1vs1Request.RoomOfAccountIn1vs1Id} together", "");
-               /* if(room != null)
-                {
-                    if (room.TimeId1 == 0 && room.TimeId2 == 0 || room.TimeId1 == room.TimeId2)
-                    {
-                        accIn1vs1.WinnerId = 0;
-                        a.Coin = createAccount1vs1Request.Coin;
-                        a2.Coin = createAccount1vs1Request.Coin;
-                    }
-                    if(room.TimeId1 ==0)
-                    {
-                            accIn1vs1.WinnerId = a.Id;
-                            a.Coin += createAccount1vs1Request.Coin * 2;
-                            #region send noti for account
-                            List<string> fcmTokens = new List<string>();
-                            if (a.Fcm != null)
-                                fcmTokens.Add(a.Fcm);
-                            var data = new Dictionary<string, string>()
-                            {
-                                ["click_action"] = "FLUTTER_NOTIFICATION_CLICK",
-                                ["Action"] = "home",
-                                ["Argument"] = JsonConvert.SerializeObject(new JsonSerializerSettings
-                                {
-                                    ContractResolver = new DefaultContractResolver
-                                    {
-                                        NamingStrategy = new SnakeCaseNamingStrategy()
-                                    }
-                                }),
-                            };
-                            if (fcmTokens.Any())
-                                _firebaseMessagingService.SendToDevices(fcmTokens,
-                                                                       new FirebaseAdmin.Messaging.Notification() { Title = "ThinkTank 1vs1 Mode", Body = "Your opponent lost connection so you won" }, data);
-                        #endregion
-                    }
-                    if (room.TimeId2 == 0)
-                    {
-                          accIn1vs1.WinnerId = a2.Id;
-                         a2.Coin += (createAccount1vs1Request.Coin * 2);
-                        #region send noti for account
-                        List<string> fcmTokens = new List<string>();
-                        if (a2.Fcm != null)
-                            fcmTokens.Add(a2.Fcm);
-                        var data = new Dictionary<string, string>()
-                        {
-                            ["click_action"] = "FLUTTER_NOTIFICATION_CLICK",
-                            ["Action"] = "home",
-                            ["Argument"] = JsonConvert.SerializeObject(new JsonSerializerSettings
-                            {
-                                ContractResolver = new DefaultContractResolver
-                                {
-                                    NamingStrategy = new SnakeCaseNamingStrategy()
-                                }
-                            }),
-                        };
-                        if (fcmTokens.Any())
-                            _firebaseMessagingService.SendToDevices(fcmTokens,
-                                                                   new FirebaseAdmin.Messaging.Notification() { Title = "ThinkTank 1vs1 Mode", Body = "Your opponent lost connection so you won" }, data);
-                        #endregion
-                    }
-                    if (room.TimeId1 != 0 && room.TimeId2 != 0)
-                    {
-                        if (room.TimeId1 < room.TimeId2)
-                        {
-                            accIn1vs1.WinnerId = a.Id;
-                            a.Coin += (createAccount1vs1Request.Coin * 2);
-                        }
-                        if (room.TimeId1 > room.TimeId2)
-                        {
-                            accIn1vs1.WinnerId = a2.Id;
-                            a2.Coin += createAccount1vs1Request.Coin * 2;
-                        }
-                    }
-                }*/
-                accIn1vs1.EndTime = DateTime.Now;
+                
+                accIn1vs1.EndTime = date;
                 accIn1vs1.Game = c;
                 accIn1vs1.AccountId1Navigation = a;
                 accIn1vs1.AccountId2Navigation = a2;
@@ -163,8 +96,8 @@ namespace ThinkTank.Service.Services.ImpService
                    
                 if(createAccount1vs1Request.WinnerId==0 ||createAccount1vs1Request.WinnerId ==null)
                 {
-                    a.Coin = createAccount1vs1Request.Coin;
-                    a2.Coin = createAccount1vs1Request.Coin;
+                    a.Coin +=createAccount1vs1Request.Coin;
+                    a2.Coin += createAccount1vs1Request.Coin;
                 }
                 await _unitOfWork.Repository<AccountIn1vs1>().CreateAsync(accIn1vs1);
                 await _unitOfWork.Repository<Account>().Update(a, a.Id);
@@ -192,7 +125,7 @@ namespace ThinkTank.Service.Services.ImpService
         {
             var badge = _unitOfWork.Repository<Badge>().GetAll().Include(x => x.Challenge).SingleOrDefault(x => x.AccountId == account.Id && x.Challenge.Name.Equals(name));
             var challage = _unitOfWork.Repository<Challenge>().Find(x => x.Name.Equals(name));
-            var noti = _unitOfWork.Repository<Notification>().Find(x => x.Title == $"You have received {challage.Name} badge.");
+            var noti = _unitOfWork.Repository<Notification>().Find(x => x.Description == $"You have received {challage.Name} badge." && x.AccountId == account.Id);
             if (badge != null)
             {
                 if (badge.CompletedLevel < challage.CompletedMilestone)
@@ -203,7 +136,8 @@ namespace ThinkTank.Service.Services.ImpService
                 }
                 if (badge.CompletedLevel == challage.CompletedMilestone && noti == null)
                 {
-                    badge.CompletedDate = DateTime.Now;
+
+                    badge.CompletedDate = date;
                     #region send noti for account
                     List<string> fcmTokens = new List<string>();
                     if (account.Fcm != null)
@@ -228,7 +162,7 @@ namespace ThinkTank.Service.Services.ImpService
                     {
                         AccountId = account.Id,
                         Avatar = challage.Avatar,
-                        DateNotification = DateTime.Now,
+                        DateNotification = date,
                         Description = $"You have received {challage.Name} badge.",
                         Status = false,
                         Title = "ThinkTank"

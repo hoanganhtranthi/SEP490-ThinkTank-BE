@@ -64,6 +64,7 @@ builder.Services.AddScoped<IAccountInRoomService, AccountInRoomService>();
 builder.Services.AddScoped<IFirebaseRealtimeDatabaseService, FirebaseRealtimeDatabaseService>();
 builder.Services.AddScoped<IAnalysisService, AnalysisService>();
 builder.Services.AddTransient<IAuthorizationHandler, CustomAuthorizationHandler>();
+
 //FCM
 System.Environment.SetEnvironmentVariable("GOOGLE_APPLICATION_CREDENTIALS", "thinktank-ad0b3-45e7681d45c6.json");
 FirebaseApp.Create(new AppOptions()

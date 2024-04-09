@@ -7,6 +7,7 @@ using System.Linq;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 using ThinkTank.Data.Entities;
 using ThinkTank.Data.UnitOfWork;
 using ThinkTank.Service.DTO.Request;
@@ -58,7 +59,10 @@ namespace ThinkTank.Service.Services.ImpService
                     throw new CrudException(HttpStatusCode.BadRequest, "Not enough coin to buy icon", "");
                 account.Coin = account.Coin - icon.Price;
                 await _unitOfWork.Repository<IconOfAccount>().CreateAsync(rs);
+                var badge = _unitOfWork.Repository<Badge>().GetAll().Include(x => x.Challenge).SingleOrDefault(x => x.AccountId == account.Id && x.Challenge.Name.Equals("The Tycoon"));
+                badge.CompletedLevel = (int)account.Coin;
                 await _unitOfWork.Repository<Account>().Update(account, createIconRequest.AccountId);
+                await _unitOfWork.Repository<Badge>().Update(badge, badge.Id);
                 await _unitOfWork.CommitAsync();
                 var response = _mapper.Map<IconOfAccountResponse>(rs);
                 response.UserName = account.UserName;

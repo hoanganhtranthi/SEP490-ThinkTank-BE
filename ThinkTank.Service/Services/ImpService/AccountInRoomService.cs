@@ -24,8 +24,12 @@ namespace ThinkTank.Service.Services.ImpService
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
+        private readonly DateTime date;
         public AccountInRoomService(IUnitOfWork unitOfWork, IMapper mapper)
         {
+            if (TimeZoneInfo.Local.BaseUtcOffset != TimeSpan.FromHours(7))
+                date = DateTime.UtcNow.ToLocalTime().AddHours(7);
+            else date = DateTime.Now;
             _unitOfWork = unitOfWork;
             _mapper = mapper;
         }
@@ -46,7 +50,7 @@ namespace ThinkTank.Service.Services.ImpService
                 if (accountInRoom == null)
                     throw new CrudException(HttpStatusCode.NotFound, $"This account in room Id {createAccountInRoomRequest.AccountId} is not found !!!", "");
                 _mapper.Map<CreateAndUpdateAccountInRoomRequest, AccountInRoom>(createAccountInRoomRequest,accountInRoom);
-                accountInRoom.CompletedTime = DateTime.Now;
+                accountInRoom.CompletedTime = date;
                 await _unitOfWork.Repository<AccountInRoom>().Update(accountInRoom,accountInRoomId);
                 await _unitOfWork.CommitAsync();
                 var rs = _mapper.Map<AccountInRoomResponse>(accountInRoom);
