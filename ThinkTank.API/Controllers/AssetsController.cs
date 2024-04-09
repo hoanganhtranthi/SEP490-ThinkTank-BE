@@ -49,7 +49,7 @@ namespace ThinkTank.API.Controllers
         /// <returns></returns>
       [Authorize(Policy = "Admin")]
         [HttpPost()]
-        public async Task<ActionResult<AssetResponse>> CreateAsset([FromBody] List<CreateAssetRequest> resource)
+        public async Task<ActionResult<List<AssetResponse>>> CreateAsset([FromBody] List<CreateAssetRequest> resource)
         {
             var rs = await _assetService.CreateAsset(resource);
             return Ok(rs);

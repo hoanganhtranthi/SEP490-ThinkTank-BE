@@ -37,10 +37,14 @@ namespace ThinkTank.Service.Services.ImpService
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
+        private readonly DateTime date;
         private readonly IFirebaseMessagingService _firebaseMessagingService;
         private readonly IFirebaseRealtimeDatabaseService firebaseRealtimeDatabaseService;
         public ContestService(IUnitOfWork unitOfWork, IMapper mapper, IFirebaseMessagingService firebaseMessagingService, IFirebaseRealtimeDatabaseService firebaseRealtimeDatabaseService)
         {
+            if (TimeZoneInfo.Local.BaseUtcOffset != TimeSpan.FromHours(7))
+                date = DateTime.UtcNow.ToLocalTime().AddHours(7);
+            else date = DateTime.Now;
             _unitOfWork = unitOfWork;
             _mapper = mapper;
             _firebaseMessagingService = firebaseMessagingService;
@@ -68,9 +72,6 @@ namespace ThinkTank.Service.Services.ImpService
                 contest.EndTime = createContestRequest.EndTime;
                 contest.CoinBetting = createContestRequest.CoinBetting;
                 contest.GameId = createContestRequest.GameId;
-                DateTime date = DateTime.Now;
-                if (TimeZoneInfo.Local.BaseUtcOffset != TimeSpan.FromHours(7))
-                     date = DateTime.UtcNow.ToLocalTime().AddHours(7);
                 if (contest.StartTime > contest.EndTime || createContestRequest.StartTime < date || createContestRequest.EndTime < date)
                 {
                     throw new CrudException(HttpStatusCode.BadRequest, "Start Time or End Time is invalid", "");
@@ -155,7 +156,7 @@ namespace ThinkTank.Service.Services.ImpService
                     {
                         AccountId = account.Id,
                         Avatar = contest.Thumbnail,
-                        DateNotification = DateTime.Now,
+                        DateNotification = date,
                         Status=false,
                         Description = $"\"{contest.Name}\"” is opened. Join now.",
                         Title = "ThinkTank Contest"
@@ -179,12 +180,23 @@ namespace ThinkTank.Service.Services.ImpService
 
                 if (contest == null)
                 {
-                    throw new CrudException(HttpStatusCode.NotFound, $"Not found contest with id{id.ToString()}", "");
+                    throw new CrudException(HttpStatusCode.NotFound, $"Not found contest with id{id}", "");
                 }
                 if (contest.Status == false)
-                    throw new CrudException(HttpStatusCode.BadRequest, $"Contest {id.ToString()} has ended", "");
+                    throw new CrudException(HttpStatusCode.BadRequest, $"Contest {id} has ended", "");
                 contest.Status = false;
-
+                var jobId = firebaseRealtimeDatabaseService.GetAsync<string>($"Contest{contest.Id}JobIdEndTime").Result;
+                if (jobId != null)
+                {
+                    BackgroundJob.Delete(jobId);
+                    await firebaseRealtimeDatabaseService.RemoveData($"Contest{contest.Id}JobIdEndTime");
+                }
+                var jobStartId = firebaseRealtimeDatabaseService.GetAsync<string>($"Contest{contest.Id}JobIdStartTime").Result;
+                if (jobStartId != null)
+                {
+                    BackgroundJob.Delete(jobStartId);
+                    await firebaseRealtimeDatabaseService.RemoveData($"Contest{contest.Id}JobIdStartTime");
+                }
                 await _unitOfWork.Repository<Contest>().Update(contest, id);
                 #region send noti for account
                 var accounts = _unitOfWork.Repository<AccountInContest>().GetAll().Include(a => a.Account).Where(a => a.ContestId == contest.Id && a.Account.Status==true).ToList();
@@ -200,7 +212,10 @@ namespace ThinkTank.Service.Services.ImpService
                         }
                     }),
                 };
-                _firebaseMessagingService.SendToTopic($"/topics/contestId{contest.Id}",
+                List<string> fcmTokens = new List<string>();
+                fcmTokens=accounts.Where(x=>x.Account.Fcm !=null).Select(x=>x.Account.Fcm).ToList();
+                if (fcmTokens.Any())                   
+                    _firebaseMessagingService.SendToDevices(fcmTokens,
                                                        new FirebaseAdmin.Messaging.Notification() { Title = "ThinkTank Contest", Body = $"\"{contest.Name}\"” is closed. Thank you for participating in the contest.", ImageUrl = $"{contest.Thumbnail}" }, data);
                 if (accounts.Any())
                 {
@@ -210,7 +225,7 @@ namespace ThinkTank.Service.Services.ImpService
                         {
                             AccountId = account.AccountId,
                             Avatar = contest.Thumbnail,
-                            DateNotification= DateTime.Now,
+                            DateNotification= date,
                             Description = $"\"{contest.Name}\"” is closed.Thank you for participating in the contest.",
                             Status = false,
                             Title = "ThinkTank Contest"
@@ -219,22 +234,7 @@ namespace ThinkTank.Service.Services.ImpService
                         await _unitOfWork.Repository<Notification>().CreateAsync(notification);
                         #endregion
                     }
-                }
-                var fcmTokens = accounts.Where(a => a.Account.Fcm != null && a.Account.Fcm != "").Select(a => a.Account.Fcm).ToList();
-                if (fcmTokens.Any())
-                    _firebaseMessagingService.Unsubcribe(fcmTokens, $"/topics/contestId{contest.Id}");
-                    var jobId = firebaseRealtimeDatabaseService.GetAsync<string>($"Contest{contest.Id}JobIdEndTime").Result;
-                    if (jobId != null)
-                    {
-                        BackgroundJob.Delete(jobId);
-                       await firebaseRealtimeDatabaseService.RemoveData($"Contest{contest.Id}JobIdEndTime");
-                    }
-                    var jobStartId = firebaseRealtimeDatabaseService.GetAsync<string>($"Contest{contest.Id}JobIdStartTime").Result;
-                    if (jobStartId != null)
-                    {
-                        BackgroundJob.Delete(jobStartId);
-                        await firebaseRealtimeDatabaseService.RemoveData($"Contest{contest.Id}JobIdStartTime");
-                    }   
+                }                 
                 var leaderboard = await GetLeaderboardOfContest(id);
 
                 foreach (var contestant in leaderboard.Take(3))
@@ -257,10 +257,10 @@ namespace ThinkTank.Service.Services.ImpService
                     int reward = (int)Math.Round((decimal)(contest.CoinBetting * contest.AccountInContests.Count * (rewardPercentage / 100.0m)));
                     account.Coin =account.Coin+reward;
                     await _unitOfWork.Repository<Account>().Update(account, account.Id);
-                    var fcm = new List<string>();
-                    fcm.Add(account.Fcm);
-                    if (fcm.Any())
-                        _firebaseMessagingService.SendToDevices(fcm,
+                    fcmTokens.Clear();
+                    fcmTokens.Add(account.Fcm);
+                    if (fcmTokens.Any())
+                        _firebaseMessagingService.SendToDevices(fcmTokens,
                       new FirebaseAdmin.Messaging.Notification()
                       {
                           Title = "ThinkTank Contest",
@@ -270,14 +270,14 @@ namespace ThinkTank.Service.Services.ImpService
                         {
                             AccountId = account.Id,
                             Avatar = contest.Thumbnail,
-                            DateNotification = DateTime.Now,
+                            DateNotification = date,
                             Description = $"Congratulations! You won top 1 in the contest \"{contest.Name}\" and received {reward} ThinkTank coins”",
                             Status=false,
                             Title = "ThinkTank Contest"
                         };
 
                     await _unitOfWork.Repository<Notification>().CreateAsync(notification);
-                     await  GetBadge(account, "The Tycoon");
+                    await  GetBadge(account, "The Tycoon");
                 }
 
                 await _unitOfWork.CommitAsync();
@@ -296,7 +296,7 @@ namespace ThinkTank.Service.Services.ImpService
         {
             var badge = _unitOfWork.Repository<Badge>().GetAll().Include(x => x.Challenge).SingleOrDefault(x => x.AccountId == account.Id && x.Challenge.Name.Equals(name));
             var challage = _unitOfWork.Repository<Challenge>().Find(x => x.Name.Equals(name));
-            var noti = _unitOfWork.Repository<Notification>().Find(x => x.Title == $"You have received {challage.Name} badge.");
+            var noti = _unitOfWork.Repository<Notification>().Find(x => x.Description == $"You have received {challage.Name} badge." && x.AccountId == account.Id);
             if (badge != null)
             {
                 if (badge.CompletedLevel < challage.CompletedMilestone)
@@ -304,7 +304,7 @@ namespace ThinkTank.Service.Services.ImpService
                 if (badge.CompletedLevel == challage.CompletedMilestone && noti ==null)
                 {
                     badge.Status = true;
-                    badge.CompletedDate = DateTime.Now;
+                    badge.CompletedDate = date;
                     #region send noti for account
                     List<string> fcmTokens = new List<string>();
                     if (account.Fcm != null)
@@ -329,7 +329,7 @@ namespace ThinkTank.Service.Services.ImpService
                     {
                         AccountId = account.Id,
                         Avatar = challage.Avatar,
-                        DateNotification = DateTime.Now,
+                        DateNotification = date,
                         Description = $"You have received {challage.Name} badge.",
                         Status = false,
                         Title = "ThinkTank"
@@ -569,9 +569,6 @@ namespace ThinkTank.Service.Services.ImpService
                     throw new CrudException(HttpStatusCode.NotFound, $"Game {request.GameId} not found !!!", "");
                 }
                 var existingContest = _unitOfWork.Repository<Contest>().GetAll().FirstOrDefault(c => c.Name.Equals(request.Name) && c.Id != contestId);
-                DateTime date = DateTime.Now;
-                if (TimeZoneInfo.Local.BaseUtcOffset != TimeSpan.FromHours(7))
-                    date = DateTime.UtcNow.ToLocalTime().AddHours(7);
                 if (existingContest != null)
                     throw new CrudException(HttpStatusCode.BadRequest, "Name of contest has already been taken", "");
                 if (request.StartTime > request.EndTime)
@@ -687,7 +684,7 @@ namespace ThinkTank.Service.Services.ImpService
                 var contests = _unitOfWork.Repository<Contest>()
                 .GetAll()
                 .Include(x => x.AccountInContests).Include(x=>x.Game).AsNoTracking()
-                .Where(x => x.StartTime.Month == DateTime.Now.Month)
+                .Where(x => x.StartTime.Month == date.Month)
                 .OrderByDescending(x => x.AccountInContests.Count())
                  .ToList();
                 var listBestContest=contests.Where(x => x.AccountInContests.Count() == contests.FirstOrDefault().AccountInContests.Count()).ToList();

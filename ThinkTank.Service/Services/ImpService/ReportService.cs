@@ -23,9 +23,13 @@ namespace ThinkTank.Service.Services.ImpService
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
+        private readonly DateTime date;
         private readonly IFirebaseMessagingService _firebaseMessagingService;
         public ReportService(IUnitOfWork unitOfWork, IMapper mapper, IFirebaseMessagingService firebaseMessagingService)
         {
+            if (TimeZoneInfo.Local.BaseUtcOffset != TimeSpan.FromHours(7))
+                date = DateTime.UtcNow.ToLocalTime().AddHours(7);
+            else date = DateTime.Now;
             _unitOfWork = unitOfWork;
             _mapper = mapper;
             _firebaseMessagingService = firebaseMessagingService;
@@ -49,7 +53,7 @@ namespace ThinkTank.Service.Services.ImpService
                 {
                     throw new CrudException(HttpStatusCode.NotFound, $" Account Id {createReportRequest.AccountId2} is not found !!!", "");
                 }
-                report.DateReport = DateTime.Now;
+                report.DateReport = date;
                 await _unitOfWork.Repository<Report>().CreateAsync(report);
                 if (s.Avatar == null)
                     s.Avatar = "https://firebasestorage.googleapis.com/v0/b/thinktank-79ead.appspot.com/o/System%2Flogo_2_bg%201%20%281%29.png?alt=media&token=437436e4-28ce-4a0c-a7d2-a8763064151f";
@@ -76,7 +80,7 @@ namespace ThinkTank.Service.Services.ImpService
                 {
                     AccountId = cus.Id,
                     Avatar = s.Avatar,
-                    DateNotification = DateTime.Now,
+                    DateNotification = date,
                     Description = $"You have a report for acting {createReportRequest.Title}.",
                     Title = "ThinkTank Report",
                     Status=false,

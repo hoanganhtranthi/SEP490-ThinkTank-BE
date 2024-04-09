@@ -25,10 +25,14 @@ namespace ThinkTank.Service.Services.ImpService
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
+        private readonly DateTime date;
         private readonly IFirebaseMessagingService _firebaseMessagingService;
 
         public FriendService(IUnitOfWork unitOfWork, IMapper mapper, IFirebaseMessagingService firebaseMessagingService)
         {
+            if (TimeZoneInfo.Local.BaseUtcOffset != TimeSpan.FromHours(7))
+                date = DateTime.UtcNow.ToLocalTime().AddHours(7);
+            else date = DateTime.Now;
             _unitOfWork = unitOfWork;
             _mapper = mapper;
             _firebaseMessagingService = firebaseMessagingService;
@@ -85,7 +89,7 @@ namespace ThinkTank.Service.Services.ImpService
                 {
                     AccountId = cus.Id,
                     Avatar = s.Avatar,
-                    DateNotification = DateTime.Now,
+                    DateNotification = date,
                     Description = $"{s.FullName} sent you a friend request.",
                     Status = false,
                     Title= "ThinkTank Community"
@@ -327,7 +331,7 @@ namespace ThinkTank.Service.Services.ImpService
                 {
                     AccountId = friend.AccountId1,
                     Avatar = friend.AccountId2Navigation.Avatar,
-                    DateNotification = DateTime.Now,
+                    DateNotification = date,
                     Status = false,
                     Description = $"{friend.AccountId2Navigation.FullName}  has agreed to be friends. ",
                     Title = "ThinkTank Community"
@@ -356,14 +360,14 @@ namespace ThinkTank.Service.Services.ImpService
         {
             var badge = _unitOfWork.Repository<Badge>().GetAll().Include(x => x.Challenge).SingleOrDefault(x => x.AccountId == account.Id && x.Challenge.Name.Equals(name));
             var challage = _unitOfWork.Repository<Challenge>().Find(x => x.Name.Equals(name));
-            var noti = _unitOfWork.Repository<Notification>().Find(x => x.Title == $"You have received {challage.Name} badge.");
+            var noti = _unitOfWork.Repository<Notification>().Find(x => x.Description == $"You have received {challage.Name} badge." && x.AccountId == account.Id);
             if (badge != null)
             {
                 if (badge.CompletedLevel < challage.CompletedMilestone)
                     badge.CompletedLevel += 1;
                 if (badge.CompletedLevel == challage.CompletedMilestone && noti ==null)
                 {
-                    badge.CompletedDate = DateTime.Now;
+                    badge.CompletedDate = date;
                     #region send noti for account
                     List<string> fcmTokens = new List<string>();
                     if (account.Fcm != null)
@@ -388,7 +392,7 @@ namespace ThinkTank.Service.Services.ImpService
                     {
                         AccountId = account.Id,
                         Avatar = challage.Avatar,
-                        DateNotification = DateTime.Now,
+                        DateNotification = date,
                         Description = $"You have received {challage.Name} badge.",
                         Status=false,
                         Title = "ThinkTank"
