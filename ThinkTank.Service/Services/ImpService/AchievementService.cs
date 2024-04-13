@@ -28,7 +28,8 @@ namespace ThinkTank.Service.Services.ImpService
         private readonly IMapper _mapper;
         private readonly DateTime date;
         private readonly IFirebaseMessagingService _firebaseMessagingService;
-        public AchievementService(IUnitOfWork unitOfWork, IMapper mapper,IFirebaseMessagingService firebaseMessagingService)
+        private readonly IFirebaseRealtimeDatabaseService _firebaseRealtimeDatabaseService;
+        public AchievementService(IUnitOfWork unitOfWork, IMapper mapper,IFirebaseMessagingService firebaseMessagingService,IFirebaseRealtimeDatabaseService firebaseRealtimeDatabaseService)
         {
             if (TimeZoneInfo.Local.BaseUtcOffset != TimeSpan.FromHours(7))
                 date = DateTime.UtcNow.ToLocalTime().AddHours(7);
@@ -36,6 +37,7 @@ namespace ThinkTank.Service.Services.ImpService
             _unitOfWork = unitOfWork;
             _mapper = mapper;
             _firebaseMessagingService = firebaseMessagingService;
+            _firebaseRealtimeDatabaseService = firebaseRealtimeDatabaseService;
         }
 
         public async Task<AchievementResponse> CreateAchievement(CreateAchievementRequest createAchievementRequest)
@@ -51,6 +53,9 @@ namespace ThinkTank.Service.Services.ImpService
                 if (account == null)
                     throw new CrudException(HttpStatusCode.NotFound, $"This account id {createAchievementRequest.AccountId} is not found !!!", "");
 
+                if (account.Status == false)
+                    throw new CrudException(HttpStatusCode.BadRequest, $"Account Id {account.Id} not available!!!!!", "");
+
                 var levels = _unitOfWork.Repository<Achievement>().GetAll().Where(x => x.AccountId == createAchievementRequest.AccountId && createAchievementRequest.GameId == x.GameId).OrderBy(x => x.Level).ToList();
                 var level = 0;
                 if (levels.Count() > 0)
@@ -58,12 +63,27 @@ namespace ThinkTank.Service.Services.ImpService
                 else level = 0;
                 if (createAchievementRequest.Level > level + 1 || createAchievementRequest.Level <= 0)
                         throw new CrudException(HttpStatusCode.BadRequest, "Invalid Level", "");
+                achievement.Account = account;
+                achievement.Game = game;
+                var gameAchievement = account.Achievements.Where(x => x.GameId == game.Id).ToList();
+                var twoLastAchievement = gameAchievement.Skip(Math.Max(0, gameAchievement.Count - 2)).Take(2).ToList();
+                if (twoLastAchievement.Any())
+                {
+                    bool areConsecutive = twoLastAchievement.Count() == 2 && twoLastAchievement.ToArray()[0].Level == twoLastAchievement.ToArray()[1].Level - 1 && twoLastAchievement.ToArray()[0].Mark > 0 && twoLastAchievement.ToArray()[1].Mark > 0;
+                    if (createAchievementRequest.Level != twoLastAchievement.LastOrDefault().Level && createAchievementRequest.Mark > 0 && areConsecutive && twoLastAchievement.Last().Level + 1 == createAchievementRequest.Level)
+                    {
+                        await GetBadge(account, "Streak killer");
+                    }
+                }
+
+                var highScore = account.Achievements.Where(x => x.AccountId == account.Id && x.Level == achievement.Level && x.GameId == game.Id).OrderByDescending(x => x.Mark).FirstOrDefault();
+                if (highScore != null && createAchievementRequest.Mark > highScore.Mark)
+                    await GetBadge(account, "The Breaker");
 
                 achievement.CompletedTime = date;
-                var highScore = account.Achievements.Where(x => x.AccountId == account.Id && x.Level == achievement.Level && x.GameId == game.Id).OrderByDescending(x => x.Mark).FirstOrDefault();
-                if (highScore!= null && createAchievementRequest.Mark > highScore.Mark)
-                   await GetBadge(account, "The Breaker");
                 await _unitOfWork.Repository<Achievement>().CreateAsync(achievement);
+
+                
                 var leaderboard = GetLeaderboard(createAchievementRequest.GameId).Result;
                 var top1 = leaderboard.FirstOrDefault();
 
@@ -71,31 +91,20 @@ namespace ThinkTank.Service.Services.ImpService
                    await GetBadge(account, "Fast and Furious");
 
                 var acc = leaderboard.SingleOrDefault(x => x.AccountId == account.Id);
-                if ( leaderboard.Count()>1 &&(account.Achievements.Any(x => x.GameId == createAchievementRequest.GameId && x.Level == createAchievementRequest.Level) &&
-                    (acc != null && acc.Mark + createAchievementRequest.Mark >= top1?.Mark)))
+                if ( leaderboard.Count() > 10 &&
+                    (acc != null && acc.Mark + createAchievementRequest.Mark >= top1?.Mark))
                 {
                    await GetBadge(account, "Legend");
                 }
                 var list = new List<Achievement>();
                 foreach (var result in account.Achievements)
                 {
-                    var t = _unitOfWork.Repository<Game>().GetAll().SingleOrDefault(x => x.Id == result.GameId);
-                    if (list.SingleOrDefault(x => x.GameId == t.Id) == null)
+                    if (list.SingleOrDefault(x => x.GameId == result.GameId) == null)
                     {
                         if (result.Level == 10)
                             list.Add(result);
                     }
 
-                }
-                
-                var twoLastAchievement = account.Achievements.Where(x => x.GameId == game.Id).Skip(Math.Max(0, account.Achievements.Count - 2)).Take(2).ToList();
-                if (twoLastAchievement.Any())
-                {
-                    bool areConsecutive = twoLastAchievement.Count() == 2 && twoLastAchievement.ToArray()[0].Level == twoLastAchievement.ToArray()[1].Level - 1 && twoLastAchievement.ToArray()[0].Mark > 0 && twoLastAchievement.ToArray()[1].Mark > 0;
-                    if (createAchievementRequest.Level != twoLastAchievement.LastOrDefault().Level && createAchievementRequest.Mark > 0 && areConsecutive && twoLastAchievement.Last().Level + 1 == createAchievementRequest.Level)
-                    {
-                      await  GetBadge(account, "Streak killer");
-                    }
                 }
                 if (account.Achievements.Count(x => x.GameId == createAchievementRequest.GameId && x.Level == 10) == 1)
                 {
@@ -136,7 +145,7 @@ namespace ThinkTank.Service.Services.ImpService
                     var data = new Dictionary<string, string>()
                     {
                         ["click_action"] = "FLUTTER_NOTIFICATION_CLICK",
-                        ["Action"] = "home",
+                        ["Action"] = "/achievement",
                         ["Argument"] = JsonConvert.SerializeObject(new JsonSerializerSettings
                         {
                             ContractResolver = new DefaultContractResolver
@@ -162,15 +171,14 @@ namespace ThinkTank.Service.Services.ImpService
                 }
                 await _unitOfWork.Repository<Badge>().Update(badge, badge.Id);
             }
-            else
+            if(badge == null)
             {
-                CreateBadgeRequest createBadgeRequest = new CreateBadgeRequest();
-                createBadgeRequest.AccountId = account.Id;
-                createBadgeRequest.CompletedLevel = 1;
-                createBadgeRequest.ChallengeId = challage.Id;
-                var b = _mapper.Map<CreateBadgeRequest, Badge>(createBadgeRequest);
-                b.Status = false;
-                await _unitOfWork.Repository<Badge>().CreateAsync(b);
+                badge = new Badge();
+                badge.AccountId = account.Id;
+                badge.CompletedLevel = 1;
+                badge.ChallengeId = challage.Id;
+                badge.Status = false;
+                await _unitOfWork.Repository<Badge>().CreateAsync(badge);
             }
         }
         private async Task GetBadge(Account account, string name)
@@ -192,7 +200,7 @@ namespace ThinkTank.Service.Services.ImpService
                     var data = new Dictionary<string, string>()
                     {
                         ["click_action"] = "FLUTTER_NOTIFICATION_CLICK",
-                        ["Action"] = "home",
+                        ["Action"] = "/achievement",
                         ["Argument"] = JsonConvert.SerializeObject(new JsonSerializerSettings
                         {
                             ContractResolver = new DefaultContractResolver
@@ -218,17 +226,16 @@ namespace ThinkTank.Service.Services.ImpService
                 }
                 await _unitOfWork.Repository<Badge>().Update(badge, badge.Id);
             }
-                else
-                {
-                CreateBadgeRequest createBadgeRequest = new CreateBadgeRequest();
-                createBadgeRequest.AccountId = account.Id;
-                createBadgeRequest.CompletedLevel = 1;
-                createBadgeRequest.ChallengeId = challage.Id;
-                var b = _mapper.Map<CreateBadgeRequest, Badge>(createBadgeRequest);
-                b.Status = false;
-                await _unitOfWork.Repository<Badge>().CreateAsync(b);
-                }
-            }        
+        else
+            {
+                badge = new Badge();
+                badge.AccountId = account.Id;
+                badge.CompletedLevel = 1;
+                badge.ChallengeId = challage.Id;
+                badge.Status = false;
+                await _unitOfWork.Repository<Badge>().CreateAsync(badge);
+            }
+    }        
         public async Task<AchievementResponse> GetAchievementById(int id)
         {
             try
@@ -427,7 +434,6 @@ namespace ThinkTank.Service.Services.ImpService
         private Achievement GetSumScoreOfAccount(int id, List<Achievement> achievements)
         {
             List<Achievement> responses = new List<Achievement>();
-            var score = 0;
             Account account = null;
             foreach (var achievement in achievements)
             {
@@ -436,7 +442,6 @@ namespace ThinkTank.Service.Services.ImpService
                     var highestScore = achievements.Where(x => x.AccountId == id && x.Level == achievement.Level).OrderByDescending(x=>x.Mark).FirstOrDefault();
                     if (highestScore != null)
                     {
-                        score += highestScore.Mark;
                         responses.Add(highestScore);
                         account = highestScore.Account;
                     }

@@ -70,6 +70,20 @@ namespace ThinkTank.API.Controllers
             return Ok(rs);
         }
         /// <summary>
+        /// Match play countervailing mode with friend
+        /// </summary>
+        /// <param name="accountId1"></param>
+        ///  <param name="gameId"></param>
+        ///   <param name="accountId2"></param>
+        /// <returns></returns>
+       [Authorize(Policy = "Player")]
+        [HttpGet("{accountId1:int},{gameId:int},{accountId2:int}/countervailing-mode-with-friend")]
+        public async Task<ActionResult<dynamic>> CreateRoomPlayCountervailingWithFriend(int accountId1, int gameId, int accountId2)
+        {
+            var rs = await accountIn1Vs1Service.CreateRoomPlayCountervailingWithFriend(gameId, accountId1, accountId2);
+            return Ok(rs);
+        }
+        /// <summary>
         /// Remove Account From Cache
         /// </summary>
         /// <param name="accountId"></param>

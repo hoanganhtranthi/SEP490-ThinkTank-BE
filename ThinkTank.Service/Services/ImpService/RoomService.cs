@@ -24,13 +24,15 @@ namespace ThinkTank.Service.Services.ImpService
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
         private readonly DateTime date;
-        public RoomService(IUnitOfWork unitOfWork, IMapper mapper)
+        private readonly IFirebaseRealtimeDatabaseService _firebaseRealtimeDatabaseService;
+        public RoomService(IUnitOfWork unitOfWork, IMapper mapper, IFirebaseRealtimeDatabaseService firebaseRealtimeDatabaseService)
         {
             if (TimeZoneInfo.Local.BaseUtcOffset != TimeSpan.FromHours(7))
                 date = DateTime.UtcNow.ToLocalTime().AddHours(7);
             else date = DateTime.Now;
             _unitOfWork = unitOfWork;
             _mapper = mapper;
+            _firebaseRealtimeDatabaseService = firebaseRealtimeDatabaseService;
         }
         public async Task<RoomResponse> CreateRoom(CreateRoomRequest createRoomRequest)
         {
@@ -44,7 +46,7 @@ namespace ThinkTank.Service.Services.ImpService
                     throw new CrudException(HttpStatusCode.NotFound, $"Topic Id {createRoomRequest.TopicId} Not Found!!!!!", "");
                 }
                 
-                if (room.AmountPlayer < 2 || room.AmountPlayer > 5)
+                if (room.AmountPlayer < 2 || room.AmountPlayer > 8)
                     throw new CrudException(HttpStatusCode.BadRequest, "Amout Player Is Invalid", "");
                 
                 room.StartTime = null;
@@ -104,7 +106,7 @@ namespace ThinkTank.Service.Services.ImpService
                     throw new CrudException(HttpStatusCode.BadRequest, "The room has ended so I can't update", "");
                 
                 List<AccountInRoom> list = new List<AccountInRoom>();
-                list.Add(room.AccountInRooms.SingleOrDefault(x => x.IsAdmin == true));
+                list = room.AccountInRooms.ToList();
                 foreach (var accountInRoom in createAccountInRoomRequests)
                 {
                     var account = _mapper.Map<AccountInRoom>(accountInRoom);
@@ -156,19 +158,18 @@ namespace ThinkTank.Service.Services.ImpService
                 throw new CrudException(HttpStatusCode.InternalServerError, "Add Member To Room Error!!!", ex?.Message);
             }
         }
-        public async Task<List<LeaderboardResponse>> GetLeaderboardOfRoom(int roomId)
+        public async Task<List<LeaderboardResponse>> GetLeaderboardOfRoom(string roomCode)
         {
             try
             {
                 var room = _unitOfWork.Repository<Room>().GetAll().AsNoTracking().Include(c => c.AccountInRooms)
-                      .SingleOrDefault(c => c.Id == roomId);
+                      .SingleOrDefault(c => c.Code == roomCode);
 
                 if (room == null)
                 {
-                    throw new CrudException(HttpStatusCode.NotFound, $"Not found room with id{roomId.ToString()}", "");
+                    throw new CrudException(HttpStatusCode.NotFound, $"Not found room with code {roomCode}", "");
                 }
-                if (room.Status != false)
-                    throw new CrudException(HttpStatusCode.BadRequest, "The room is not finished yet so there can not have leaderboard", "");
+            
                 IList<LeaderboardResponse> responses = new List<LeaderboardResponse>();
                 if (room.AccountInRooms.Count() > 0)
                 {
@@ -397,24 +398,24 @@ namespace ThinkTank.Service.Services.ImpService
                 throw new CrudException(HttpStatusCode.InternalServerError, "Leave room error!!!!!", ex.Message);
             }
         }
-        public async Task<RoomResponse> GetToUpdateStatusRoom(int roomId)
+        public async Task<RoomResponse> GetToUpdateStatusRoom(string roomCode)
         {
             try
             {
-                if (roomId <= 0)
+                if (roomCode =="" || roomCode==null)
                 {
                     throw new CrudException(HttpStatusCode.BadRequest, "Id Room Invalid", "");
                 }
                 var room = _unitOfWork.Repository<Room>().GetAll().Include(x => x.Topic).Include(x => x.AccountInRooms)
-                    .Include(x => x.Topic.Game).FirstOrDefault(u => u.Id == roomId);
+                    .Include(x => x.Topic.Game).FirstOrDefault(u => u.Code == roomCode);
 
                 if (room == null)
                 {
-                    throw new CrudException(HttpStatusCode.NotFound, $"Not found room with id {roomId.ToString()}", "");
+                    throw new CrudException(HttpStatusCode.NotFound, $"Not found room with code {roomCode}", "");
                 }
                 room.Status = false;
                 room.EndTime = date;
-                await _unitOfWork.Repository<Room>().Update(room, roomId);
+                await _unitOfWork.Repository<Room>().Update(room, room.Id);
                 await _unitOfWork.CommitAsync();
                 var rs = _mapper.Map<RoomResponse>(room);
                 rs.TopicName = room.Topic.Name;
@@ -433,32 +434,45 @@ namespace ThinkTank.Service.Services.ImpService
             }
             catch (Exception ex)
             {
-                throw new CrudException(HttpStatusCode.InternalServerError, "Cancel room error!!!!!", ex.Message);
+                throw new CrudException(HttpStatusCode.InternalServerError, "Update status room error!!!!!", ex.Message);
             }
         }
-        public async Task<RoomResponse> GetToStartRoom(int roomId)
+        public async Task<RoomResponse> GetToStartRoom(string roomCode, int accountId, int time)
         {
             try
             {
-                if (roomId <= 0)
+                if (roomCode ==null || roomCode =="")
                 {
-                    throw new CrudException(HttpStatusCode.BadRequest, "Id Room Invalid", "");
+                    throw new CrudException(HttpStatusCode.BadRequest, "Information Invalid", "");
                 }
-                var room = _unitOfWork.Repository<Room>().GetAll().Include(x => x.Topic).Include(x => x.AccountInRooms)
-                    .Include(x => x.Topic.Game).FirstOrDefault(u => u.Id == roomId);
+                var roomOfAccount = _unitOfWork.Repository<Room>().GetAll().Include(x => x.Topic).Include(x => x.AccountInRooms)
+                    .Include(x => x.Topic.Game).FirstOrDefault(u => u.Code == roomCode);
 
-                if (room == null)
+                if (roomOfAccount == null)
                 {
-                    throw new CrudException(HttpStatusCode.NotFound, $"Not found room with id {roomId.ToString()}", "");
+                    throw new CrudException(HttpStatusCode.NotFound, $"Not found room with code {roomCode}", "");
                 }
-                room.StartTime = date;
-                room.Status = true;
-                await _unitOfWork.Repository<Room>().Update(room, roomId);
+                if(roomOfAccount.AccountInRooms.Count() <2 || roomOfAccount.AccountInRooms.Count() > roomOfAccount.AmountPlayer)
+                    throw new CrudException(HttpStatusCode.BadRequest, "The number of participants does not match the amout player", "");
+                
+                if(roomOfAccount.AccountInRooms.SingleOrDefault(x=>x.AccountId==accountId).IsAdmin==false)
+                    throw new CrudException(HttpStatusCode.BadRequest, $"Account Id {accountId} does not have permission to start this room id", "");
+                roomOfAccount.StartTime = date;
+                roomOfAccount.Status = true;
+
+                var roomRealtimeDatabase = await _firebaseRealtimeDatabaseService.GetAsyncOfRoom<RoomRealtimeDatabaseResponse>($"room/{roomCode}");
+                Thread.Sleep(time*1000 + 20000);
+                roomRealtimeDatabase.AmountPlayerDone = roomOfAccount.AccountInRooms.Count();
+                await _firebaseRealtimeDatabaseService.SetAsyncOfRoom<int>($"room/{roomCode}/AmountPlayerDone", roomRealtimeDatabase.AmountPlayerDone);
+
+                roomOfAccount.Status = false;
+                roomOfAccount.EndTime = date;
+                await _unitOfWork.Repository<Room>().Update(roomOfAccount, roomOfAccount.Id);
                 await _unitOfWork.CommitAsync();
-                var rs = _mapper.Map<RoomResponse>(room);
-                rs.TopicName = room.Topic.Name;
-                rs.GameName = room.Topic.Game.Name;
-                rs.AccountInRoomResponses = _mapper.Map<List<AccountInRoomResponse>>(room.AccountInRooms);
+                var rs = _mapper.Map<RoomResponse>(roomOfAccount);
+                rs.TopicName = roomOfAccount.Topic.Name;
+                rs.GameName = roomOfAccount.Topic.Game.Name;
+                rs.AccountInRoomResponses = _mapper.Map<List<AccountInRoomResponse>>(roomOfAccount.AccountInRooms);
                 foreach (var acc in rs.AccountInRoomResponses)
                 {
                     acc.Avatar = _unitOfWork.Repository<Account>().Find(x => x.Id == acc.AccountId).Avatar;

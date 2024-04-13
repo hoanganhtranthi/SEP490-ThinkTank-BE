@@ -131,7 +131,12 @@ namespace ThinkTank.Service.Services.ImpService
                 if (badge.CompletedLevel < challage.CompletedMilestone)
                 {
                     if (name.Equals("The Tycoon"))
-                        badge.CompletedLevel =(int) account.Coin;
+                    {
+                        if (account.Coin < challage.CompletedMilestone)
+                            badge.CompletedLevel = (int)account.Coin;
+                        else badge.CompletedLevel = challage.CompletedMilestone;
+                    }
+
                     else badge.CompletedLevel += 1;
                 }
                 if (badge.CompletedLevel == challage.CompletedMilestone && noti == null)
@@ -145,7 +150,7 @@ namespace ThinkTank.Service.Services.ImpService
                     var data = new Dictionary<string, string>()
                     {
                         ["click_action"] = "FLUTTER_NOTIFICATION_CLICK",
-                        ["Action"] = "home",
+                        ["Action"] = "/achievement",
                         ["Argument"] = JsonConvert.SerializeObject(new JsonSerializerSettings
                         {
                             ContractResolver = new DefaultContractResolver
@@ -173,13 +178,12 @@ namespace ThinkTank.Service.Services.ImpService
             }
             else
             {
-                CreateBadgeRequest createBadgeRequest = new CreateBadgeRequest();
-                createBadgeRequest.AccountId = account.Id;
-                createBadgeRequest.CompletedLevel = 1;
-                createBadgeRequest.ChallengeId = challage.Id;
-                var b = _mapper.Map<CreateBadgeRequest, Badge>(createBadgeRequest);
-                b.Status = false;
-                await _unitOfWork.Repository<Badge>().CreateAsync(b);
+                badge = new Badge();
+                badge.AccountId = account.Id;
+                badge.CompletedLevel = 1;
+                badge.ChallengeId = challage.Id;
+                badge.Status = false;
+                await _unitOfWork.Repository<Badge>().CreateAsync(badge);
             }
         }
         public async Task<AccountIn1vs1Response> GetAccount1vs1ById(int id)
@@ -216,13 +220,97 @@ namespace ThinkTank.Service.Services.ImpService
         {
 
             var cacheKey = $"{id}+{coin}+{gameId}+{uniqueId}";
-            var cacheResult = await CacheService.Instance.GetJobsAsync(cacheKey);               
-                if (cacheResult == null || !cacheResult.Any())
-                {
-                    await CacheService.Instance.AddJobAsync(cacheKey, "account1vs1");
-                }
-        }
+            await CacheService.Instance.AddJobAsync(cacheKey, "account1vs1");
+            
 
+        }
+        public async Task<dynamic> CreateRoomPlayCountervailingWithFriend(int gameId, int accountId1,int accountId2)
+        {
+            try
+            {
+                if (gameId <= 0 || accountId1 <=0 || accountId2 <=0)
+                {
+                    throw new CrudException(HttpStatusCode.BadRequest, "Id  Invalid", "");
+                }
+                var game = _unitOfWork.Repository<Game>().Find(u => u.Id == gameId);
+
+                if (game == null)
+                {
+                    throw new CrudException(HttpStatusCode.NotFound, $"Not found game with id{gameId}", "");
+                }
+
+                var a = _unitOfWork.Repository<Account>().Find (a => a.Id == accountId1);
+                if (a == null)
+                {
+                    throw new CrudException(HttpStatusCode.NotFound, $"Account Id {accountId1} Not Found!!!!!", "");
+                }
+                if (a.Status.Equals(false))
+                {
+                    throw new CrudException(HttpStatusCode.BadRequest, $"Account Id {accountId1} Not Available!!!!!", "");
+                }
+                var a2 = _unitOfWork.Repository<Account>().Find(a => a.Id == accountId2);
+                if (a2 == null)
+                {
+                    throw new CrudException(HttpStatusCode.NotFound, $"Account Id {accountId2} Not Found!!!!!", "");
+                }
+                if (a.Status.Equals(false))
+                {
+                    throw new CrudException(HttpStatusCode.BadRequest, $"Account Id {accountId2}  Not Available!!!!!", "");
+                }
+                var friend=_unitOfWork.Repository<Friend>().Find(x=>x.AccountId2 == accountId2 && x.AccountId1==accountId1&& x.Status==true || x.AccountId1==accountId2 && x.AccountId2==accountId1 && x.Status==true);
+                if (friend == null)
+                    throw new CrudException(HttpStatusCode.BadRequest, $"Account Id {accountId1} and account id {accountId2} is not friend so can not play 1vs1 together","");
+                var uniqueId = Guid.NewGuid().ToString().Substring(0, 8).ToUpper();
+                #region send noti for account
+                List<string> fcmTokens = new List<string>();
+                if (a2.Fcm != null)
+                    fcmTokens.Add(a2.Fcm);
+                var data = new Dictionary<string, string>()
+                {
+                    ["click_action"] = "FLUTTER_NOTIFICATION_CLICK",
+                    ["Action"] = "home",
+                    ["Argument"] = JsonConvert.SerializeObject(new JsonSerializerSettings
+                    {
+                        ContractResolver = new DefaultContractResolver
+                        {
+                            NamingStrategy = new SnakeCaseNamingStrategy()
+                        }
+                    }),
+                };
+                if (fcmTokens.Any())
+                     _firebaseMessagingService.SendToDevices(fcmTokens,
+                                                           new FirebaseAdmin.Messaging.Notification() { Title = $"ThinkTank Countervailing With Friend {uniqueId}/{gameId} ", Body = $"You receive an invitation to play countervailing mode from your friend {a.FullName}", ImageUrl = a.Avatar }, data);
+                #endregion
+                Notification notification = new Notification
+                {
+                    AccountId = a2.Id,
+                    Avatar = a.Avatar,
+                    Account=a2,
+                    DateNotification = date,
+                    Description = $"You receive an invitation to play countervailing mode from your friend {a.FullName}",
+                    Status = false,
+                    Title = $"ThinkTank Countervailing With Friend {uniqueId}/{gameId}"
+                };
+                await _unitOfWork.Repository<Notification>().CreateAsync(notification);
+                await _unitOfWork.CommitAsync();
+                return new
+                {
+                    AccountId = a2.Id,
+                    Avatar = a2.Avatar,
+                    Coin = a2.Coin,
+                    RoomId = uniqueId,
+                    Username = a2.UserName
+                };
+            }
+            catch (CrudException ex)
+            {
+                throw ex;
+            }
+            catch (Exception ex)
+            {
+                throw new CrudException(HttpStatusCode.InternalServerError, "Match play countervailing mode with friend error!!!!!", ex.Message);
+            }
+        }
         private async Task RemoveFromCacheAsync(string accountInfo)
         {
             await CacheService.Instance.DeleteJobAsync("account1vs1",accountInfo);
@@ -231,9 +319,9 @@ namespace ThinkTank.Service.Services.ImpService
         {
             try
             {
-                if (id <= 0)
+                if (id <= 0 || coin <=0 || gameId <= 0 || uniqueId == null || uniqueId == "")
                 {
-                    throw new CrudException(HttpStatusCode.BadRequest, "Id Account  Invalid", "");
+                    throw new CrudException(HttpStatusCode.BadRequest, "Information Invalid", "");
                 }
 
                 var account = await _unitOfWork.Repository<Account>().FindAsync(a => a.Id == id);
@@ -248,6 +336,8 @@ namespace ThinkTank.Service.Services.ImpService
                 }
 
                 var game = await _unitOfWork.Repository<Game>().FindAsync(x => x.Id == gameId);
+                if (game == null)
+                    throw new CrudException(HttpStatusCode.BadRequest, $"Game Id {gameId} not found", "");
                 var list = await CacheService.Instance.GetJobsAsync("account1vs1");
                 string acc =  list.SingleOrDefault(x => x == $"{id}+{coin}+{gameId}+{uniqueId}");
                 if (acc == null)
@@ -265,15 +355,15 @@ namespace ThinkTank.Service.Services.ImpService
             }
         }
             public async Task<dynamic> FindAccountTo1vs1(int id, int coin, int gameId)
-        {
-            try
             {
+                try
+                {
                         await _semaphore.WaitAsync(); // Di chuyển semaphore vào bên trong để giảm thiểu thời gian chờ đợi
                         try
                         {
-                            if (id <= 0)
+                            if (id <= 0 || coin <=0 || gameId <=0)
                             {
-                                throw new CrudException(HttpStatusCode.BadRequest, "Id Account  Invalid", "");
+                                throw new CrudException(HttpStatusCode.BadRequest, "Information Invalid", "");
                             }
 
                             var account = await _unitOfWork.Repository<Account>().FindAsync(a => a.Id == id);
@@ -380,5 +470,6 @@ namespace ThinkTank.Service.Services.ImpService
                 throw new CrudException(HttpStatusCode.InternalServerError, "Get accounts 1vs1 list error!!!!!", ex.Message);
             }
         }
+
     }
 }

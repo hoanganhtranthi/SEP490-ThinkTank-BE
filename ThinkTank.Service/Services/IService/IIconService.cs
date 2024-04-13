@@ -12,6 +12,5 @@ namespace ThinkTank.Service.Services.IService
     {
         Task<PagedResults<IconResponse>> GetIcons(IconRequest request, PagingRequest paging);
         Task<IconResponse> GetIconById(int id);
-        Task<IconResponse> GetToUpdateStatus(int id);
     }
 }

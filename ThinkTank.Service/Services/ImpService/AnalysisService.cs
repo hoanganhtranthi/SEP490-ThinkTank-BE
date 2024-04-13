@@ -32,7 +32,8 @@ namespace ThinkTank.Service.Services.ImpService
                 var account = _unitOfWork.Repository<Account>().Find(x => x.Id == accountId);
                 if (account == null)
                     throw new CrudException(HttpStatusCode.NotFound, $"Account Id {accountId} not found ", "");
-                var achievements = _unitOfWork.Repository<Achievement>().GetAll().AsNoTracking().Include(x => x.Account).Include(x => x.Game)
+                var achievements = _unitOfWork.Repository<Achievement>().GetAll().AsNoTracking()
+                .Include(x => x.Game)
                     .Where(x => x.AccountId == accountId).ToList();
                 var result = new List<GameLevelOfAccountResponse>();
                 foreach (var achievement in achievements)
@@ -119,7 +120,7 @@ namespace ThinkTank.Service.Services.ImpService
                     .Select(achievement => new
                     {
                         EndTime = achievement.CompletedTime.Date,
-                        Value = (double)(achievement.PieceOfInformation / achievement.Duration)
+                        Value = achievement.Duration > 0 ? (double)(achievement.PieceOfInformation / achievement.Duration):0
                     })
                     .ToList();
                 if(request.FilterMonth != null && request.FilterYear==null || request.FilterMonth==null && request.FilterYear !=null)

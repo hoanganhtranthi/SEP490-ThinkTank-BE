@@ -27,5 +27,11 @@ namespace ThinkTank.Service.Helpers
             False=3,
             Null=4,
         }
+        public enum StatusIconType
+        {
+            All = 1,
+            True = 2,
+            False = 3
+        }
     }
 }

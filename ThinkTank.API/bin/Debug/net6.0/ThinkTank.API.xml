@@ -35,6 +35,15 @@
               <param name="coin"></param>
             <returns></returns>
         </member>
+        <member name="M:ThinkTank.API.Controllers.AccountIn1vs1sController.CreateRoomPlayCountervailingWithFriend(System.Int32,System.Int32,System.Int32)">
+            <summary>
+            Match play countervailing mode with friend
+            </summary>
+            <param name="accountId1"></param>
+             <param name="gameId"></param>
+              <param name="accountId2"></param>
+            <returns></returns>
+        </member>
         <member name="M:ThinkTank.API.Controllers.AccountIn1vs1sController.RemoveAccountFromCache(System.Int32,System.Int32,System.Int32,System.String)">
             <summary>
             Remove Account From Cache
@@ -90,11 +99,12 @@
             <param name="id"></param>
             <returns></returns>
         </member>
-        <member name="M:ThinkTank.API.Controllers.AccountInRoomsController.UpdateAccountInRoom(System.Int32,ThinkTank.Service.DTO.Request.CreateAndUpdateAccountInRoomRequest)">
+        <member name="M:ThinkTank.API.Controllers.AccountInRoomsController.UpdateAccountInRoom(System.String,ThinkTank.Service.DTO.Request.CreateAndUpdateAccountInRoomRequest)">
             <summary>
             Create Account In Room
             </summary>
             <param name="request"></param>
+            <param name="roomCode"></param>
             <returns></returns>
         </member>
         <member name="M:ThinkTank.API.Controllers.AccountsController.GetAccounts(ThinkTank.Service.DTO.Request.PagingRequest,ThinkTank.Service.DTO.Request.AccountRequest)">
@@ -365,7 +375,7 @@
         </member>
         <member name="M:ThinkTank.API.Controllers.FriendsController.GetFriends(ThinkTank.Service.DTO.Request.PagingRequest,ThinkTank.Service.DTO.Request.FriendRequest)">
             <summary>
-            Get list of friendships (1: All, 2 : True, 3:False, 4: Null)
+            Get list of friendships of account Id (1: All, 2 : True, 3:False, 4: Null)
             </summary>
             <param name="pagingRequest"></param>
             <param name="friendRequest"></param>
@@ -457,13 +467,6 @@
             <param name="id"></param>
             <returns></returns>
         </member>
-        <member name="M:ThinkTank.API.Controllers.IconsController.GetToUpdateStatus(System.Int32)">
-            <summary>
-            Update status of icon
-            </summary>
-            <param name="iconId"></param>
-            <returns></returns>
-        </member>
         <member name="M:ThinkTank.API.Controllers.NotificationsController.GetNotifications(ThinkTank.Service.DTO.Request.PagingRequest,ThinkTank.Service.DTO.Request.NotificationRequest)">
             <summary>
             Get list of notification
@@ -545,11 +548,11 @@
              <param name="accountId"></param>
             <returns></returns>
         </member>
-        <member name="M:ThinkTank.API.Controllers.RoomsController.GetLeaderboard(System.Int32)">
+        <member name="M:ThinkTank.API.Controllers.RoomsController.GetLeaderboard(System.String)">
             <summary>
             Get lederboard of party room of the game
             </summary>
-            <param name="roomId"></param>
+            <param name="roomCode"></param>
             <returns></returns>
         </member>
         <member name="M:ThinkTank.API.Controllers.RoomsController.UpdateRoom(System.String,System.Collections.Generic.List{ThinkTank.Service.DTO.Request.CreateAndUpdateAccountInRoomRequest})">
@@ -568,18 +571,20 @@
             <param name="accountId"></param>
             <returns></returns>
         </member>
-        <member name="M:ThinkTank.API.Controllers.RoomsController.GetToStartRoom(System.Int32)">
+        <member name="M:ThinkTank.API.Controllers.RoomsController.GetToStartRoom(System.Int32,System.String,System.Int32)">
             <summary>
             Start Room To Play Game
             </summary>
-            <param name="id"></param>
+            <param name="accountId"></param>
+            <param name="roomCode"></param>
+            <param name="time"></param>
             <returns></returns>
         </member>
-        <member name="M:ThinkTank.API.Controllers.RoomsController.GetToUpdateStatusRoom(System.Int32)">
+        <member name="M:ThinkTank.API.Controllers.RoomsController.GetToUpdateStatusRoom(System.String)">
             <summary>
             Update status of room when room ended
             </summary>
-            <param name="id"></param>
+            <param name="roomCode"></param>
             <returns></returns>
         </member>
         <member name="M:ThinkTank.API.Controllers.TopicsController.GetTopics(ThinkTank.Service.DTO.Request.PagingRequest,ThinkTank.Service.DTO.Request.TopicRequest)">

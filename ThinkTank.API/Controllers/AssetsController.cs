@@ -47,7 +47,7 @@ namespace ThinkTank.API.Controllers
         /// </summary>
         /// <param name="resource"></param>
         /// <returns></returns>
-      [Authorize(Policy = "Admin")]
+     [Authorize(Policy = "Admin")]
         [HttpPost()]
         public async Task<ActionResult<List<AssetResponse>>> CreateAsset([FromBody] List<CreateAssetRequest> resource)
         {

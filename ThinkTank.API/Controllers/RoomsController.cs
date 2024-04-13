@@ -70,13 +70,13 @@ namespace ThinkTank.API.Controllers
         /// <summary>
         /// Get lederboard of party room of the game
         /// </summary>
-        /// <param name="roomId"></param>
+        /// <param name="roomCode"></param>
         /// <returns></returns>
         [Authorize(Policy = "Player")]
-        [HttpGet("{roomId:int}/leaderboard")]
-        public async Task<ActionResult<List<LeaderboardResponse>>> GetLeaderboard(int roomId)
+        [HttpGet("{roomCode}/leaderboard")]
+        public async Task<ActionResult<List<LeaderboardResponse>>> GetLeaderboard(string roomCode)
         {
-            var rs = await roomService.GetLeaderboardOfRoom(roomId);
+            var rs = await roomService.GetLeaderboardOfRoom(roomCode);
             return Ok(rs);
         }
         /// <summary>
@@ -108,26 +108,28 @@ namespace ThinkTank.API.Controllers
         /// <summary>
         /// Start Room To Play Game
         /// </summary>
-        /// <param name="id"></param>
+        /// <param name="accountId"></param>
+        /// <param name="roomCode"></param>
+        /// <param name="time"></param>
         /// <returns></returns>
-        [Authorize(Policy = "Player")]
-        [HttpGet("{id:int}/started-room")]
-        public async Task<ActionResult<RoomResponse>> GetToStartRoom(int id)
+        //[Authorize(Policy = "Player")]
+        [HttpGet("{accountId:int},{roomCode},{time:int}/started-room")]
+        public async Task<ActionResult<RoomResponse>> GetToStartRoom(int accountId,string roomCode,int time)
         {
-            var rs = await roomService.GetToStartRoom(id);
+            var rs = await roomService.GetToStartRoom(roomCode,accountId,time);
             if (rs == null) return NotFound();
             return Ok(rs);
         }
         /// <summary>
         /// Update status of room when room ended
         /// </summary>
-        /// <param name="id"></param>
+        /// <param name="roomCode"></param>
         /// <returns></returns>
         [Authorize(Policy = "Player")]
-        [HttpGet("{id:int}/ended-room")]
-        public async Task<ActionResult<RoomResponse>> GetToUpdateStatusRoom(int id)
+        [HttpGet("{roomCode}/ended-room")]
+        public async Task<ActionResult<RoomResponse>> GetToUpdateStatusRoom(string roomCode)
         {
-            var rs = await roomService.GetToUpdateStatusRoom(id);
+            var rs = await roomService.GetToUpdateStatusRoom(roomCode);
             if (rs == null) return NotFound();
             return Ok(rs);
         }

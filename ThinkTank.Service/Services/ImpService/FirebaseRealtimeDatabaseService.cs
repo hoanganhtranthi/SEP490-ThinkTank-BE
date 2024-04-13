@@ -20,6 +20,7 @@ namespace ThinkTank.Service.Services.ImpService
     {
         private readonly IFirebaseConfig config; 
         private readonly IFirebaseClient client;
+        private readonly IFirebaseClient clientOfRoom;
         private readonly IConfiguration configuration;
         public FirebaseRealtimeDatabaseService(IConfiguration configuration)
         {
@@ -30,6 +31,10 @@ namespace ThinkTank.Service.Services.ImpService
                 BasePath = configuration["Firebase:BasePath"]
             };
             client = new FirebaseClient(config);
+            clientOfRoom = new FirebaseClient(new FirebaseConfig
+            {
+                BasePath = configuration["Firebase:BasePathRoom"]
+            });
         }
         public async Task SetAsync<T>(string key,T value)
         {
@@ -38,6 +43,18 @@ namespace ThinkTank.Service.Services.ImpService
         public async Task<T> GetAsync<T>(string key)
         {
             FirebaseResponse response = await client.GetAsync(key);
+            if (response.Body != "null")
+            {
+                return response.ResultAs<T>();
+            }
+            else
+            {
+                return default(T);
+            }
+        }
+        public async Task<T> GetAsyncOfRoom<T>(string key)
+        {
+            FirebaseResponse response = await clientOfRoom.GetAsync(key);
             if (response.Body != "null")
             {
                 return response.ResultAs<T>();
@@ -60,6 +77,10 @@ namespace ThinkTank.Service.Services.ImpService
             {
                 return false;
             }
+        }
+        public async Task SetAsyncOfRoom<T>(string key, T value)
+        {
+            await clientOfRoom.SetAsync<T>(key, value);
         }
     }
 }

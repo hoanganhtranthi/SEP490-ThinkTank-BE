@@ -41,17 +41,5 @@ namespace ThinkTank.API.Controllers
             var rs = await _iconService.GetIconById(id);
             return Ok(rs);
         }
-        /// <summary>
-        /// Update status of icon
-        /// </summary>
-        /// <param name="iconId"></param>
-        /// <returns></returns>
-       //[Authorize(Policy = "")]
-        [HttpGet("{iconId:int}/status")]
-        public async Task<ActionResult<IconResponse>> GetToUpdateStatus(int iconId)
-        {
-            var rs = await _iconService.GetToUpdateStatus(iconId);
-            return Ok(rs);
-        }
     }
 }

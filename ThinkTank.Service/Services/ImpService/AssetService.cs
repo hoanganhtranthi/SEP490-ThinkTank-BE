@@ -34,7 +34,8 @@ namespace ThinkTank.Service.Services.ImpService
                 {
                     throw new CrudException(HttpStatusCode.BadRequest, "Id Type Of Asset Invalid", "");
                 }
-                var response = _unitOfWork.Repository<Asset>().GetAll().AsNoTracking().Include(x => x.Topic).Include(x=>x.Topic.Game).Select(x => new AssetResponse
+                var response = _unitOfWork.Repository<Asset>().GetAll().AsNoTracking()
+                    .Include(x => x.Topic).Include(x=>x.Topic.Game).Select(x => new AssetResponse
                 {
                         Id = x.Id,
                         TopicId = x.TopicId,
@@ -103,16 +104,20 @@ namespace ThinkTank.Service.Services.ImpService
                 foreach (var a in request)
                 {
                    var topic = _unitOfWork.Repository<Topic>().GetAll().Include(x => x.Game).SingleOrDefault(x => x.Id == a.TopicId);
-                    if (topic == null)
+                   if (topic == null)
                         throw new CrudException(HttpStatusCode.NotFound, $"This topic {a.TopicId} is not found !!!", "");
+                   
                     var existingAsset = _unitOfWork.Repository<Asset>().Find(s => s.Value == a.Value && s.TopicId == a.TopicId);
                     if (existingAsset != null)
                         throw new CrudException(HttpStatusCode.BadRequest, "This resource has already !!!", "");
-                   var typeOfAsset = _unitOfWork.Repository<TypeOfAsset>().Find(x => x.Id == a.TypeOfAssetId);
+                  
+                    var typeOfAsset = _unitOfWork.Repository<TypeOfAsset>().Find(x => x.Id == a.TypeOfAssetId);
                     if (typeOfAsset == null)
                         throw new CrudException(HttpStatusCode.NotFound, $"This type of asset {a.TypeOfAssetId} is not found !!!", "");
+                   
                     var asset = _mapper.Map<CreateAssetRequest, Asset>(a);
-                    var version = _unitOfWork.Repository<Asset>().GetAll().Include(x => x.Topic.Game)
+                   
+                    var version = _unitOfWork.Repository<Asset>().GetAll()
                         .OrderBy(x => x.Version).LastOrDefault(x => x.Topic.GameId == topic.GameId);
                     
                     if (gameId != null)

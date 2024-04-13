@@ -12,8 +12,9 @@ namespace ThinkTank.Service.DTO.Request
     {
         [Required]
         public StatusType Status { get; set; }
-        public int? AccountId { get; set; }
-        public string? UserName { get; set; }
+        [Required]
+        public int AccountId { get; set; }
         public string? UserCode { get; set; }
+        public string? UserName { get; set; }
     }
 }

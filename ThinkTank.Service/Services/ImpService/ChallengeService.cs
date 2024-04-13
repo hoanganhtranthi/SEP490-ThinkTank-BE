@@ -82,8 +82,10 @@ namespace ThinkTank.Service.Services.ImpService
                     if (badge.CompletedLevel != challenge.CompletedMilestone)
                         throw new CrudException(HttpStatusCode.BadRequest, $"Account Id {accountId} haven't completed the correct milestones for this challenge ", "");
                     badge.Status = true;
+                   
                     await _unitOfWork.Repository<Badge>().Update(badge, badge.Id);
                     acc.Coin += 20;
+                    
                 }
                 if(acc.Badges.Where(x=>x.CompletedLevel==_unitOfWork.Repository<Challenge>().Find(a=>a.Id==x.ChallengeId).CompletedMilestone).Count()==10)
                     acc.Coin += 100;
