@@ -131,11 +131,16 @@ namespace ThinkTank.Service.Services.ImpService
             {
                 if (badge.CompletedLevel < challage.CompletedMilestone)
                 {
-                    if (name.Equals("The Tycoon"))
-                        badge.CompletedLevel = (int)account.Coin;
+                    if (name.Equals("The Tycoon")) 
+                    {
+                        if (account.Coin < challage.CompletedMilestone)
+                            badge.CompletedLevel = (int)account.Coin;
+                        else badge.CompletedLevel = challage.CompletedMilestone;
+                    }
+                        
                     else badge.CompletedLevel += 1;
                 }
-                if (badge.CompletedLevel == challage.CompletedMilestone && noti == null )
+                if (badge.CompletedLevel == challage.CompletedMilestone && noti == null)
                 {
                     badge.CompletedDate = date;
                    
@@ -146,7 +151,7 @@ namespace ThinkTank.Service.Services.ImpService
                     var data = new Dictionary<string, string>()
                     {
                         ["click_action"] = "FLUTTER_NOTIFICATION_CLICK",
-                        ["Action"] = "home",
+                        ["Action"] = "achievement",
                         ["Argument"] = JsonConvert.SerializeObject(new JsonSerializerSettings
                         {
                             ContractResolver = new DefaultContractResolver
@@ -174,13 +179,12 @@ namespace ThinkTank.Service.Services.ImpService
             }
             else
             {
-                CreateBadgeRequest createBadgeRequest = new CreateBadgeRequest();
-                createBadgeRequest.AccountId = account.Id;
-                createBadgeRequest.CompletedLevel =  1;
-                createBadgeRequest.ChallengeId = challage.Id;
-                var b = _mapper.Map<CreateBadgeRequest, Badge>(createBadgeRequest);
-                b.Status = false;
-                await _unitOfWork.Repository<Badge>().CreateAsync(b);
+                badge = new Badge();
+                badge.AccountId = account.Id;
+                badge.CompletedLevel = 1;
+                badge.ChallengeId = challage.Id;
+                badge.Status = false;
+                await _unitOfWork.Repository<Badge>().CreateAsync(badge);
             }
         }
         public async Task<AccountInContestResponse> GetAccountInContestById(int id)
@@ -189,10 +193,10 @@ namespace ThinkTank.Service.Services.ImpService
             {
                 if (id <= 0)
                 {
-                    throw new CrudException(HttpStatusCode.BadRequest, "Id Achievement Invalid", "");
+                    throw new CrudException(HttpStatusCode.BadRequest, "Id Account In Contest Invalid", "");
                 }
                 var response = _unitOfWork.Repository<AccountInContest>().GetAll().AsNoTracking().Include(x => x.Account)
-                    .Include(x => x.Contest).Include(x=>x.Contest.Game).SingleOrDefault(x => x.Id == id);
+                    .Include(x => x.Contest).SingleOrDefault(x => x.Id == id);
 
                 if (response == null)
                 {
@@ -219,7 +223,8 @@ namespace ThinkTank.Service.Services.ImpService
             try
             {
                     var filter = _mapper.Map<AccountInContestResponse>(request);
-                    var accountInContests = _unitOfWork.Repository<AccountInContest>().GetAll().AsNoTracking().Include(x => x.Account).Include(x => x.Contest)
+                    var accountInContests = _unitOfWork.Repository<AccountInContest>().GetAll().AsNoTracking()
+                    .Include(x => x.Account).Include(x => x.Contest)
                     .Select(x => new AccountInContestResponse
                     {
                         Id = x.Id,

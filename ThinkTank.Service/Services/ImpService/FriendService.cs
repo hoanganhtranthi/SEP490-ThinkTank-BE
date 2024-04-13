@@ -178,29 +178,8 @@ namespace ThinkTank.Service.Services.ImpService
         {
             try
             {
-                var friendsQuery = _unitOfWork.Repository<Friend>().GetAll().AsNoTracking()
-                .Include(f => f.AccountId1Navigation)
-                .Include(f => f.AccountId2Navigation)
-                .Select(x => new FriendResponse
-                {
-                    Id = x.Id,
-                    AccountId1 = x.AccountId1,
-                    AccountId2 = x.AccountId2,
-                    Status = x.Status,
-                    UserName1 = x.AccountId1Navigation.UserName,
-                    UserName2 = x.AccountId2Navigation.UserName,
-                    Avatar1 = x.AccountId1Navigation.Avatar,
-                    Avatar2 = x.AccountId2Navigation.Avatar,
-                    UserCode1 = x.AccountId1Navigation.Code,
-                    UserCode2 = x.AccountId2Navigation.Code,
-                });
-
-                var friends = friendsQuery.ToList();
-
-                if (request.AccountId != null)
-                {
-                    friends = await GetFriendsByAccountId(request);
-                }
+                var friends = await GetFriendsByAccountId((int)request.AccountId);
+                var friendOfAccount = friends;
 
                 if (!string.IsNullOrEmpty(request.UserCode))
                 {
@@ -208,14 +187,21 @@ namespace ThinkTank.Service.Services.ImpService
                                                || !string.IsNullOrEmpty(a.UserCode2) && a.UserCode2.Contains(request.UserCode))
                                     .ToList();
                 }
-
                 if (!string.IsNullOrEmpty(request.UserName))
                 {
-                    friends = friends.Where(a => !string.IsNullOrEmpty(a.UserName1) && a.UserName1.Contains(request.UserName)
+                    var friendResponses = friendOfAccount.Where(a => !string.IsNullOrEmpty(a.UserName1) && a.UserName1.Contains(request.UserName)
                                                || !string.IsNullOrEmpty(a.UserName2) && a.UserName2.Contains(request.UserName))
                                     .ToList();
-                }
+                    if (!string.IsNullOrEmpty(request.UserCode))
+                    {
+                        // Loại bỏ các tài khoản trùng lặp giữa friends và friendResponses
+                        var distinctFriendResponses = friendResponses.Except(friends).ToList();
 
+                        // Kết hợp friends và distinctFriendResponses
+                        friends.AddRange(distinctFriendResponses);
+                    }
+                    else friends = friendResponses;
+                }
                 if (request.Status != Helpers.Enum.StatusType.All)
                 {
                     bool? status = null;
@@ -234,7 +220,7 @@ namespace ThinkTank.Service.Services.ImpService
                 throw new CrudException(HttpStatusCode.InternalServerError, "Get friendship list error!!!!!", ex.Message);
             }
         }
-        private async Task<List<FriendResponse>> GetFriendsByAccountId(FriendRequest request)
+        private async Task<List<FriendResponse>> GetFriendsByAccountId(int accountId)
         {
             try
             {
@@ -242,20 +228,20 @@ namespace ThinkTank.Service.Services.ImpService
                 var accountsWithFriends = _unitOfWork.Repository<Account>().GetAll().AsNoTracking()
                     .Include(a => a.FriendAccountId1Navigations)
                     .Include(a => a.FriendAccountId2Navigations)
-                    .Where(a => a.Id != request.AccountId)
+                    .Where(a => a.Id != accountId)
                     .ToList();
 
                 var currentAccount = _unitOfWork.Repository<Account>().GetAll().AsNoTracking()
                     .Include(a => a.FriendAccountId1Navigations)
                     .Include(a => a.FriendAccountId2Navigations)
-                    .SingleOrDefault(a => a.Id == request.AccountId);
+                    .SingleOrDefault(a => a.Id == accountId);
 
                 foreach (var acc in accountsWithFriends)
                 {
                     var friend = acc.FriendAccountId1Navigations
                         .Concat(acc.FriendAccountId2Navigations)
-                        .SingleOrDefault(f => (f.AccountId1 == request.AccountId && f.AccountId2 == acc.Id)
-                        || (f.AccountId1 == acc.Id && f.AccountId2 == request.AccountId));
+                        .SingleOrDefault(f => (f.AccountId1 == accountId && f.AccountId2 == acc.Id)
+                        || (f.AccountId1 == acc.Id && f.AccountId2 == accountId));
 
                     FriendResponse friendResponse = new FriendResponse();
                     friendResponse.Id = friend?.Id ?? 0;
@@ -337,8 +323,8 @@ namespace ThinkTank.Service.Services.ImpService
                     Title = "ThinkTank Community"
                 };
                 await _unitOfWork.Repository<Notification>().CreateAsync(notification);
-                await GetBadge(friend.AccountId1Navigation, "The friendliest");
-                 await GetBadge(friend.AccountId2Navigation, "The friendliest");               
+                await GetBadge(acc1, "The friendliest");
+                 await GetBadge(acc2, "The friendliest");               
                 await _unitOfWork.CommitAsync();
                 var rs = _mapper.Map<FriendResponse>(friend);
                 rs.UserName1 = friend.AccountId1Navigation.UserName;
@@ -375,7 +361,7 @@ namespace ThinkTank.Service.Services.ImpService
                     var data = new Dictionary<string, string>()
                     {
                         ["click_action"] = "FLUTTER_NOTIFICATION_CLICK",
-                        ["Action"] = "home",
+                        ["Action"] = "/achievement",
                         ["Argument"] = JsonConvert.SerializeObject(new JsonSerializerSettings
                         {
                             ContractResolver = new DefaultContractResolver
@@ -403,13 +389,12 @@ namespace ThinkTank.Service.Services.ImpService
             }
             else
             {
-                CreateBadgeRequest createBadgeRequest = new CreateBadgeRequest();
-                createBadgeRequest.AccountId = account.Id;
-                createBadgeRequest.CompletedLevel = 1;
-                createBadgeRequest.ChallengeId = challage.Id;
-                var b = _mapper.Map<CreateBadgeRequest, Badge>(createBadgeRequest);
-                b.Status = false;
-                await _unitOfWork.Repository<Badge>().CreateAsync(b);
+                badge = new Badge();
+                badge.AccountId = account.Id;
+                badge.CompletedLevel = 1;
+                badge.ChallengeId = challage.Id;
+                badge.Status = false;
+                await _unitOfWork.Repository<Badge>().CreateAsync(badge);
             }
         }
     }

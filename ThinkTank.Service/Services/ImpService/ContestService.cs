@@ -56,6 +56,8 @@ namespace ThinkTank.Service.Services.ImpService
             try
             {
                 var contest = _mapper.Map<CreateAndUpdateContestRequest, Contest>(createContestRequest);
+                if(createContestRequest.Assets ==null)
+                    throw new CrudException(HttpStatusCode.BadRequest, "Assets Of Contest cannot be null", "");
                 var s = _unitOfWork.Repository<Contest>().Find(s => s.Name == createContestRequest.Name);
                 if (s != null)
                 {
@@ -66,16 +68,16 @@ namespace ThinkTank.Service.Services.ImpService
                 {
                     throw new CrudException(HttpStatusCode.NotFound, $"Game {createContestRequest.GameId} not found !!!", "");
                 }
+                if (contest.StartTime > contest.EndTime || createContestRequest.StartTime < date || createContestRequest.EndTime < date)
+                {
+                    throw new CrudException(HttpStatusCode.BadRequest, "Start Time or End Time is invalid", "");
+                }
                 contest.Name = createContestRequest.Name;
                 contest.Thumbnail = createContestRequest.Thumbnail;
                 contest.StartTime = createContestRequest.StartTime;
                 contest.EndTime = createContestRequest.EndTime;
                 contest.CoinBetting = createContestRequest.CoinBetting;
-                contest.GameId = createContestRequest.GameId;
-                if (contest.StartTime > contest.EndTime || createContestRequest.StartTime < date || createContestRequest.EndTime < date)
-                {
-                    throw new CrudException(HttpStatusCode.BadRequest, "Start Time or End Time is invalid", "");
-                }
+                contest.GameId = createContestRequest.GameId;              
                 contest.Status = null;
                 List<AssetOfContestResponse> result = new List<AssetOfContestResponse>();
                 List<AssetOfContest> list = new List<AssetOfContest>();
@@ -187,16 +189,18 @@ namespace ThinkTank.Service.Services.ImpService
                 contest.Status = false;
                 var jobId = firebaseRealtimeDatabaseService.GetAsync<string>($"Contest{contest.Id}JobIdEndTime").Result;
                 if (jobId != null)
-                {
-                    BackgroundJob.Delete(jobId);
+                {                   
                     await firebaseRealtimeDatabaseService.RemoveData($"Contest{contest.Id}JobIdEndTime");
                 }
                 var jobStartId = firebaseRealtimeDatabaseService.GetAsync<string>($"Contest{contest.Id}JobIdStartTime").Result;
                 if (jobStartId != null)
                 {
-                    BackgroundJob.Delete(jobStartId);
                     await firebaseRealtimeDatabaseService.RemoveData($"Contest{contest.Id}JobIdStartTime");
                 }
+                if (date < contest.StartTime)
+                    BackgroundJob.Delete(jobStartId);
+                if (date < contest.EndTime)
+                    BackgroundJob.Delete(jobId);
                 await _unitOfWork.Repository<Contest>().Update(contest, id);
                 #region send noti for account
                 var accounts = _unitOfWork.Repository<AccountInContest>().GetAll().Include(a => a.Account).Where(a => a.ContestId == contest.Id && a.Account.Status==true).ToList();
@@ -299,9 +303,9 @@ namespace ThinkTank.Service.Services.ImpService
             var noti = _unitOfWork.Repository<Notification>().Find(x => x.Description == $"You have received {challage.Name} badge." && x.AccountId == account.Id);
             if (badge != null)
             {
-                if (badge.CompletedLevel < challage.CompletedMilestone)
+                if (badge.CompletedLevel < challage.CompletedMilestone && account.Coin < challage.CompletedMilestone)
                         badge.CompletedLevel = (int)account.Coin;
-                if (badge.CompletedLevel == challage.CompletedMilestone && noti ==null)
+                if (account.Coin >= challage.CompletedMilestone)
                 {
                     badge.Status = true;
                     badge.CompletedDate = date;
@@ -312,7 +316,7 @@ namespace ThinkTank.Service.Services.ImpService
                     var data = new Dictionary<string, string>()
                     {
                         ["click_action"] = "FLUTTER_NOTIFICATION_CLICK",
-                        ["Action"] = "home",
+                        ["Action"] = "/achievement",
                         ["Argument"] = JsonConvert.SerializeObject(new JsonSerializerSettings
                         {
                             ContractResolver = new DefaultContractResolver
@@ -560,7 +564,8 @@ namespace ThinkTank.Service.Services.ImpService
             {
                 Contest contest = _unitOfWork.Repository<Contest>()
                      .GetAll().Include(x => x.AssetOfContests).SingleOrDefault(c => c.Id == contestId);
-
+                if (request.Assets == null)
+                    throw new CrudException(HttpStatusCode.BadRequest, "Assets Of Contest cannot be null", "");
                 if (contest == null)
                     throw new CrudException(HttpStatusCode.NotFound, $"Not found contest with id {contestId.ToString()}", "");
                 var game = _unitOfWork.Repository<Game>().Find(s => s.Id == request.GameId);
@@ -613,10 +618,10 @@ namespace ThinkTank.Service.Services.ImpService
                     contest.AssetOfContests = list;
                     result.Add(response);
                 }
+                if (request.Thumbnail != null && request.Thumbnail != "") contest.Thumbnail = request.Thumbnail;
+                else request.Thumbnail = contest.Thumbnail;
                 _mapper.Map<CreateAndUpdateContestRequest, Contest>(request, contest);
                 contest.Id = contestId;
-                if (request.Thumbnail != null) contest.Thumbnail = request.Thumbnail;
-                else contest.Thumbnail = contest.Thumbnail;
                 await _unitOfWork.Repository<Contest>().Update(contest, contestId);
                 await _unitOfWork.CommitAsync();
                 var id = BackgroundJob.Schedule(() =>

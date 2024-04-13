@@ -33,7 +33,7 @@ namespace ThinkTank.Service.Services.ImpService
             _unitOfWork = unitOfWork;
             _mapper = mapper;
         }
-        public async Task<AccountInRoomResponse> UpdateAccountInRoom(int accountInRoomId,CreateAndUpdateAccountInRoomRequest createAccountInRoomRequest)
+        public async Task<AccountInRoomResponse> UpdateAccountInRoom(string roomCode,CreateAndUpdateAccountInRoomRequest createAccountInRoomRequest)
         {
             try
             {
@@ -46,12 +46,15 @@ namespace ThinkTank.Service.Services.ImpService
                 {
                     throw new CrudException(HttpStatusCode.BadRequest, $"Account Id {createAccountInRoomRequest.AccountId} Not Available!!!!!", "");
                 }                
-                var accountInRoom = _unitOfWork.Repository<AccountInRoom>().Find(x => x.Id == accountInRoomId);
-                if (accountInRoom == null)
-                    throw new CrudException(HttpStatusCode.NotFound, $"This account in room Id {createAccountInRoomRequest.AccountId} is not found !!!", "");
+                var room = _unitOfWork.Repository<Room>().Find(x => x.Code == roomCode);
+                if (room == null)
+                    throw new CrudException(HttpStatusCode.NotFound, $"This room Id {createAccountInRoomRequest.AccountId} is not found !!!", "");
+                var accountInRoom = _unitOfWork.Repository<AccountInRoom>().GetAll().SingleOrDefault(x => x.AccountId == createAccountInRoomRequest.AccountId && x.RoomId == room.Id);
+                if(accountInRoom == null)
+                    throw new CrudException(HttpStatusCode.NotFound, $"This account in room Id {createAccountInRoomRequest.AccountId} is not found in room {roomCode}!!!", "");
                 _mapper.Map<CreateAndUpdateAccountInRoomRequest, AccountInRoom>(createAccountInRoomRequest,accountInRoom);
                 accountInRoom.CompletedTime = date;
-                await _unitOfWork.Repository<AccountInRoom>().Update(accountInRoom,accountInRoomId);
+                await _unitOfWork.Repository<AccountInRoom>().Update(accountInRoom,accountInRoom.Id);
                 await _unitOfWork.CommitAsync();
                 var rs = _mapper.Map<AccountInRoomResponse>(accountInRoom);
                 rs.Username = a.UserName;
@@ -105,10 +108,10 @@ namespace ThinkTank.Service.Services.ImpService
                 var accountInRooms = _unitOfWork.Repository<AccountInRoom>().GetAll().AsNoTracking().Include(x => x.Account)
                     .ProjectTo<AccountInRoomResponse>(_mapper.ConfigurationProvider)
                     .DynamicFilter(filter).ToList();
-                foreach (var account1 in accountInRooms)
+                foreach (var account in accountInRooms)
                 {
-                    account1.Username = _unitOfWork.Repository<Account>().Find(x => x.Id == account1.AccountId).UserName;
-                    account1.Avatar = _unitOfWork.Repository<Account>().Find(x => x.Id == account1.AccountId).Avatar;
+                    account.Username = _unitOfWork.Repository<Account>().Find(x => x.Id == account.AccountId).UserName;
+                    account.Avatar = _unitOfWork.Repository<Account>().Find(x => x.Id == account.AccountId).Avatar;
                 }
                 var sort = PageHelper<AccountInRoomResponse>.Sorting(paging.SortType, accountInRooms, paging.ColName);
                 var result = PageHelper<AccountInRoomResponse>.Paging(sort, paging.Page, paging.PageSize);

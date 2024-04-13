@@ -15,5 +15,6 @@ namespace ThinkTank.Service.Services.IService
         Task<AccountIn1vs1Response> GetAccount1vs1ById(int id);
         Task<dynamic> FindAccountTo1vs1(int id, int coin, int gameId);
         Task<bool> RemoveAccountFromCache(int id, int coin, int gameId, string uniqueId);
+        Task<dynamic> CreateRoomPlayCountervailingWithFriend(int gameId, int accountId1, int accountId2);
     }
 }

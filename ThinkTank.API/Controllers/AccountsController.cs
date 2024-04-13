@@ -36,7 +36,7 @@ namespace ThinkTank.API.Controllers
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        [Authorize(Policy = "Admin")]
+        [Authorize(Policy = "All")]
         [HttpGet("{id:int}")]
         public async Task<ActionResult<AccountResponse>> GetAccount(int id)
         {

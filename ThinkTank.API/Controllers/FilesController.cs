@@ -38,6 +38,8 @@ namespace ThinkTank.API.Controllers
             var list = new List<string>();
             foreach (var fileItem in file)
             {
+                if (type == ResourceType.MusicPassword && Path.GetExtension(fileItem.FileName).ToLowerInvariant() != ".mp3")
+                    return BadRequest("Invalid Extension Of File");
                 if (fileItem.Length > MAX_UPLOAD_FILE_SIZE)
                     return BadRequest("Exceed 25MB");
                 string url = await _fileStorageService.UploadFileResourceAsync(fileItem.OpenReadStream(), fileItem.FileName, type, "Resources");
@@ -55,6 +57,8 @@ namespace ThinkTank.API.Controllers
             var list = new List<string>();
             foreach (var fileItem in file)
             {
+                if (type == ResourceType.MusicPassword && Path.GetExtension(fileItem.FileName).ToLowerInvariant() != ".mp3")
+                    return BadRequest("Invalid Extension Of File");
                 if (fileItem.Length > MAX_UPLOAD_FILE_SIZE)
                     return BadRequest("Exceed 25MB");
                 string url = await _fileStorageService.UploadFileResourceAsync(fileItem.OpenReadStream(), fileItem.FileName, type, "Contest");

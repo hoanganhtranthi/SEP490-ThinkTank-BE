@@ -13,11 +13,11 @@ namespace ThinkTank.Service.Services.IService
         Task<PagedResults<RoomResponse>> GetRooms(RoomRequest request, PagingRequest paging);
         Task<RoomResponse> CreateRoom(CreateRoomRequest createRoomRequest);
         Task<RoomResponse> GetRoomById(int id);
-        Task<List<LeaderboardResponse>> GetLeaderboardOfRoom(int roomId);
+        Task<List<LeaderboardResponse>> GetLeaderboardOfRoom(string roomCode);
         Task<RoomResponse> DeleteRoom(int roomId, int accountId);
-        Task<RoomResponse> GetToUpdateStatusRoom(int roomId);
+        Task<RoomResponse> GetToUpdateStatusRoom(string roomCode);
         Task<RoomResponse> LeaveRoom(int roomId, int accountId);
+        Task<RoomResponse> GetToStartRoom(string roomCode, int accountId, int time);
         Task<RoomResponse> UpdateRoom(string roomCode, List<CreateAndUpdateAccountInRoomRequest> createAccountInRoomRequests);
-        Task<RoomResponse> GetToStartRoom(int roomId);
     }
 }

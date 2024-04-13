@@ -46,12 +46,13 @@ namespace ThinkTank.API.Controllers
         /// Create Account In Room
         /// </summary>
         /// <param name="request"></param>
+        /// <param name="roomCode"></param>
         /// <returns></returns>
         [Authorize(Policy = "Player")]
-        [HttpPut("{id:int}")]
-        public async Task<ActionResult<AccountInContestResponse>> UpdateAccountInRoom(int id,[FromBody] CreateAndUpdateAccountInRoomRequest request)
+        [HttpPut("{roomCode}")]
+        public async Task<ActionResult<AccountInContestResponse>> UpdateAccountInRoom(string roomCode,[FromBody] CreateAndUpdateAccountInRoomRequest request)
         {
-            var rs = await accountIn1Vs1Service.UpdateAccountInRoom(id,request);
+            var rs = await accountIn1Vs1Service.UpdateAccountInRoom(roomCode,request);
             return Ok(rs);
         }
     }

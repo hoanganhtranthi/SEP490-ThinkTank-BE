@@ -57,17 +57,38 @@ namespace ThinkTank.Service.Services.ImpService
         {
             try
             {
-                var filter = _mapper.Map<IconResponse>(request);
-                var query = _unitOfWork.Repository<Icon>().GetAll().AsNoTracking()
-                    .ProjectTo<IconResponse>(_mapper.ConfigurationProvider).DynamicFilter(filter).ToList();
+                var query = _unitOfWork.Repository<Icon>().GetAll()
+                    .Include(x => x.IconOfAccounts)
+                    .AsNoTracking()
+                    .ProjectTo<IconResponse>(_mapper.ConfigurationProvider);
+
+
+                if (request.AccountId != null)
+                {
+                    var isTrue = request.StatusIcon == Helpers.Enum.StatusIconType.True;
+                    var isFalse = request.StatusIcon == Helpers.Enum.StatusIconType.False;
+                    var iconIds = await GetIconIdsByAccountId((int)request.AccountId);
+                    if (isTrue)
+                    {
+                        query = query.Where(icon => iconIds.Contains(icon.Id));
+                    }
+                    if(isFalse)
+                    {
+                        query = query.Where(icon => !iconIds.Contains(icon.Id));
+                    }
+                }
 
                 if (request.MinPrice != null || request.MaxPrice != null)
                 {
-                    query = query.Where(a => (request.MinPrice == null || a.Price >= request.MinPrice) && (request.MaxPrice == null || a.Price <= request.MaxPrice)).ToList();
+                    query = query.Where(icon => (request.MinPrice == null || icon.Price >= request.MinPrice) && (request.MaxPrice == null || icon.Price <= request.MaxPrice));
                 }
 
-                var sort = PageHelper<IconResponse>.Sorting(paging.SortType, query, paging.ColName);
-                var result = PageHelper<IconResponse>.Paging(sort, paging.Page, paging.PageSize);
+
+                var filter = _mapper.Map<IconResponse>(request);
+                query = query.DynamicFilter(filter);
+
+                var sortedIcons = PageHelper<IconResponse>.Sorting(paging.SortType, query, paging.ColName);
+                var result = PageHelper<IconResponse>.Paging(sortedIcons, paging.Page, paging.PageSize);
 
                 return result;
             }
@@ -75,37 +96,31 @@ namespace ThinkTank.Service.Services.ImpService
             {
                 throw new CrudException(HttpStatusCode.InternalServerError, "Get icon list error!!!!!", ex.Message);
             }
-
         }
 
-        public async Task<IconResponse> GetToUpdateStatus(int id)
+        private async Task<List<int>> GetIconIdsByAccountId(int accountId)
         {
             try
             {
-                if (id <= 0)
-                {
-                    throw new CrudException(HttpStatusCode.BadRequest, "Id Icon Invalid", "");
-                }
-                Icon icon = _unitOfWork.Repository<Icon>()
-                      .Find(c => c.Id == id);
+                var account = await _unitOfWork.Repository<Account>()
+                    .GetAll()
+                    .Include(x => x.IconOfAccounts)
+                    .AsNoTracking()
+                    .SingleOrDefaultAsync(a => a.Id == accountId);
 
-                if (icon == null)
+                if (account != null)
                 {
-                    throw new CrudException(HttpStatusCode.NotFound, $"Not found icon with id{id}", "");
+                    return account.IconOfAccounts.Select(x => x.IconId).ToList();
                 }
-                icon.Status = !icon.Status;
-                await _unitOfWork.Repository<Icon>().Update(icon, id);
-                await _unitOfWork.CommitAsync();
-                return _mapper.Map<IconResponse>(icon);
+
+                return new List<int>();
             }
             catch (CrudException ex)
             {
-                throw ex;
-            }
-            catch (Exception ex)
-            {
-                throw new CrudException(HttpStatusCode.InternalServerError, "Update status icon error!!!!!", ex.Message);
+                throw new CrudException(HttpStatusCode.InternalServerError, "Get list icons of account id error!!!!!", ex.Message);
             }
         }
+
+
     }
 }
