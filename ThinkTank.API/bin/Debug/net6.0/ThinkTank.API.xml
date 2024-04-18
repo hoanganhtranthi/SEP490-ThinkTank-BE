@@ -44,7 +44,7 @@
               <param name="accountId2"></param>
             <returns></returns>
         </member>
-        <member name="M:ThinkTank.API.Controllers.AccountIn1vs1sController.RemoveAccountFromCache(System.Int32,System.Int32,System.Int32,System.String)">
+        <member name="M:ThinkTank.API.Controllers.AccountIn1vs1sController.RemoveAccountFromCache(System.Int32,System.Int32,System.Int32,System.String,System.Int32)">
             <summary>
             Remove Account From Cache
             </summary>
@@ -52,6 +52,16 @@
              <param name="gameId"></param>
               <param name="coin"></param>
                <param name="roomOfAccount1vs1Id"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ThinkTank.API.Controllers.AccountIn1vs1sController.GetToStartRoom(System.String,System.Boolean,System.Int32,System.Int32)">
+            <summary>
+            Start Room To Play Game
+            </summary>
+            <param name="room1vs1Id"></param>
+            <param name="isUser1"></param>
+            <param name="time"></param>
+            <param name="progressTime"></param>
             <returns></returns>
         </member>
         <member name="M:ThinkTank.API.Controllers.AccountInContestsController.GetAccountInContests(ThinkTank.Service.DTO.Request.PagingRequest,ThinkTank.Service.DTO.Request.AccountInContestRequest)">
@@ -165,6 +175,13 @@
             <param name="model"></param>
             <returns></returns>
         </member>
+        <member name="M:ThinkTank.API.Controllers.AccountsController.GetIdToLogin(ThinkTank.Service.DTO.Request.LoginRequest,System.String)">
+            <summary>
+            Check Login of user
+            </summary>
+            <param name="model"></param>
+            <returns></returns>
+        </member>
         <member name="M:ThinkTank.API.Controllers.AccountsController.LoginAdmin(ThinkTank.Service.DTO.Request.LoginRequest)">
             <summary>
             Login for role admin (Username and Password)
@@ -254,6 +271,14 @@
             Get analysis of each type of account's memory by account Id 
             </summary>
             <param name="accountId"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ThinkTank.API.Controllers.AnalysesController.GetAnalysisOfEachTypeOfMemoryOfAccount(System.Int32,System.Int32)">
+            <summary>
+            Get analysis average score by account Id 
+            </summary>
+            <param name="gameId"></param>
+            <param name="userId"></param>
             <returns></returns>
         </member>
         <member name="M:ThinkTank.API.Controllers.AssetsController.GetAssets(ThinkTank.Service.DTO.Request.PagingRequest,ThinkTank.Service.DTO.Request.AssetRequest)">

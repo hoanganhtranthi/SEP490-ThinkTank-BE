@@ -47,7 +47,7 @@ namespace ThinkTank.API.Controllers
         /// </summary>
         /// <param name="friendId"></param>
         /// <returns></returns>
-      //  [Authorize(Policy = "Player")]
+      [Authorize(Policy = "Player")]
         [HttpGet("{friendId:int}/status")]
         public async Task<ActionResult<FriendResponse>> GetToUpdateStatus(int friendId)
         {

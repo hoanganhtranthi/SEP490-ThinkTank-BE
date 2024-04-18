@@ -7,6 +7,9 @@ D:\SEP490-ThinkTank-BE\ThinkTank.API\obj\Release\net6.0\PubTmp\Out\ThinkTank.API
 D:\SEP490-ThinkTank-BE\ThinkTank.API\obj\Release\net6.0\PubTmp\Out\ThinkTank.API.pdb
 D:\SEP490-ThinkTank-BE\ThinkTank.API\obj\Release\net6.0\PubTmp\Out\AutoMapper.dll
 D:\SEP490-ThinkTank-BE\ThinkTank.API\obj\Release\net6.0\PubTmp\Out\AutoMapper.Extensions.Microsoft.DependencyInjection.dll
+D:\SEP490-ThinkTank-BE\ThinkTank.API\obj\Release\net6.0\PubTmp\Out\Chinchilla.Logging.dll
+D:\SEP490-ThinkTank-BE\ThinkTank.API\obj\Release\net6.0\PubTmp\Out\Chinchilla.StateManagement.dll
+D:\SEP490-ThinkTank-BE\ThinkTank.API\obj\Release\net6.0\PubTmp\Out\Cqrs.dll
 D:\SEP490-ThinkTank-BE\ThinkTank.API\obj\Release\net6.0\PubTmp\Out\Firebase.Auth.dll
 D:\SEP490-ThinkTank-BE\ThinkTank.API\obj\Release\net6.0\PubTmp\Out\FirebaseAdmin.dll
 D:\SEP490-ThinkTank-BE\ThinkTank.API\obj\Release\net6.0\PubTmp\Out\Firebase.Storage.dll
@@ -35,6 +38,7 @@ D:\SEP490-ThinkTank-BE\ThinkTank.API\obj\Release\net6.0\PubTmp\Out\Microsoft.Ent
 D:\SEP490-ThinkTank-BE\ThinkTank.API\obj\Release\net6.0\PubTmp\Out\Microsoft.Extensions.Caching.Memory.dll
 D:\SEP490-ThinkTank-BE\ThinkTank.API\obj\Release\net6.0\PubTmp\Out\Microsoft.Extensions.Caching.StackExchangeRedis.dll
 D:\SEP490-ThinkTank-BE\ThinkTank.API\obj\Release\net6.0\PubTmp\Out\Microsoft.Extensions.DependencyInjection.dll
+D:\SEP490-ThinkTank-BE\ThinkTank.API\obj\Release\net6.0\PubTmp\Out\Microsoft.Extensions.DependencyModel.dll
 D:\SEP490-ThinkTank-BE\ThinkTank.API\obj\Release\net6.0\PubTmp\Out\Microsoft.Identity.Client.dll
 D:\SEP490-ThinkTank-BE\ThinkTank.API\obj\Release\net6.0\PubTmp\Out\Microsoft.IdentityModel.JsonWebTokens.dll
 D:\SEP490-ThinkTank-BE\ThinkTank.API\obj\Release\net6.0\PubTmp\Out\Microsoft.IdentityModel.Logging.dll
@@ -43,7 +47,6 @@ D:\SEP490-ThinkTank-BE\ThinkTank.API\obj\Release\net6.0\PubTmp\Out\Microsoft.Ide
 D:\SEP490-ThinkTank-BE\ThinkTank.API\obj\Release\net6.0\PubTmp\Out\Microsoft.IdentityModel.Tokens.dll
 D:\SEP490-ThinkTank-BE\ThinkTank.API\obj\Release\net6.0\PubTmp\Out\System.Net.Http.Extensions.dll
 D:\SEP490-ThinkTank-BE\ThinkTank.API\obj\Release\net6.0\PubTmp\Out\System.Net.Http.Primitives.dll
-D:\SEP490-ThinkTank-BE\ThinkTank.API\obj\Release\net6.0\PubTmp\Out\System.ServiceModel.dll
 D:\SEP490-ThinkTank-BE\ThinkTank.API\obj\Release\net6.0\PubTmp\Out\Microsoft.OpenApi.dll
 D:\SEP490-ThinkTank-BE\ThinkTank.API\obj\Release\net6.0\PubTmp\Out\Microsoft.Win32.SystemEvents.dll
 D:\SEP490-ThinkTank-BE\ThinkTank.API\obj\Release\net6.0\PubTmp\Out\Newtonsoft.Json.dll
@@ -65,9 +68,13 @@ D:\SEP490-ThinkTank-BE\ThinkTank.API\obj\Release\net6.0\PubTmp\Out\System.Diagno
 D:\SEP490-ThinkTank-BE\ThinkTank.API\obj\Release\net6.0\PubTmp\Out\System.Drawing.Common.dll
 D:\SEP490-ThinkTank-BE\ThinkTank.API\obj\Release\net6.0\PubTmp\Out\System.IdentityModel.Tokens.Jwt.dll
 D:\SEP490-ThinkTank-BE\ThinkTank.API\obj\Release\net6.0\PubTmp\Out\System.Linq.Dynamic.Core.dll
+D:\SEP490-ThinkTank-BE\ThinkTank.API\obj\Release\net6.0\PubTmp\Out\System.Private.ServiceModel.dll
 D:\SEP490-ThinkTank-BE\ThinkTank.API\obj\Release\net6.0\PubTmp\Out\System.Runtime.Caching.dll
 D:\SEP490-ThinkTank-BE\ThinkTank.API\obj\Release\net6.0\PubTmp\Out\System.Security.Cryptography.ProtectedData.dll
 D:\SEP490-ThinkTank-BE\ThinkTank.API\obj\Release\net6.0\PubTmp\Out\System.Security.Permissions.dll
+D:\SEP490-ThinkTank-BE\ThinkTank.API\obj\Release\net6.0\PubTmp\Out\System.ServiceModel.Primitives.dll
+D:\SEP490-ThinkTank-BE\ThinkTank.API\obj\Release\net6.0\PubTmp\Out\System.ServiceModel.dll
+D:\SEP490-ThinkTank-BE\ThinkTank.API\obj\Release\net6.0\PubTmp\Out\System.Threading.AccessControl.dll
 D:\SEP490-ThinkTank-BE\ThinkTank.API\obj\Release\net6.0\PubTmp\Out\System.Windows.Extensions.dll
 D:\SEP490-ThinkTank-BE\ThinkTank.API\obj\Release\net6.0\PubTmp\Out\ca\Hangfire.Core.resources.dll
 D:\SEP490-ThinkTank-BE\ThinkTank.API\obj\Release\net6.0\PubTmp\Out\de\Hangfire.Core.resources.dll
@@ -94,6 +101,7 @@ D:\SEP490-ThinkTank-BE\ThinkTank.API\obj\Release\net6.0\PubTmp\Out\runtimes\unix
 D:\SEP490-ThinkTank-BE\ThinkTank.API\obj\Release\net6.0\PubTmp\Out\runtimes\win\lib\netcoreapp3.0\System.Drawing.Common.dll
 D:\SEP490-ThinkTank-BE\ThinkTank.API\obj\Release\net6.0\PubTmp\Out\runtimes\win\lib\netstandard2.0\System.Runtime.Caching.dll
 D:\SEP490-ThinkTank-BE\ThinkTank.API\obj\Release\net6.0\PubTmp\Out\runtimes\win\lib\netstandard2.0\System.Security.Cryptography.ProtectedData.dll
+D:\SEP490-ThinkTank-BE\ThinkTank.API\obj\Release\net6.0\PubTmp\Out\runtimes\win\lib\netstandard2.0\System.Threading.AccessControl.dll
 D:\SEP490-ThinkTank-BE\ThinkTank.API\obj\Release\net6.0\PubTmp\Out\runtimes\win\lib\netcoreapp3.0\System.Windows.Extensions.dll
 D:\SEP490-ThinkTank-BE\ThinkTank.API\obj\Release\net6.0\PubTmp\Out\ThinkTank.Data.dll
 D:\SEP490-ThinkTank-BE\ThinkTank.API\obj\Release\net6.0\PubTmp\Out\ThinkTank.Service.dll

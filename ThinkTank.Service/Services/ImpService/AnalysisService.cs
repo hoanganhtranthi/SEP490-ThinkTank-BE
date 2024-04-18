@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Security.Cryptography.Xml;
 using System.Text;
 using System.Threading.Tasks;
 using ThinkTank.Data.Entities;
@@ -44,7 +45,7 @@ namespace ThinkTank.Service.Services.ImpService
                     {
                         gameLevelOfAccountResponse.GameId = (int)achievement.GameId;
                         gameLevelOfAccountResponse.GameName = achievement.Game.Name;
-                        gameLevelOfAccountResponse.Level = achievements.LastOrDefault(a => a.GameId == achievement.GameId).Level;
+                        gameLevelOfAccountResponse.Level = achievements.Where(a => a.GameId == achievement.GameId).ToList().OrderByDescending(a => a.Level).Distinct().First().Level;
                         result.Add(gameLevelOfAccountResponse);
                     }
                 }
@@ -176,6 +177,109 @@ namespace ThinkTank.Service.Services.ImpService
             catch (Exception ex)
             {
                 throw new CrudException(HttpStatusCode.InternalServerError, "Get Analysis of Account's Memory Type error!!!!!", ex.Message);
+            }
+        }
+
+        public async Task<AnalysisAverageScoreResponse> GetAverageScoreAnalysis(int gameId, int userId)
+        {
+            try
+            {
+                var game = _unitOfWork.Repository<Game>().Find(x => x.Id == gameId);
+                if (game == null)
+                    throw new CrudException(HttpStatusCode.NotFound, $"Game Id {gameId} is not found", "");
+
+                var achievements = _unitOfWork.Repository<Achievement>()
+                    .GetAll()
+                    .AsNoTracking()
+                    .Where(x => x.GameId == gameId)
+                    .ToList();
+
+                var analysisAverageScore = new AnalysisAverageScoreResponse
+                {
+                    UserId = userId,
+                    CurrentLevel=achievements.Where(x=>x.AccountId==userId).OrderByDescending(a => a.Level).Distinct().First().Level,
+                    AnalysisAverageScoreByGroupLevelResponses = new List<AnalysisAverageScoreByGroupLevelResponse>()
+                };
+
+                var achievementsOfLevels = achievements
+                    .GroupBy(a => new { a.Level, a.AccountId })
+                    .Select(g => new Achievement
+                    {
+                        Level = g.Key.Level,
+                        AccountId = g.Key.AccountId,
+                        Duration = g.First().Duration,
+                        PieceOfInformation = g.First().PieceOfInformation,
+                        Mark = g.First().Mark,
+                        Id = g.First().Id
+                    })
+                    .ToList();
+                var maxLevel = _unitOfWork.Repository<Achievement>().GetAll().Where(x => x.GameId == gameId).ToList().OrderByDescending(a => a.Level).Distinct().First().Level;
+
+                // Tính toán trung bình của từng cấp độ chơi
+                var averageScoresByLevel = achievements
+                    .GroupBy(a => a.Level)
+                    .ToDictionary(
+                        g => g.Key,
+                        g => g.Where(a => a.AccountId == userId).Select(a => a.Duration > 0 ? (double)(a.PieceOfInformation / a.Duration) : 0).FirstOrDefault()
+                    );
+
+                // Tính toán trung bình của từng nhóm cấp độ chơi
+                var groupLevels = new[] { "Level 1", "Level 2 - Level 5", "Level 6 - Level 10", "Level 11 - Level 20", "Level 21 - Level 30", "Level 31 - Level 40", $"Level 41 - Level {maxLevel}" };
+                foreach (var groupLevel in groupLevels)
+                {
+                    var range = GetLevelRange(groupLevel, gameId);
+                    var averageOfPlayer = Enumerable.Range(range.Item1, range.Item2 - range.Item1 + 1)
+                        .Select(level => averageScoresByLevel.ContainsKey(level) ? averageScoresByLevel[level] : 0)
+                        .Average();
+
+                    var averageOfGroup = achievementsOfLevels
+                        .Where(a => range.Item1 <= a.Level && a.Level <= range.Item2)
+                        .GroupBy(a => a.AccountId)
+                        .Select(group => group.Average(a => a.Duration > 0 ? (double)(a.PieceOfInformation / a.Duration) : 0))
+                        .DefaultIfEmpty(0)
+                        .Average();
+
+
+                    analysisAverageScore.AnalysisAverageScoreByGroupLevelResponses.Add(new AnalysisAverageScoreByGroupLevelResponse
+                    {
+                        GroupLevel = groupLevel,
+                        AverageOfPlayer = averageOfPlayer,
+                        AverageOfGroup = averageOfGroup
+                    });
+                }
+
+                return analysisAverageScore;
+            }
+            catch (CrudException ex)
+            {
+                throw ex;
+            }
+            catch (Exception ex)
+            {
+                throw new CrudException(HttpStatusCode.InternalServerError, "Get Analysis of Account's Average Score error!!!!!", ex.Message);
+            }
+
+        }
+        private Tuple<int, int> GetLevelRange(string groupLevel, int gameId)
+        {
+            var maxLevel = _unitOfWork.Repository<Achievement>().GetAll().Where(x => x.GameId == gameId).ToList().OrderByDescending(a => a.Level).Distinct().First().Level;
+            switch (groupLevel)
+            {
+                case "Level 1":
+                    return Tuple.Create(1, 1);
+                case "Level 2 - Level 5":
+                    return Tuple.Create(2, 5);
+                case "Level 6 - Level 10":
+                    return Tuple.Create(6, 10);
+                case "Level 11 - Level 20":
+                    return Tuple.Create(11, 20);
+                case "Level 21 - Level 30":
+                    return Tuple.Create(21, 30);
+                case "Level 31 - Level 40":
+                    return Tuple.Create(31, 40);
+                default:
+                    return Tuple.Create(41, maxLevel);
+                    
             }
         }
     }

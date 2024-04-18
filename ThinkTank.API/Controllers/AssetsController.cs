@@ -61,7 +61,7 @@ namespace ThinkTank.API.Controllers
         /// <returns></returns>
         [Authorize(Policy = "Admin")]
         [HttpDelete]
-        public async Task<ActionResult<NotificationResponse>> DeleteAsset([FromBody] List<int> assetId)
+        public async Task<ActionResult<AssetResponse>> DeleteAsset([FromBody] List<int> assetId)
         {
             var rs = await _assetService.DeleteAsset(assetId);
             return Ok(rs);

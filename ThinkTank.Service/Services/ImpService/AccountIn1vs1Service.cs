@@ -21,6 +21,7 @@ using ThinkTank.Service.Helpers;
 using ThinkTank.Service.Utilities;
 using Repository.Extensions;
 using System.Security.Principal;
+using Firebase.Auth;
 
 namespace ThinkTank.Service.Services.ImpService
 {
@@ -30,8 +31,9 @@ namespace ThinkTank.Service.Services.ImpService
         private static SemaphoreSlim _semaphore = new SemaphoreSlim(1, 1);
         private readonly IMapper _mapper;
         private readonly IFirebaseMessagingService _firebaseMessagingService;
+        private readonly IFirebaseRealtimeDatabaseService _firebaseRealtimeDatabaseService;
         private readonly DateTime date;
-        public AccountIn1vs1Service(IUnitOfWork unitOfWork, IMapper mapper, IFirebaseMessagingService firebaseMessagingService)
+        public AccountIn1vs1Service(IUnitOfWork unitOfWork, IMapper mapper, IFirebaseMessagingService firebaseMessagingService, IFirebaseRealtimeDatabaseService firebaseRealtimeDatabaseService)
         {
             if (TimeZoneInfo.Local.BaseUtcOffset != TimeSpan.FromHours(7))
                 date = DateTime.UtcNow.ToLocalTime().AddHours(7);
@@ -39,6 +41,7 @@ namespace ThinkTank.Service.Services.ImpService
             _unitOfWork = unitOfWork;
             _mapper = mapper;
             _firebaseMessagingService = firebaseMessagingService;
+            _firebaseRealtimeDatabaseService = firebaseRealtimeDatabaseService;
         }
 
         public async Task<AccountIn1vs1Response> CreateAccount1vs1(CreateAccountIn1vs1Request createAccount1vs1Request)
@@ -80,18 +83,22 @@ namespace ThinkTank.Service.Services.ImpService
                 accIn1vs1.Game = c;
                 accIn1vs1.AccountId1Navigation = a;
                 accIn1vs1.AccountId2Navigation = a2;
+                if (a.Coin < createAccount1vs1Request.Coin)
+                    throw new CrudException(HttpStatusCode.BadRequest, $"Not enough coin for this 1vs1 of account Id {a.Id}", "");
                 a.Coin -= createAccount1vs1Request.Coin;
+                if (a2.Coin < createAccount1vs1Request.Coin)
+                    throw new CrudException(HttpStatusCode.BadRequest, $"Not enough coin for this 1vs1 of account Id {a2.Id}", "");
                 a2.Coin -= createAccount1vs1Request.Coin;
                 if (createAccount1vs1Request.WinnerId == a.Id) 
                 {
                     a.Coin += (createAccount1vs1Request.Coin * 2);
-                   await GetBadge(a, "Athlete");
+                     await GetBadge(a, "Athlete");
                 }
 
                 if (createAccount1vs1Request.WinnerId == a2.Id)
                 {
                     a2.Coin += createAccount1vs1Request.Coin * 2;
-                   await GetBadge(a, "Athlete");
+                     await GetBadge(a, "Athlete");
                 }
                    
                 if(createAccount1vs1Request.WinnerId==0 ||createAccount1vs1Request.WinnerId ==null)
@@ -120,70 +127,86 @@ namespace ThinkTank.Service.Services.ImpService
                 throw new CrudException(HttpStatusCode.InternalServerError, "Create Account In 1vs1 Error!!!", ex?.Message);
             }
         }
-
+        private async Task<List<Badge>> GetBadgeCompleted(Account account)
+        {
+            var result = new List<Badge>();
+            var badges = _unitOfWork.Repository<Badge>().GetAll().Include(x => x.Challenge).Where(x => x.AccountId == account.Id).ToList();
+            if (badges.Any())
+            {
+                foreach (var badge in badges)
+                {
+                    if (badge.CompletedLevel == badge.Challenge.CompletedMilestone)
+                        result.Add(badge);
+                }
+            }
+            return result;
+        }
         private async Task GetBadge(Account account, string name)
         {
-            var badge = _unitOfWork.Repository<Badge>().GetAll().Include(x => x.Challenge).SingleOrDefault(x => x.AccountId == account.Id && x.Challenge.Name.Equals(name));
-            var challage = _unitOfWork.Repository<Challenge>().Find(x => x.Name.Equals(name));
-            var noti = _unitOfWork.Repository<Notification>().Find(x => x.Description == $"You have received {challage.Name} badge." && x.AccountId == account.Id);
-            if (badge != null)
+            var result = await GetBadgeCompleted(account);
+            if (result.SingleOrDefault(x => x.Challenge.Name.Equals(name)) == null)
             {
-                if (badge.CompletedLevel < challage.CompletedMilestone)
+                var badge = _unitOfWork.Repository<Badge>().GetAll().Include(x => x.Challenge).SingleOrDefault(x => x.AccountId == account.Id && x.Challenge.Name.Equals(name));
+                var challage = _unitOfWork.Repository<Challenge>().Find(x => x.Name.Equals(name));
+                if (badge != null)
                 {
-                    if (name.Equals("The Tycoon"))
+                    if (badge.CompletedLevel < challage.CompletedMilestone)
                     {
-                        if (account.Coin < challage.CompletedMilestone)
-                            badge.CompletedLevel = (int)account.Coin;
-                        else badge.CompletedLevel = challage.CompletedMilestone;
-                    }
-
-                    else badge.CompletedLevel += 1;
-                }
-                if (badge.CompletedLevel == challage.CompletedMilestone && noti == null)
-                {
-
-                    badge.CompletedDate = date;
-                    #region send noti for account
-                    List<string> fcmTokens = new List<string>();
-                    if (account.Fcm != null)
-                        fcmTokens.Add(account.Fcm);
-                    var data = new Dictionary<string, string>()
-                    {
-                        ["click_action"] = "FLUTTER_NOTIFICATION_CLICK",
-                        ["Action"] = "/achievement",
-                        ["Argument"] = JsonConvert.SerializeObject(new JsonSerializerSettings
+                        if (name.Equals("The Tycoon"))
                         {
-                            ContractResolver = new DefaultContractResolver
-                            {
-                                NamingStrategy = new SnakeCaseNamingStrategy()
-                            }
-                        }),
-                    };
-                    if (fcmTokens.Any())
-                        _firebaseMessagingService.SendToDevices(fcmTokens,
-                                                               new FirebaseAdmin.Messaging.Notification() { Title = "ThinkTank", Body = $"You have received {challage.Name} badge.", ImageUrl = challage.Avatar }, data);
-                    #endregion
-                    Notification notification = new Notification
+                            if (account.Coin < challage.CompletedMilestone)
+                                badge.CompletedLevel = (int)account.Coin;
+                            else badge.CompletedLevel = challage.CompletedMilestone;
+                        }
+
+                        else badge.CompletedLevel += 1;
+                    }
+                    if (badge.CompletedLevel == challage.CompletedMilestone)
                     {
-                        AccountId = account.Id,
-                        Avatar = challage.Avatar,
-                        DateNotification = date,
-                        Description = $"You have received {challage.Name} badge.",
-                        Status = false,
-                        Title = "ThinkTank"
-                    };
-                    await _unitOfWork.Repository<Notification>().CreateAsync(notification);
+
+                        badge.CompletedDate = date;
+                        #region send noti for account
+                        List<string> fcmTokens = new List<string>();
+                        if (account.Fcm != null)
+                            fcmTokens.Add(account.Fcm);
+                        var data = new Dictionary<string, string>()
+                        {
+                            ["click_action"] = "FLUTTER_NOTIFICATION_CLICK",
+                            ["Action"] = "/achievement",
+                            ["Argument"] = JsonConvert.SerializeObject(new JsonSerializerSettings
+                            {
+                                ContractResolver = new DefaultContractResolver
+                                {
+                                    NamingStrategy = new SnakeCaseNamingStrategy()
+                                }
+                            }),
+                        };
+                        if (fcmTokens.Any())
+                            _firebaseMessagingService.SendToDevices(fcmTokens,
+                                                                   new FirebaseAdmin.Messaging.Notification() { Title = "ThinkTank", Body = $"You have received {challage.Name} badge.", ImageUrl = challage.Avatar }, data);
+                        #endregion
+                        Notification notification = new Notification
+                        {
+                            AccountId = account.Id,
+                            Avatar = challage.Avatar,
+                            DateNotification = date,
+                            Description = $"You have received {challage.Name} badge.",
+                            Status = false,
+                            Title = "ThinkTank"
+                        };
+                        await _unitOfWork.Repository<Notification>().CreateAsync(notification);
+                    }
+                    await _unitOfWork.Repository<Badge>().Update(badge, badge.Id);
                 }
-                await _unitOfWork.Repository<Badge>().Update(badge, badge.Id);
-            }
-            else
-            {
-                badge = new Badge();
-                badge.AccountId = account.Id;
-                badge.CompletedLevel = 1;
-                badge.ChallengeId = challage.Id;
-                badge.Status = false;
-                await _unitOfWork.Repository<Badge>().CreateAsync(badge);
+                else
+                {
+                    badge = new Badge();
+                    badge.AccountId = account.Id;
+                    badge.CompletedLevel = 1;
+                    badge.ChallengeId = challage.Id;
+                    badge.Status = false;
+                    await _unitOfWork.Repository<Badge>().CreateAsync(badge);
+                }
             }
         }
         public async Task<AccountIn1vs1Response> GetAccount1vs1ById(int id)
@@ -315,7 +338,7 @@ namespace ThinkTank.Service.Services.ImpService
         {
             await CacheService.Instance.DeleteJobAsync("account1vs1",accountInfo);
         }
-        public async Task<bool> RemoveAccountFromCache(int id, int coin, int gameId,string uniqueId)
+        public async Task<bool> RemoveAccountFromCache(int id, int coin, int gameId,string uniqueId, int delay)
         {
             try
             {
@@ -342,6 +365,7 @@ namespace ThinkTank.Service.Services.ImpService
                 string acc =  list.SingleOrDefault(x => x == $"{id}+{coin}+{gameId}+{uniqueId}");
                 if (acc == null)
                     throw new CrudException(HttpStatusCode.BadRequest, $"Account Id {id} Not Found In Cache!!!!!", "");
+                Thread.Sleep(delay * 1000);
                  await RemoveFromCacheAsync( acc);
                 return true;
             }
@@ -435,8 +459,6 @@ namespace ThinkTank.Service.Services.ImpService
                 throw new CrudException(HttpStatusCode.InternalServerError, "Find account 1vs1 Error!!!", ex.InnerException?.Message);
             }
        }
-          
-
 
 
         public async Task<PagedResults<AccountIn1vs1Response>> GetAccount1vs1s(AccountIn1vs1Request request, PagingRequest paging)
@@ -470,6 +492,34 @@ namespace ThinkTank.Service.Services.ImpService
                 throw new CrudException(HttpStatusCode.InternalServerError, "Get accounts 1vs1 list error!!!!!", ex.Message);
             }
         }
+        public async Task<bool> GetToStartRoom(string room1vs1Id, bool isUser1, int time, int progressTime)
+        {
+            try
+            {
+                if (room1vs1Id == null || room1vs1Id =="" )
+                {
+                    throw new CrudException(HttpStatusCode.BadRequest, "Information Invalid", "");
+                }
 
+                var roomRealtimeDatabase = await _firebaseRealtimeDatabaseService.GetAsyncOfRoom<dynamic>($"battle/{room1vs1Id}");
+                Thread.Sleep(time * 1000 + 15000);
+                await _unitOfWork.CommitAsync();
+                if (roomRealtimeDatabase != null)
+                {
+                    if (isUser1 == true)
+                        await _firebaseRealtimeDatabaseService.SetAsyncOfRoom<int>($"battle/{room1vs1Id}/progress1", progressTime);
+                    else  await _firebaseRealtimeDatabaseService.SetAsyncOfRoom<int>($"battle/{room1vs1Id}/progress2", progressTime);
+                }             
+                return true ;
+            }
+            catch (CrudException ex)
+            {
+                throw ex;
+            }
+            catch (Exception ex)
+            {
+                throw new CrudException(HttpStatusCode.InternalServerError, "Start  To Play 1vs1 error!!!!!", ex.Message);
+            }
+        }
     }
 }

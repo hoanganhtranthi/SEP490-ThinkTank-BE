@@ -24,7 +24,7 @@ namespace ThinkTank.API.Controllers
         /// <returns></returns>
        [Authorize(Policy = "Admin")]
         [HttpGet]
-        public async Task<ActionResult<List<AssetResponse>>> GetTypeOfAssets([FromQuery] PagingRequest pagingRequest, [FromQuery] TypeOfAssetRequest assetRequest)
+        public async Task<ActionResult<List<TypeOfAssetResponse>>> GetTypeOfAssets([FromQuery] PagingRequest pagingRequest, [FromQuery] TypeOfAssetRequest assetRequest)
         {
             var rs = await _assetService.GetTypeOfAssets(assetRequest, pagingRequest);
             return Ok(rs);
@@ -36,7 +36,7 @@ namespace ThinkTank.API.Controllers
         /// <returns></returns>
         [Authorize(Policy = "Admin")]
         [HttpGet("{id:int}")]
-        public async Task<ActionResult<AssetResponse>> GetTypeOfAssetsById(int id)
+        public async Task<ActionResult<TypeOfAssetResponse>> GetTypeOfAssetsById(int id)
         {
             var rs = await _assetService.GetTypeOfAssetById(id);
             return Ok(rs);

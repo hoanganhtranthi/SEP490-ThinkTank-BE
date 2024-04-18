@@ -455,20 +455,22 @@ namespace ThinkTank.Service.Services.ImpService
                 if(roomOfAccount.AccountInRooms.Count() <2 || roomOfAccount.AccountInRooms.Count() > roomOfAccount.AmountPlayer)
                     throw new CrudException(HttpStatusCode.BadRequest, "The number of participants does not match the amout player", "");
                 
-                if(roomOfAccount.AccountInRooms.SingleOrDefault(x=>x.AccountId==accountId).IsAdmin==false)
+                if(roomOfAccount.AccountInRooms.SingleOrDefault(x=>x.AccountId==accountId && x.IsAdmin==true)==null)
                     throw new CrudException(HttpStatusCode.BadRequest, $"Account Id {accountId} does not have permission to start this room id", "");
                 roomOfAccount.StartTime = date;
                 roomOfAccount.Status = true;
 
                 var roomRealtimeDatabase = await _firebaseRealtimeDatabaseService.GetAsyncOfRoom<RoomRealtimeDatabaseResponse>($"room/{roomCode}");
-                Thread.Sleep(time*1000 + 20000);
-                roomRealtimeDatabase.AmountPlayerDone = roomOfAccount.AccountInRooms.Count();
-                await _firebaseRealtimeDatabaseService.SetAsyncOfRoom<int>($"room/{roomCode}/AmountPlayerDone", roomRealtimeDatabase.AmountPlayerDone);
-
+                Thread.Sleep(time*1000 + 10000);
                 roomOfAccount.Status = false;
-                roomOfAccount.EndTime = date;
-                await _unitOfWork.Repository<Room>().Update(roomOfAccount, roomOfAccount.Id);
+                roomOfAccount.EndTime = date.AddMilliseconds(time*1000+10000);
+                await _unitOfWork.Repository<Room>().UpdateDispose(roomOfAccount, roomOfAccount.Id);
                 await _unitOfWork.CommitAsync();
+                if (roomRealtimeDatabase != null)
+                {
+                    roomRealtimeDatabase.AmountPlayerDone = roomOfAccount.AccountInRooms.Count();
+                    await _firebaseRealtimeDatabaseService.SetAsyncOfRoom<int>($"room/{roomCode}/AmountPlayerDone", roomRealtimeDatabase.AmountPlayerDone);
+                }
                 var rs = _mapper.Map<RoomResponse>(roomOfAccount);
                 rs.TopicName = roomOfAccount.Topic.Name;
                 rs.GameName = roomOfAccount.Topic.Game.Name;

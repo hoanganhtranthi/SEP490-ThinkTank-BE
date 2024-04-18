@@ -33,5 +33,11 @@ namespace ThinkTank.Service.Helpers
             True = 2,
             False = 3
         }
+        public enum StatusTopicType
+        {
+            All = 1,
+            True = 2,
+            False = 3
+        }
     }
 }

@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using ThinkTank.Service.DTO.Request;
+using ThinkTank.Service.DTO.Response;
 using ThinkTank.Service.Services.ImpService;
 using ThinkTank.Service.Services.IService;
 
@@ -48,6 +49,19 @@ namespace ThinkTank.API.Controllers
         public async Task<ActionResult<dynamic>> GetAnalysisOfEachTypeOfMemoryOfAccount(int accountId)
         {
             var rs = await _analysisService.GetAnalysisOfMemoryTypeByAccountId(accountId);
+            return Ok(rs);
+        }
+        /// <summary>
+        /// Get analysis average score by account Id 
+        /// </summary>
+        /// <param name="gameId"></param>
+        /// <param name="userId"></param>
+        /// <returns></returns>
+        [Authorize(Policy = "Player")]
+        [HttpGet("{userId:int},{gameId:int}/average-score")]
+        public async Task<ActionResult<AnalysisAverageScoreResponse>> GetAnalysisOfEachTypeOfMemoryOfAccount(int gameId, int userId)
+        {
+            var rs = await _analysisService.GetAverageScoreAnalysis(gameId,userId);
             return Ok(rs);
         }
     }

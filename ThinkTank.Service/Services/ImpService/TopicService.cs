@@ -107,7 +107,7 @@ namespace ThinkTank.Service.Services.ImpService
             {
 
                 var filter = _mapper.Map<TopicResponse>(request);
-                var friends = _unitOfWork.Repository<Topic>().GetAll().AsNoTracking().Include(a => a.Game)
+                var topics = _unitOfWork.Repository<Topic>().GetAll().AsNoTracking().Include(a => a.Game)
                     .Select(a => new TopicResponse
                     {
                         Id = a.Id,
@@ -126,7 +126,12 @@ namespace ThinkTank.Service.Services.ImpService
                             Answer = x.Topic.GameId == 2 ? System.IO.Path.GetFileName(new Uri(x.Value).LocalPath) : null
                         }))
                     }).DynamicFilter(filter).ToList();
-                var sort = PageHelper<TopicResponse>.Sorting(paging.SortType, friends, paging.ColName);
+                if (request.IsHavingAsset == Helpers.Enum.StatusTopicType.True)
+                    topics = topics.Where(x => x.Assets.Count() > 0).ToList();
+                if (request.IsHavingAsset == Helpers.Enum.StatusTopicType.False)
+                    topics = topics.Where(x => x.Assets.Count() == 0).ToList();
+                else topics = topics.ToList();
+                var sort = PageHelper<TopicResponse>.Sorting(paging.SortType, topics, paging.ColName);
                 var result = PageHelper<TopicResponse>.Paging(sort, paging.Page, paging.PageSize);
                 return result;
             }

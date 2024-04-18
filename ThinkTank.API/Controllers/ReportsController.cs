@@ -46,7 +46,7 @@ namespace ThinkTank.API.Controllers
         /// </summary>
         /// <param name="report"></param>
         /// <returns></returns>
-      [Authorize(Policy = "Player")]
+     // [Authorize(Policy = "Player")]
         [HttpPost()]
         public async Task<ActionResult<ReportResponse>> AddReport([FromBody] CreateReportRequest report)
         {

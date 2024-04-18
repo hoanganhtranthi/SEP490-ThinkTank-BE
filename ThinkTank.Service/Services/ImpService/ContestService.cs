@@ -56,7 +56,7 @@ namespace ThinkTank.Service.Services.ImpService
             try
             {
                 var contest = _mapper.Map<CreateAndUpdateContestRequest, Contest>(createContestRequest);
-                if(createContestRequest.Assets ==null)
+                if(createContestRequest.Assets ==null || createContestRequest.Assets.Count()==0)
                     throw new CrudException(HttpStatusCode.BadRequest, "Assets Of Contest cannot be null", "");
                 var s = _unitOfWork.Repository<Contest>().Find(s => s.Name == createContestRequest.Name);
                 if (s != null)
@@ -173,6 +173,20 @@ namespace ThinkTank.Service.Services.ImpService
                 throw ex;
             }
         }
+        private async Task<List<Badge>> GetBadgeCompleted(Account account)
+        {
+            var result = new List<Badge>();
+            var badges = _unitOfWork.Repository<Badge>().GetAll().Include(x => x.Challenge).Where(x => x.AccountId == account.Id).ToList();
+            if (badges.Any())
+            {
+                foreach (var badge in badges)
+                {
+                    if (badge.CompletedLevel == badge.Challenge.CompletedMilestone)
+                        result.Add(badge);
+                }
+            }
+            return result;
+        }
         public async Task<ContestResponse> UpdateStateContest(int id)
         {
             try
@@ -262,7 +276,8 @@ namespace ThinkTank.Service.Services.ImpService
                     account.Coin =account.Coin+reward;
                     await _unitOfWork.Repository<Account>().Update(account, account.Id);
                     fcmTokens.Clear();
-                    fcmTokens.Add(account.Fcm);
+                    if(account.Fcm != null)
+                        fcmTokens.Add(account.Fcm);
                     if (fcmTokens.Any())
                         _firebaseMessagingService.SendToDevices(fcmTokens,
                       new FirebaseAdmin.Messaging.Notification()
@@ -298,49 +313,52 @@ namespace ThinkTank.Service.Services.ImpService
         }
         private async Task GetBadge(Account account, string name)
         {
-            var badge = _unitOfWork.Repository<Badge>().GetAll().Include(x => x.Challenge).SingleOrDefault(x => x.AccountId == account.Id && x.Challenge.Name.Equals(name));
-            var challage = _unitOfWork.Repository<Challenge>().Find(x => x.Name.Equals(name));
-            var noti = _unitOfWork.Repository<Notification>().Find(x => x.Description == $"You have received {challage.Name} badge." && x.AccountId == account.Id);
-            if (badge != null)
+            var result = await GetBadgeCompleted(account);
+            if (result.SingleOrDefault(x => x.Challenge.Name.Equals(name)) == null)
             {
-                if (badge.CompletedLevel < challage.CompletedMilestone && account.Coin < challage.CompletedMilestone)
-                        badge.CompletedLevel = (int)account.Coin;
-                if (account.Coin >= challage.CompletedMilestone)
+                var badge = _unitOfWork.Repository<Badge>().GetAll().Include(x => x.Challenge).SingleOrDefault(x => x.AccountId == account.Id && x.Challenge.Name.Equals(name));
+                var challage = _unitOfWork.Repository<Challenge>().Find(x => x.Name.Equals(name));
+                if (badge != null)
                 {
-                    badge.Status = true;
-                    badge.CompletedDate = date;
-                    #region send noti for account
-                    List<string> fcmTokens = new List<string>();
-                    if (account.Fcm != null)
-                        fcmTokens.Add(account.Fcm);
-                    var data = new Dictionary<string, string>()
+                    if (badge.CompletedLevel < challage.CompletedMilestone && account.Coin < challage.CompletedMilestone)
+                        badge.CompletedLevel = (int)account.Coin;
+                    if (account.Coin >= challage.CompletedMilestone)
                     {
-                        ["click_action"] = "FLUTTER_NOTIFICATION_CLICK",
-                        ["Action"] = "/achievement",
-                        ["Argument"] = JsonConvert.SerializeObject(new JsonSerializerSettings
+                        badge.Status = true;
+                        badge.CompletedDate = date;
+                        #region send noti for account
+                        List<string> fcmTokens = new List<string>();
+                        if (account.Fcm != null)
+                            fcmTokens.Add(account.Fcm);
+                        var data = new Dictionary<string, string>()
                         {
-                            ContractResolver = new DefaultContractResolver
+                            ["click_action"] = "FLUTTER_NOTIFICATION_CLICK",
+                            ["Action"] = "/achievement",
+                            ["Argument"] = JsonConvert.SerializeObject(new JsonSerializerSettings
                             {
-                                NamingStrategy = new SnakeCaseNamingStrategy()
-                            }
-                        }),
-                    };
-                    if (fcmTokens.Any())
-                        _firebaseMessagingService.SendToDevices(fcmTokens,
-                                                               new FirebaseAdmin.Messaging.Notification() { Title = "ThinkTank", Body = $"You have received {challage.Name} badge.", ImageUrl = challage.Avatar }, data);
-                    #endregion
-                    Notification notification = new Notification
-                    {
-                        AccountId = account.Id,
-                        Avatar = challage.Avatar,
-                        DateNotification = date,
-                        Description = $"You have received {challage.Name} badge.",
-                        Status = false,
-                        Title = "ThinkTank"
-                    };
-                    await _unitOfWork.Repository<Notification>().CreateAsync(notification);
+                                ContractResolver = new DefaultContractResolver
+                                {
+                                    NamingStrategy = new SnakeCaseNamingStrategy()
+                                }
+                            }),
+                        };
+                        if (fcmTokens.Any())
+                            _firebaseMessagingService.SendToDevices(fcmTokens,
+                                                                   new FirebaseAdmin.Messaging.Notification() { Title = "ThinkTank", Body = $"You have received {challage.Name} badge.", ImageUrl = challage.Avatar }, data);
+                        #endregion
+                        Notification notification = new Notification
+                        {
+                            AccountId = account.Id,
+                            Avatar = challage.Avatar,
+                            DateNotification = date,
+                            Description = $"You have received {challage.Name} badge.",
+                            Status = false,
+                            Title = "ThinkTank"
+                        };
+                        await _unitOfWork.Repository<Notification>().CreateAsync(notification);
+                    }
+                    await _unitOfWork.Repository<Badge>().Update(badge, badge.Id);
                 }
-                await _unitOfWork.Repository<Badge>().Update(badge, badge.Id);
             }
         }
         public async Task<ContestResponse> GetContestById(int id)
@@ -406,7 +424,7 @@ namespace ThinkTank.Service.Services.ImpService
                 IList<LeaderboardResponse> responses = new List<LeaderboardResponse>();
                 if (contest.AccountInContests.Count() > 0)
                 {
-                    var orderedAccounts = contest.AccountInContests.OrderByDescending(x => x.Mark);
+                    var orderedAccounts = contest.AccountInContests.Where(x=>x.Mark != 0).OrderByDescending(x => x.Mark);
                     var rank = 1;
 
                     foreach (var account in orderedAccounts)
@@ -564,7 +582,7 @@ namespace ThinkTank.Service.Services.ImpService
             {
                 Contest contest = _unitOfWork.Repository<Contest>()
                      .GetAll().Include(x => x.AssetOfContests).SingleOrDefault(c => c.Id == contestId);
-                if (request.Assets == null)
+                if (request.Assets == null || request.Assets.Count() == 0)
                     throw new CrudException(HttpStatusCode.BadRequest, "Assets Of Contest cannot be null", "");
                 if (contest == null)
                     throw new CrudException(HttpStatusCode.NotFound, $"Not found contest with id {contestId.ToString()}", "");

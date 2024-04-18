@@ -53,13 +53,26 @@ namespace ThinkTank.Service.Services.ImpService
                 {
                     throw new CrudException(HttpStatusCode.NotFound, $" Account Id {createReportRequest.AccountId2} is not found !!!", "");
                 }
+
+                var reportsWithinTimeframe = _unitOfWork.Repository<Report>()
+             .GetAll()
+            .AsNoTracking()
+            .Where(x => x.AccountId1 == createReportRequest.AccountId1 && EF.Functions.DateDiffMinute(x.DateReport.Value, date) <= 10)
+            .ToList();
+
+                if (reportsWithinTimeframe.Count() > 3)
+                {
+                    throw new CrudException(HttpStatusCode.BadRequest, "During 10 minutes, you can only send a maximum of 3 reports", "");
+                }
+
                 report.DateReport = date;
                 await _unitOfWork.Repository<Report>().CreateAsync(report);
                 if (s.Avatar == null)
                     s.Avatar = "https://firebasestorage.googleapis.com/v0/b/thinktank-79ead.appspot.com/o/System%2Flogo_2_bg%201%20%281%29.png?alt=media&token=437436e4-28ce-4a0c-a7d2-a8763064151f";
                 #region send noti for account
                 List<string> fcmTokens = new List<string>();
-                fcmTokens.Add(cus.Fcm);
+                if(cus.Fcm != null)
+                    fcmTokens.Add(cus.Fcm);
                 var data = new Dictionary<string, string>()
                 {
                     ["click_action"] = "FLUTTER_NOTIFICATION_CLICK",
@@ -138,7 +151,7 @@ namespace ThinkTank.Service.Services.ImpService
             {
 
                 var filter = _mapper.Map<ReportResponse>(request);
-                var friends = _unitOfWork.Repository<Report>().GetAll().AsNoTracking().Include(a => a.AccountId1Navigation)
+                var reports = _unitOfWork.Repository<Report>().GetAll().AsNoTracking().Include(a => a.AccountId1Navigation)
                     .Include(a => a.AccountId2Navigation).Select(x => new ReportResponse
                     {
                         Id = x.Id,
@@ -150,7 +163,7 @@ namespace ThinkTank.Service.Services.ImpService
                         UserName1 = x.AccountId1Navigation.UserName,
                         UserName2 = x.AccountId2Navigation.UserName,
                     }).DynamicFilter(filter).ToList();
-                var sort = PageHelper<ReportResponse>.Sorting(paging.SortType, friends, paging.ColName);
+                var sort = PageHelper<ReportResponse>.Sorting(paging.SortType, reports, paging.ColName);
                 var result = PageHelper<ReportResponse>.Paging(sort, paging.Page, paging.PageSize);
                 return result;
             }
