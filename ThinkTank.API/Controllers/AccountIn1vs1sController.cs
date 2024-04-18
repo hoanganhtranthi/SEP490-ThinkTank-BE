@@ -7,7 +7,7 @@ using ThinkTank.Service.Services.IService;
 
 namespace ThinkTank.API.Controllers
 {
-    [Route("api/accountIn1vs1")]
+    [Route("api/accountIn1vs1s")]
     [ApiController]
     public class AccountIn1vs1sController : Controller
     {
@@ -37,7 +37,7 @@ namespace ThinkTank.API.Controllers
         /// <returns></returns>
         [Authorize(Policy = "All")]
         [HttpGet("{id:int}")]
-        public async Task<ActionResult<AccountInContestResponse>> GetAccountIn1vs1ById( int id)
+        public async Task<ActionResult<AccountIn1vs1Response>> GetAccountIn1vs1ById( int id)
         {
             var rs = await accountIn1Vs1Service.GetAccount1vs1ById(id);
             return Ok(rs);
@@ -50,7 +50,7 @@ namespace ThinkTank.API.Controllers
         /// <returns></returns>
      [Authorize(Policy = "Player")]
         [HttpPost]
-        public async Task<ActionResult<AccountInContestResponse>> CreateAccountIn1vs1([FromBody] CreateAccountIn1vs1Request request)
+        public async Task<ActionResult<AccountIn1vs1Response>> CreateAccountIn1vs1([FromBody] CreateAccountIn1vs1Request request)
         {
             var rs = await accountIn1Vs1Service.CreateAccount1vs1(request);
             return Ok(rs);
@@ -92,10 +92,25 @@ namespace ThinkTank.API.Controllers
         ///    <param name="roomOfAccount1vs1Id"></param>
         /// <returns></returns>
         [Authorize(Policy = "Player")]
-        [HttpGet("{accountId:int},{gameId:int},{coin:int},{roomOfAccount1vs1Id}/account-removed")]
-        public async Task<ActionResult<bool>> RemoveAccountFromCache(int accountId,  int gameId,  int coin, string roomOfAccount1vs1Id)
+        [HttpGet("{accountId:int},{gameId:int},{coin:int},{roomOfAccount1vs1Id},{delay:int}/account-removed")]
+        public async Task<ActionResult<bool>> RemoveAccountFromCache(int accountId,  int gameId,  int coin, string roomOfAccount1vs1Id, int delay)
         {
-            var rs = await accountIn1Vs1Service.RemoveAccountFromCache(accountId, coin, gameId,roomOfAccount1vs1Id);
+            var rs = await accountIn1Vs1Service.RemoveAccountFromCache(accountId, coin, gameId,roomOfAccount1vs1Id,delay);
+            return Ok(rs);
+        }
+        /// <summary>
+        /// Start Room To Play Game
+        /// </summary>
+        /// <param name="room1vs1Id"></param>
+        /// <param name="isUser1"></param>
+        /// <param name="time"></param>
+        /// <param name="progressTime"></param>
+        /// <returns></returns>
+        [Authorize(Policy = "Player")]
+        [HttpGet("{room1vs1Id},{isUser1},{time:int},{progressTime:int}/started-room")]
+        public async Task<ActionResult<bool>> GetToStartRoom(string room1vs1Id, bool isUser1, int time, int progressTime)
+        {
+            var rs = await accountIn1Vs1Service.GetToStartRoom(room1vs1Id, isUser1, time, progressTime);
             return Ok(rs);
         }
     }

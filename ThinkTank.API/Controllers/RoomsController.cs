@@ -46,7 +46,7 @@ namespace ThinkTank.API.Controllers
         /// </summary>
         /// <param name="room"></param>
         /// <returns></returns>
-        [Authorize(Policy = "Player")]
+      //  [Authorize(Policy = "Player")]
         [HttpPost()]
         public async Task<ActionResult<RoomResponse>> CreateRoom([FromBody] CreateRoomRequest room)
         {
@@ -112,7 +112,7 @@ namespace ThinkTank.API.Controllers
         /// <param name="roomCode"></param>
         /// <param name="time"></param>
         /// <returns></returns>
-        //[Authorize(Policy = "Player")]
+       // [Authorize(Policy = "Player")]
         [HttpGet("{accountId:int},{roomCode},{time:int}/started-room")]
         public async Task<ActionResult<RoomResponse>> GetToStartRoom(int accountId,string roomCode,int time)
         {

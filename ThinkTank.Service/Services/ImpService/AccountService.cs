@@ -15,11 +15,14 @@ using Repository.Extensions;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.ComponentModel;
+using System.Diagnostics;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Linq.Dynamic.Core.Tokenizer;
 using System.Net;
 using System.Net.Mail;
+using System.Net.Sockets;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Security.Principal;
@@ -29,6 +32,7 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using ThinkTank.Data.Entities;
 using ThinkTank.Data.UnitOfWork;
+using ThinkTank.Service.Commons;
 using ThinkTank.Service.DTO.Request;
 using ThinkTank.Service.DTO.Response;
 using ThinkTank.Service.Exceptions;
@@ -73,8 +77,7 @@ namespace ThinkTank.Service.Services.ImpService
                 {
                     throw new CrudException(HttpStatusCode.BadRequest, "Username has already !!!", "");
                 }
-                if(!Regex.IsMatch(createAccountRequest.Password, "^(?=.*\\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[a-zA-Z]).{8,12}$"))
-                    throw new CrudException(HttpStatusCode.BadRequest, "Password is invalid", "");
+
                 CreatPasswordHash(createAccountRequest.Password, out byte[] passwordHash, out byte[] passwordSalt);
                 customer.PasswordHash = passwordHash;
                 customer.PasswordSalt = passwordSalt;
@@ -222,6 +225,21 @@ namespace ThinkTank.Service.Services.ImpService
                 throw new CrudException(HttpStatusCode.InternalServerError, "Get account list error!!!!!", ex.Message);
             }
         }
+
+        private async Task<List<Badge>> GetBadgeCompleted(Account account)
+        {
+            var result = new List<Badge>();
+            var badges = _unitOfWork.Repository<Badge>().GetAll().Include(x => x.Challenge).Where(x => x.AccountId == account.Id).ToList();
+            if (badges.Any())
+            {
+                foreach (var badge in badges)
+                {
+                    if (badge.CompletedLevel == badge.Challenge.CompletedMilestone)
+                        result.Add(badge);
+                }
+            }
+            return result;
+        }
         public async Task<AccountResponse> LoginPlayer(LoginRequest request)
         {
             try
@@ -232,15 +250,17 @@ namespace ThinkTank.Service.Services.ImpService
                     throw new CrudException(HttpStatusCode.BadRequest, "Login Google cannot login by username and password", "");
                 if (!VerifyPasswordHash(request.Password.Trim(), user.PasswordHash, user.PasswordSalt))
                         throw new CrudException(HttpStatusCode.BadRequest, "Password is incorrect", "");
-                    if (user.Status == false) throw new CrudException(HttpStatusCode.BadRequest, "Your account is block", "");
+                if (!Regex.IsMatch(request.Password, "^(?=.*\\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[a-zA-Z]).{8,12}$"))
+                    throw new CrudException(HttpStatusCode.BadRequest, "Password is invalid", "");
+                if (user.Status == false) throw new CrudException(HttpStatusCode.BadRequest, "Your account is block", "");
                     user.VersionToken = user.VersionToken+1;
                     user.RefreshToken = GenerateRefreshToken(user);
                     if(request.Fcm != null && request.Fcm != "")
                     user.Fcm = request.Fcm;
                     await _unitOfWork.Repository<Account>().Update(user, user.Id);
                     DateTime newDateTime = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day, 21, 0, 0);
-                    if (date > newDateTime)
-                    await GetBadge(user, "Nocturnal");
+                if (date > newDateTime)
+                     await GetBadge(user, "Nocturnal");
                     await _unitOfWork.CommitAsync();
                     var rs = _mapper.Map<Account, AccountResponse>(user);
                     rs.AccessToken = GenerateJwtToken(user);
@@ -425,7 +445,7 @@ namespace ThinkTank.Service.Services.ImpService
                     await _unitOfWork.Repository<Account>().Update(user, user.Id);
                     DateTime newDateTime = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day, 21, 0, 0);
                     if (date > newDateTime)
-                       await GetBadge(user, "Nocturnal");
+                     await GetBadge(user, "Nocturnal");
                 }
                 
                 await _unitOfWork.CommitAsync();
@@ -444,57 +464,52 @@ namespace ThinkTank.Service.Services.ImpService
         }
         private async Task GetBadge(Account account, string name)
         {
-            var badge = _unitOfWork.Repository<Badge>().GetAll().Include(x => x.Challenge).SingleOrDefault(x => x.AccountId == account.Id && x.Challenge.Name.Equals(name));
-            var challage = _unitOfWork.Repository<Challenge>().Find(x => x.Name.Equals(name));
-            var noti = _unitOfWork.Repository<Notification>().Find(x => x.Description == $"You have received {challage.Name} badge." && x.AccountId == account.Id);
-            if (badge != null)
+            var result = await GetBadgeCompleted(account);
+            if (result.SingleOrDefault(x => x.Challenge.Name.Equals(name)) == null)
             {
-                if (badge.CompletedLevel < challage.CompletedMilestone)
-                 badge.CompletedLevel += 1;
-                if (badge.CompletedLevel == challage.CompletedMilestone && noti == null )
+                var badge = _unitOfWork.Repository<Badge>().GetAll().Include(x => x.Challenge).SingleOrDefault(x => x.AccountId == account.Id && x.Challenge.Name.Equals(name));
+                var challage = _unitOfWork.Repository<Challenge>().Find(x => x.Name.Equals(name));
+                if (badge != null)
                 {
-                    badge.CompletedDate = date;
-                    #region send noti for account
-                    List<string> fcmTokens = new List<string>();
-                    if (account.Fcm != null)
-                        fcmTokens.Add(account.Fcm);
-                    var data = new Dictionary<string, string>()
-                    {
-                        ["click_action"] = "FLUTTER_NOTIFICATION_CLICK",
-                        ["Action"] = "/achievement",
-                        ["Argument"] = JsonConvert.SerializeObject(new JsonSerializerSettings
+                        badge.CompletedDate = date;
+                        #region send noti for account
+                        List<string> fcmTokens = new List<string>();
+                        if (account.Fcm != null)
+                            fcmTokens.Add(account.Fcm);
+                        var data = new Dictionary<string, string>()
                         {
-                            ContractResolver = new DefaultContractResolver
+                            ["click_action"] = "FLUTTER_NOTIFICATION_CLICK",
+                            ["Action"] = "/achievement",
+                            ["Argument"] = JsonConvert.SerializeObject(new JsonSerializerSettings
                             {
-                                NamingStrategy = new SnakeCaseNamingStrategy()
-                            }
-                        }),
-                    };
-                    if (fcmTokens.Any())
-                        _firebaseMessagingService.SendToDevices(fcmTokens,
-                                                               new FirebaseAdmin.Messaging.Notification() { Title = "ThinkTank", Body = $"You have received {challage.Name} badge.", ImageUrl = challage.Avatar }, data);
-                    #endregion
-                    Notification notification = new Notification
-                    {
-                        AccountId = account.Id,
-                        Avatar = challage.Avatar,
-                        DateNotification = DateTime.Now,
-                        Description = $"You have received {challage.Name} badge.",
-                        Status=false, 
-                        Title = "ThinkTank"
-                    };
-                    await _unitOfWork.Repository<Notification>().CreateAsync(notification);
+                                ContractResolver = new DefaultContractResolver
+                                {
+                                    NamingStrategy = new SnakeCaseNamingStrategy()
+                                }
+                            }),
+                        };
+                        if (fcmTokens.Any())
+                            _firebaseMessagingService.SendToDevices(fcmTokens,
+                                                                   new FirebaseAdmin.Messaging.Notification() { Title = "ThinkTank", Body = $"You have received {challage.Name} badge.", ImageUrl = challage.Avatar }, data);
+                        #endregion
+                        Notification notification = new Notification
+                        {
+                            AccountId = account.Id,
+                            Avatar = challage.Avatar,
+                            DateNotification = DateTime.Now,
+                            Description = $"You have received {challage.Name} badge.",
+                            Status = false,
+                            Title = "ThinkTank"
+                        };
+                        await _unitOfWork.Repository<Notification>().CreateAsync(notification);
                 }
-                await _unitOfWork.Repository<Badge>().Update(badge, badge.Id);
-            }
-            else
-            {
                 badge = new Badge();
                 badge.AccountId = account.Id;
                 badge.CompletedLevel = 1;
                 badge.ChallengeId = challage.Id;
                 badge.Status = false;
                 await _unitOfWork.Repository<Badge>().CreateAsync(badge);
+
             }
         }
 
@@ -570,10 +585,7 @@ namespace ThinkTank.Service.Services.ImpService
                 {
                     if (account.GoogleId != null && account.GoogleId != "")
                         throw new CrudException(HttpStatusCode.BadRequest, "Login Google cannot update password", "");
-                    
-                    if (!Regex.IsMatch(request.NewPassword, "^(?=.*\\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[a-zA-Z]).{8,12}$"))
-                        throw new CrudException(HttpStatusCode.BadRequest, "New Password is invalid", "");
-                    
+                                     
                     if (!VerifyPasswordHash(request.OldPassword.Trim(), account.PasswordHash, account.PasswordSalt))
                         throw new CrudException(HttpStatusCode.BadRequest, "Old Password is not match", "");
                     
@@ -735,6 +747,8 @@ namespace ThinkTank.Service.Services.ImpService
                 {
                     throw new CrudException(HttpStatusCode.NotFound, $"Not found account with id{id}", "");
                 }
+                if (CheckIsLogin(id).Result==true)
+                    throw new CrudException(HttpStatusCode.BadRequest, $"Account Id {id} is online so it cannot be banned ", "");
                 account.Status = !account.Status;
                 account.VersionToken += 1;
                 account.RefreshToken = null;
@@ -749,6 +763,64 @@ namespace ThinkTank.Service.Services.ImpService
             catch (Exception ex)
             {
                 throw new CrudException(HttpStatusCode.InternalServerError, "Ban account error!!!!!", ex.Message);
+            }
+        }
+        private async Task<bool> CheckIsLogin(int id)
+        {
+            try
+            {
+                Account user = new Account();
+                var result = false;
+                 user = _unitOfWork.Repository<Account>().Find(u => u.Id==id);
+                    if (user == null) throw new CrudException(HttpStatusCode.BadRequest, "Account Not Found", "");
+                var isOnline= await _firebaseRealtimeDatabaseService.GetAsyncOfRoom<bool>($"/islogin/{id}");
+                if(isOnline != null)
+                {
+                    await _firebaseRealtimeDatabaseService.SetAsyncOfRoom<bool>($"/islogin/{id}", false);
+                    Thread.Sleep(2000);
+                    result= await _firebaseRealtimeDatabaseService.GetAsyncOfRoom<bool>($"/islogin/{id}");
+                }
+                return result;
+            }
+            catch (CrudException ex)
+            {
+                throw ex;
+            }
+            catch (Exception ex)
+            {
+                throw new CrudException(HttpStatusCode.InternalServerError, "Check login error!!!!!", ex.Message);
+            }
+        }
+        public async Task<AccountResponse> GetIdToLogin(LoginRequest request, string? googleId)
+        {
+            try
+            {
+                Account user = new Account();
+                if (request.UserName != null && request.Password != null && request.UserName != "" && request.Password != "")
+                {
+                    user= _unitOfWork.Repository<Account>().Find(u => u.UserName.Equals(request.UserName)); 
+                    if (user == null) throw new CrudException(HttpStatusCode.BadRequest, "Account Not Found", "");
+                    if (user.GoogleId != null && user.GoogleId != "")
+                        throw new CrudException(HttpStatusCode.BadRequest, "Login Google cannot login by username and password", "");
+                    if (!VerifyPasswordHash(request.Password.Trim(), user.PasswordHash, user.PasswordSalt))
+                        throw new CrudException(HttpStatusCode.BadRequest, "Password is incorrect", "");
+                    if (!Regex.IsMatch(request.Password, "^(?=.*\\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[a-zA-Z]).{8,12}$"))
+                        throw new CrudException(HttpStatusCode.BadRequest, "Password is invalid", "");
+                }
+                if(googleId != null)
+                {
+                    user= _unitOfWork.Repository<Account>().GetAll().AsNoTracking().SingleOrDefault(u => u.GoogleId.Equals(googleId));
+                    if (user == null) throw new CrudException(HttpStatusCode.BadRequest, "Account Not Found", "");
+                }
+                return _mapper.Map<Account, AccountResponse>(user);
+            }
+            catch (CrudException ex)
+            {
+                throw ex;
+            }
+            catch (Exception ex)
+            {
+                throw new CrudException(HttpStatusCode.InternalServerError, "Check login error!!!!!", ex.Message);
             }
         }
         public async Task<AccountResponse> GetToUpdateStatus(int id)
@@ -789,7 +861,7 @@ namespace ThinkTank.Service.Services.ImpService
                 if (account == null)
                     throw new CrudException(HttpStatusCode.NotFound, $"Account Id {accountId} not found ", "");
                 
-                var achievements = _unitOfWork.Repository<Achievement>().GetAll().Include(x => x.Game)
+                var achievements = _unitOfWork.Repository<Achievement>().GetAll().AsNoTracking().Include(x => x.Game)
                     .Where(x => x.AccountId == accountId).ToList();
                 
                 var result = new List<GameLevelOfAccountResponse>();
@@ -801,7 +873,7 @@ namespace ThinkTank.Service.Services.ImpService
                     {
                         gameLevelOfAccountResponse.GameId = (int)achievement.GameId;
                         gameLevelOfAccountResponse.GameName = achievement.Game.Name;
-                        gameLevelOfAccountResponse.Level = achievements.LastOrDefault(a => a.GameId == achievement.GameId).Level;
+                        gameLevelOfAccountResponse.Level = achievements.Where(a => a.GameId == achievement.GameId).OrderByDescending(a=>a.Level).Distinct().First().Level;
                         result.Add(gameLevelOfAccountResponse);
                     }
                 }

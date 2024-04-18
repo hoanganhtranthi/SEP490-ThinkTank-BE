@@ -6,7 +6,7 @@ using ThinkTank.Service.Services.IService;
 
 namespace ThinkTank.API.Controllers
 {
-    [Route("api/accountInRoom")]
+    [Route("api/accountInRooms")]
     [ApiController]
     public class AccountInRoomsController : Controller
     {
@@ -36,7 +36,7 @@ namespace ThinkTank.API.Controllers
         /// <returns></returns>
         [Authorize(Policy = "Admin")]
         [HttpGet("{id:int}")]
-        public async Task<ActionResult<AccountInContestResponse>> GetAccountInRoomById(int id)
+        public async Task<ActionResult<AccountInRoomResponse>> GetAccountInRoomById(int id)
         {
             var rs = await accountIn1Vs1Service.GetAccountInRoomById(id);
             return Ok(rs);
@@ -50,7 +50,7 @@ namespace ThinkTank.API.Controllers
         /// <returns></returns>
         [Authorize(Policy = "Player")]
         [HttpPut("{roomCode}")]
-        public async Task<ActionResult<AccountInContestResponse>> UpdateAccountInRoom(string roomCode,[FromBody] CreateAndUpdateAccountInRoomRequest request)
+        public async Task<ActionResult<AccountInRoomResponse>> UpdateAccountInRoom(string roomCode,[FromBody] CreateAndUpdateAccountInRoomRequest request)
         {
             var rs = await accountIn1Vs1Service.UpdateAccountInRoom(roomCode,request);
             return Ok(rs);

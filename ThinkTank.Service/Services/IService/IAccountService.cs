@@ -25,6 +25,7 @@ namespace ThinkTank.Service.Services.IService
         Task<AccountResponse> UpdateAccount(int accountId, UpdateAccountRequest request);
         Task<AccountResponse> GetToUpdateStatus(int id);
         Task<AccountResponse> GetToBanAccount(int id);
+        Task<AccountResponse> GetIdToLogin(LoginRequest request, string? googleId);
         Task<List<GameLevelOfAccountResponse>> GetGameLevelByAccountId(int accountId);
 
     }

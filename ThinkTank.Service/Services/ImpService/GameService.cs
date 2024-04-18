@@ -108,11 +108,9 @@ namespace ThinkTank.Service.Services.ImpService
                     .Where(x => x.StartTime.Month == currentDateMonth)
                     .Count();
 
-                var totalRoom = _unitOfWork.Repository<AccountInRoom>()
-                    .GetAll().AsNoTracking()
-                    .Where(x => x.CompletedTime.Value.Month == currentDateMonth)
-                    .Select(x => x.AccountId)
-                    .Distinct()
+                var totalRoom = _unitOfWork.Repository<Room>()
+                    .GetAll().Include(x=>x.AccountInRooms).AsNoTracking()
+                    .Where(x => x.StartTime.Value.Month == currentDateMonth)
                     .Count();
 
                 var totalUser = _unitOfWork.Repository<Account>()

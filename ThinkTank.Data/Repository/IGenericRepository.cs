@@ -24,6 +24,6 @@ namespace ThinkTank.Data.Repository
         Task<T> GetById(int id);
         Task DeleteRange(T[] entity);
         Task Update(T entity, int Id);
-
+        Task UpdateDispose(T entity, int Id);
     }
 }

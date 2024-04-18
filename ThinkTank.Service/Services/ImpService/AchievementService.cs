@@ -19,6 +19,7 @@ using ThinkTank.Service.Services.IService;
 using ThinkTank.Service.Utilities;
 using System.Security.Principal;
 using Hangfire;
+using System.Xml.Linq;
 
 namespace ThinkTank.Service.Services.ImpService
 {
@@ -65,22 +66,23 @@ namespace ThinkTank.Service.Services.ImpService
                         throw new CrudException(HttpStatusCode.BadRequest, "Invalid Level", "");
                 achievement.Account = account;
                 achievement.Game = game;
+                achievement.CompletedTime = date;
+
                 var gameAchievement = account.Achievements.Where(x => x.GameId == game.Id).ToList();
-                var twoLastAchievement = gameAchievement.Skip(Math.Max(0, gameAchievement.Count - 2)).Take(2).ToList();
+               var badge= _unitOfWork.Repository<Badge>().GetAll().Include(x => x.Challenge).SingleOrDefault(x => x.Challenge.Name == "Streak killer" && x.AccountId == account.Id);
+               var number = badge != null && gameAchievement.Count() > 3 ? badge.CompletedLevel * 3 : 0;
+                var twoLastAchievement = gameAchievement.Skip(Math.Max(number, gameAchievement.Count - 2)).Take(2).ToList();
                 if (twoLastAchievement.Any())
                 {
                     bool areConsecutive = twoLastAchievement.Count() == 2 && twoLastAchievement.ToArray()[0].Level == twoLastAchievement.ToArray()[1].Level - 1 && twoLastAchievement.ToArray()[0].Mark > 0 && twoLastAchievement.ToArray()[1].Mark > 0;
                     if (createAchievementRequest.Level != twoLastAchievement.LastOrDefault().Level && createAchievementRequest.Mark > 0 && areConsecutive && twoLastAchievement.Last().Level + 1 == createAchievementRequest.Level)
-                    {
-                        await GetBadge(account, "Streak killer");
-                    }
+                            await GetBadge(account, "Streak killer");
                 }
 
                 var highScore = account.Achievements.Where(x => x.AccountId == account.Id && x.Level == achievement.Level && x.GameId == game.Id).OrderByDescending(x => x.Mark).FirstOrDefault();
                 if (highScore != null && createAchievementRequest.Mark > highScore.Mark)
-                    await GetBadge(account, "The Breaker");
+                       await GetBadge(account, "The Breaker");
 
-                achievement.CompletedTime = date;
                 await _unitOfWork.Repository<Achievement>().CreateAsync(achievement);
 
                 
@@ -88,28 +90,25 @@ namespace ThinkTank.Service.Services.ImpService
                 var top1 = leaderboard.FirstOrDefault();
 
                 if (createAchievementRequest.Duration < 20)
-                   await GetBadge(account, "Fast and Furious");
-
-                var acc = leaderboard.SingleOrDefault(x => x.AccountId == account.Id);
-                if ( leaderboard.Count() > 10 &&
-                    (acc != null && acc.Mark + createAchievementRequest.Mark >= top1?.Mark))
                 {
-                   await GetBadge(account, "Legend");
+                    if (!gameAchievement.Where(x => x.Level == createAchievementRequest.Level).Any())
+                            await GetBadge(account, "Fast and Furious");
                 }
+                var acc = leaderboard.SingleOrDefault(x => x.AccountId == account.Id);
+                if ( leaderboard.Count() > 10 && (acc != null && acc.Mark + createAchievementRequest.Mark >= top1?.Mark))
+                        await GetBadge(account, "Legend");
                 var list = new List<Achievement>();
-                foreach (var result in account.Achievements)
+                foreach (var achievementOfAccount in account.Achievements)
                 {
-                    if (list.SingleOrDefault(x => x.GameId == result.GameId) == null)
+                    if (list.SingleOrDefault(x => x.GameId == achievementOfAccount.GameId) == null)
                     {
-                        if (result.Level == 10)
-                            list.Add(result);
+                        if (achievementOfAccount.Level == 10)
+                            list.Add(achievementOfAccount);
                     }
 
                 }
                 if (account.Achievements.Count(x => x.GameId == createAchievementRequest.GameId && x.Level == 10) == 1)
-                {
-                    await  GetPlowLordBadge(account, list);
-                }
+                        await  GetPlowLordBadge(account, list);
 
                 await _unitOfWork.CommitAsync();
                 var rs = _mapper.Map<AchievementResponse>(achievement);
@@ -126,114 +125,135 @@ namespace ThinkTank.Service.Services.ImpService
                 throw new CrudException(HttpStatusCode.InternalServerError, "Create Achievement Error!!!", ex?.Message);
             }
         }
+           private async Task<List<Badge>> GetBadgeCompleted(Account account)
+        {
+            var result = new List<Badge>();
+            var badges = _unitOfWork.Repository<Badge>().GetAll().Include(x => x.Challenge).Where(x => x.AccountId == account.Id).ToList();
+            if (badges.Any())
+            {
+                foreach (var badge in badges)
+                {
+                    if (badge.CompletedLevel == badge.Challenge.CompletedMilestone)
+                        result.Add(badge);
+                }
+            }
+            return result;
+            
+        }
         private async Task GetPlowLordBadge(Account account,List<Achievement>list)
         {
-            var badge = _unitOfWork.Repository<Badge>().GetAll().Include(x => x.Challenge).SingleOrDefault(x => x.AccountId == account.Id && x.Challenge.Name.Equals("Plow Lord"));
-            var challage = _unitOfWork.Repository<Challenge>().Find(x => x.Name.Equals("Plow Lord"));
-            var noti = _unitOfWork.Repository<Notification>().Find(x => x.Description == $"You have received {challage.Name} badge." && x.AccountId==account.Id);
-            if (badge != null && list.Count() == (badge.CompletedLevel + 1))
+            var result = await GetBadgeCompleted(account);
+            if (result.SingleOrDefault(x => x.Challenge.Name.Equals("Plow Lord")) == null)
             {
-                if (badge.CompletedLevel < challage.CompletedMilestone)
-                    badge.CompletedLevel += 1;
-                if (badge.CompletedLevel == challage.CompletedMilestone && noti == null)
+                var badge = _unitOfWork.Repository<Badge>().GetAll().Include(x => x.Challenge).SingleOrDefault(x => x.AccountId == account.Id && x.Challenge.Name.Equals("Plow Lord"));
+                var challage = _unitOfWork.Repository<Challenge>().Find(x => x.Name.Equals("Plow Lord"));
+                if (badge != null && list.Count() == (badge.CompletedLevel + 1))
                 {
-                    badge.CompletedDate = date;
-                    #region send noti for account
-                    List<string> fcmTokens = new List<string>();
-                    if (account.Fcm != null)
-                        fcmTokens.Add(account.Fcm);
-                    var data = new Dictionary<string, string>()
+                    if (badge.CompletedLevel < challage.CompletedMilestone)
+                        badge.CompletedLevel += 1;
+                    if (badge.CompletedLevel == challage.CompletedMilestone )
                     {
-                        ["click_action"] = "FLUTTER_NOTIFICATION_CLICK",
-                        ["Action"] = "/achievement",
-                        ["Argument"] = JsonConvert.SerializeObject(new JsonSerializerSettings
+                        badge.CompletedDate = date;
+                        #region send noti for account
+                        List<string> fcmTokens = new List<string>();
+                        if (account.Fcm != null)
+                            fcmTokens.Add(account.Fcm);
+                        var data = new Dictionary<string, string>()
                         {
-                            ContractResolver = new DefaultContractResolver
+                            ["click_action"] = "FLUTTER_NOTIFICATION_CLICK",
+                            ["Action"] = "/achievement",
+                            ["Argument"] = JsonConvert.SerializeObject(new JsonSerializerSettings
                             {
-                                NamingStrategy = new SnakeCaseNamingStrategy()
-                            }
-                        }),
-                    };
-                    if (fcmTokens.Any())
-                        _firebaseMessagingService.SendToDevices(fcmTokens,
-                                                               new FirebaseAdmin.Messaging.Notification() { Title = "ThinkTank", Body = $"You have received {challage.Name} badge.", ImageUrl = challage.Avatar }, data);
-                    #endregion
-                    Notification notification = new Notification
-                    {
-                        AccountId = account.Id,
-                        Avatar = challage.Avatar,
-                        DateNotification = date,
-                        Status = false,
-                        Description = $"You have received {challage.Name} badge.",
-                        Title = "ThinkTank"
-                    };
-                    await _unitOfWork.Repository<Notification>().CreateAsync(notification);
+                                ContractResolver = new DefaultContractResolver
+                                {
+                                    NamingStrategy = new SnakeCaseNamingStrategy()
+                                }
+                            }),
+                        };
+                        if (fcmTokens.Any())
+                            _firebaseMessagingService.SendToDevices(fcmTokens,
+                                                                   new FirebaseAdmin.Messaging.Notification() { Title = "ThinkTank", Body = $"You have received {challage.Name} badge.", ImageUrl = challage.Avatar }, data);
+                        #endregion
+                        Notification notification = new Notification
+                        {
+                            AccountId = account.Id,
+                            Avatar = challage.Avatar,
+                            DateNotification = date,
+                            Status = false,
+                            Description = $"You have received {challage.Name} badge.",
+                            Title = "ThinkTank"
+                        };
+                        await _unitOfWork.Repository<Notification>().CreateAsync(notification);
+                    }
+                    await _unitOfWork.Repository<Badge>().Update(badge, badge.Id);
                 }
-                await _unitOfWork.Repository<Badge>().Update(badge, badge.Id);
-            }
-            if(badge == null)
-            {
-                badge = new Badge();
-                badge.AccountId = account.Id;
-                badge.CompletedLevel = 1;
-                badge.ChallengeId = challage.Id;
-                badge.Status = false;
-                await _unitOfWork.Repository<Badge>().CreateAsync(badge);
+                if (badge == null)
+                {
+                    badge = new Badge();
+                    badge.AccountId = account.Id;
+                    badge.CompletedLevel = 1;
+                    badge.ChallengeId = challage.Id;
+                    badge.Status = false;
+                    await _unitOfWork.Repository<Badge>().CreateAsync(badge);
+                }
             }
         }
         private async Task GetBadge(Account account, string name)
         {
-          var badge = _unitOfWork.Repository<Badge>().GetAll().Include(x => x.Challenge).SingleOrDefault(x => x.AccountId == account.Id && x.Challenge.Name.Equals(name));
-          var challage = _unitOfWork.Repository<Challenge>().Find(x => x.Name.Equals(name));
-          var noti = _unitOfWork.Repository<Notification>().Find(x => x.Description == $"You have received {challage.Name} badge." && x.AccountId==account.Id);
-           if (badge != null)
-           {
-                if (badge.CompletedLevel < challage.CompletedMilestone)
-                    badge.CompletedLevel += 1;
-                if (badge.CompletedLevel == challage.CompletedMilestone && noti ==null )
-                {
-                    badge.CompletedDate = date;
-                    #region send noti for account
-                    List<string> fcmTokens = new List<string>();
-                    if (account.Fcm != null)
-                        fcmTokens.Add(account.Fcm);
-                    var data = new Dictionary<string, string>()
-                    {
-                        ["click_action"] = "FLUTTER_NOTIFICATION_CLICK",
-                        ["Action"] = "/achievement",
-                        ["Argument"] = JsonConvert.SerializeObject(new JsonSerializerSettings
-                        {
-                            ContractResolver = new DefaultContractResolver
-                            {
-                                NamingStrategy = new SnakeCaseNamingStrategy()
-                            }
-                        }),
-                    };
-                    if (fcmTokens.Any())
-                        _firebaseMessagingService.SendToDevices(fcmTokens,
-                                                               new FirebaseAdmin.Messaging.Notification() { Title = "ThinkTank", Body = $"You have received {challage.Name} badge.", ImageUrl = challage.Avatar }, data);
-                    #endregion
-                    Notification notification = new Notification
-                    {
-                        AccountId = account.Id,
-                        Avatar = challage.Avatar,
-                        DateNotification = date,
-                        Description = $"You have received {challage.Name} badge.",
-                        Status=false,
-                        Title = "ThinkTank"
-                    };
-                    await _unitOfWork.Repository<Notification>().CreateAsync(notification);
-                }
-                await _unitOfWork.Repository<Badge>().Update(badge, badge.Id);
-            }
-        else
+            var result = await GetBadgeCompleted(account);
+            if (result.SingleOrDefault(x => x.Challenge.Name.Equals(name)) == null)
             {
-                badge = new Badge();
-                badge.AccountId = account.Id;
-                badge.CompletedLevel = 1;
-                badge.ChallengeId = challage.Id;
-                badge.Status = false;
-                await _unitOfWork.Repository<Badge>().CreateAsync(badge);
+                var badge = _unitOfWork.Repository<Badge>().GetAll().Include(x => x.Challenge).SingleOrDefault(x => x.AccountId == account.Id && x.Challenge.Name.Equals(name));
+                var challage = _unitOfWork.Repository<Challenge>().Find(x => x.Name.Equals(name));
+                if (badge != null)
+                {
+                    if (badge.CompletedLevel < challage.CompletedMilestone)
+                        badge.CompletedLevel += 1;
+                    if (badge.CompletedLevel == challage.CompletedMilestone )
+                    {
+                        badge.CompletedDate = date;
+                        #region send noti for account
+                        List<string> fcmTokens = new List<string>();
+                        if (account.Fcm != null)
+                            fcmTokens.Add(account.Fcm);
+                        var data = new Dictionary<string, string>()
+                        {
+                            ["click_action"] = "FLUTTER_NOTIFICATION_CLICK",
+                            ["Action"] = "/achievement",
+                            ["Argument"] = JsonConvert.SerializeObject(new JsonSerializerSettings
+                            {
+                                ContractResolver = new DefaultContractResolver
+                                {
+                                    NamingStrategy = new SnakeCaseNamingStrategy()
+                                }
+                            }),
+                        };
+                        if (fcmTokens.Any())
+                            _firebaseMessagingService.SendToDevices(fcmTokens,
+                                                                   new FirebaseAdmin.Messaging.Notification() { Title = "ThinkTank", Body = $"You have received {challage.Name} badge.", ImageUrl = challage.Avatar }, data);
+                        #endregion
+                        Notification notification = new Notification
+                        {
+                            AccountId = account.Id,
+                            Avatar = challage.Avatar,
+                            DateNotification = date,
+                            Description = $"You have received {challage.Name} badge.",
+                            Status = false,
+                            Title = "ThinkTank"
+                        };
+                        await _unitOfWork.Repository<Notification>().CreateAsync(notification);
+                    }
+                    await _unitOfWork.Repository<Badge>().Update(badge, badge.Id);
+                }
+                else
+                {
+                    badge = new Badge();
+                    badge.AccountId = account.Id;
+                    badge.CompletedLevel = 1;
+                    badge.ChallengeId = challage.Id;
+                    badge.Status = false;
+                    await _unitOfWork.Repository<Badge>().CreateAsync(badge);
+                }
             }
     }        
         public async Task<AchievementResponse> GetAchievementById(int id)

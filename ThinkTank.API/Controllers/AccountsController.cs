@@ -118,6 +118,18 @@ namespace ThinkTank.API.Controllers
             return Ok(rs);
         }
         /// <summary>
+        /// Check Login of user
+        /// </summary>
+        /// <param name="model"></param>
+        /// <returns></returns>
+        [AllowAnonymous]
+        [HttpPost("authentication-cheking")]
+        public async Task<ActionResult<AccountResponse>> GetIdToLogin([FromBody] LoginRequest model, [FromQuery] string? googleId)
+        {
+            var rs = await _accountService.GetIdToLogin(model,googleId);
+            return Ok(rs);
+        }
+        /// <summary>
         /// Login for role admin (Username and Password)
         /// </summary>
         /// <param name="model"></param>
