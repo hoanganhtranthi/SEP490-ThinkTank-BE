@@ -20,13 +20,13 @@ namespace ThinkTank.API.Controllers
         /// Get list type of assets
         /// </summary>
         /// <param name="pagingRequest"></param>
-        /// <param name="assetRequest"></param>
+        /// <param name="typeOfAssetRequest"></param>
         /// <returns></returns>
        [Authorize(Policy = "Admin")]
         [HttpGet]
-        public async Task<ActionResult<List<TypeOfAssetResponse>>> GetTypeOfAssets([FromQuery] PagingRequest pagingRequest, [FromQuery] TypeOfAssetRequest assetRequest)
+        public async Task<ActionResult<List<TypeOfAssetResponse>>> GetTypeOfAssets([FromQuery] PagingRequest pagingRequest, [FromQuery] TypeOfAssetRequest typeOfAssetRequest)
         {
-            var rs = await _assetService.GetTypeOfAssets(assetRequest, pagingRequest);
+            var rs = await _assetService.GetTypeOfAssets(typeOfAssetRequest, pagingRequest);
             return Ok(rs);
         }
         /// <summary>

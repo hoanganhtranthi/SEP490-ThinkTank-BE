@@ -98,7 +98,7 @@ namespace ThinkTank.API.Controllers
         /// <param name="roomId"></param>
         /// <param name="accountId"></param>
         /// <returns></returns>
-      [Authorize(Policy = "Player")]
+        [Authorize(Policy = "Player")]
         [HttpPut("{roomId:int},{accountId:int}")]
         public async Task<ActionResult<RoomResponse>> LeaveRoom(int roomId, int accountId)
         {
@@ -117,19 +117,6 @@ namespace ThinkTank.API.Controllers
         public async Task<ActionResult<RoomResponse>> GetToStartRoom(int accountId,string roomCode,int time)
         {
             var rs = await roomService.GetToStartRoom(roomCode,accountId,time);
-            if (rs == null) return NotFound();
-            return Ok(rs);
-        }
-        /// <summary>
-        /// Update status of room when room ended
-        /// </summary>
-        /// <param name="roomCode"></param>
-        /// <returns></returns>
-        [Authorize(Policy = "Player")]
-        [HttpGet("{roomCode}/ended-room")]
-        public async Task<ActionResult<RoomResponse>> GetToUpdateStatusRoom(string roomCode)
-        {
-            var rs = await roomService.GetToUpdateStatusRoom(roomCode);
             if (rs == null) return NotFound();
             return Ok(rs);
         }

@@ -44,6 +44,7 @@ namespace MuTote.API.Mapper
             CreateMap<Achievement, AchievementResponse>();
             CreateMap<CreateAchievementRequest, Achievement>();
 
+            CreateMap<CreateTopicRequest, Topic>();
             CreateMap<TopicRequest, Topic>();
             CreateMap<TopicRequest, TopicResponse>();
             CreateMap<Topic, TopicResponse>();

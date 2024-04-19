@@ -42,6 +42,8 @@ namespace ThinkTank.Service.Services.ImpService
         {
             try
             {
+                if (id <= 0 || contestId <= 0)
+                    throw new CrudException(HttpStatusCode.BadRequest, "Invalid Information", "");
                 var a = _unitOfWork.Repository<Account>().Find(a => a.Id == id);
                 if (a == null)
                 {
@@ -88,6 +90,9 @@ namespace ThinkTank.Service.Services.ImpService
         {
             try
             {
+                if (request.ContestId <= 0 || request.AccountId <= 0 || request.Duration < 0 || request.Mark < 0)
+                    throw new CrudException(HttpStatusCode.BadRequest, "Information is invalid", "");
+
                 var acc = _mapper.Map<CreateAccountInContestRequest, AccountInContest>(request);
                 var s = _unitOfWork.Repository<AccountInContest>().Find(s => s.ContestId == request.ContestId && s.AccountId == request.AccountId);
                 if (s != null)
@@ -148,12 +153,7 @@ namespace ThinkTank.Service.Services.ImpService
                     if (badge.CompletedLevel < challage.CompletedMilestone)
                     {
                         if (name.Equals("The Tycoon"))
-                        {
-                            if (account.Coin < challage.CompletedMilestone)
-                                badge.CompletedLevel = (int)account.Coin;
-                            else badge.CompletedLevel = challage.CompletedMilestone;
-                        }
-
+                            badge.CompletedLevel = account.Coin < challage.CompletedMilestone ? (int)account.Coin : challage.CompletedMilestone;
                         else badge.CompletedLevel += 1;
                     }
                     if (badge.CompletedLevel == challage.CompletedMilestone)

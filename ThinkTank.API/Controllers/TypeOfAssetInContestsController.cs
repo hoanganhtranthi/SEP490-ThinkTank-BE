@@ -20,13 +20,13 @@ namespace ThinkTank.API.Controllers
         /// Get list of type assets in contest
         /// </summary>
         /// <param name="pagingRequest"></param>
-        /// <param name="assetRequest"></param>
+        /// <param name="typeAssetInContestRequest"></param>
         /// <returns></returns>
         [Authorize(Policy = "Admin")]
         [HttpGet]
-        public async Task<ActionResult<List<TypeOfAssetInContestResponse>>> GetAssetInContests([FromQuery] PagingRequest pagingRequest, [FromQuery] TypeOfAssetInContestRequest assetRequest)
+        public async Task<ActionResult<List<TypeOfAssetInContestResponse>>> GetAssetInContests([FromQuery] PagingRequest pagingRequest, [FromQuery] TypeOfAssetInContestRequest typeAssetInContestRequest)
         {
-            var rs = await _assetService.GetTypeOfAssetInContests(assetRequest, pagingRequest);
+            var rs = await _assetService.GetTypeOfAssetInContests(typeAssetInContestRequest, pagingRequest);
             return Ok(rs);
         }
         /// <summary>

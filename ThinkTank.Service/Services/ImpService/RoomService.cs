@@ -38,6 +38,9 @@ namespace ThinkTank.Service.Services.ImpService
         {
             try
             {
+                if (createRoomRequest.Name == null || createRoomRequest.Name == "" || createRoomRequest.AccountId <= 0 || createRoomRequest.TopicId <= 0)
+                    throw new CrudException(HttpStatusCode.BadRequest, "Information is invalid", "");
+
                 var room = _mapper.Map<CreateRoomRequest, Room>(createRoomRequest);
                 
                 var topic = _unitOfWork.Repository<Topic>().GetAll().Include(a=>a.Game).SingleOrDefault(a => a.Id == createRoomRequest.TopicId);
@@ -97,6 +100,9 @@ namespace ThinkTank.Service.Services.ImpService
         {
             try
             {
+                if (roomCode == null || roomCode == "")
+                    throw new CrudException(HttpStatusCode.BadRequest, "Information is invalid", "");
+
                 var room = _unitOfWork.Repository<Room>().GetAll().Include(x=>x.Topic).Include(x=>x.Topic.Game).Include(x => x.AccountInRooms).SingleOrDefault(x => x.Code == roomCode);
                 
                 if(room==null)
@@ -109,6 +115,9 @@ namespace ThinkTank.Service.Services.ImpService
                 list = room.AccountInRooms.ToList();
                 foreach (var accountInRoom in createAccountInRoomRequests)
                 {
+                    if (accountInRoom.AccountId <= 0 || accountInRoom.Duration < 0 || accountInRoom.Mark < 0 || accountInRoom.PieceOfInformation < 0)
+                        throw new CrudException(HttpStatusCode.BadRequest, "Information is invalid", "");
+
                     var account = _mapper.Map<AccountInRoom>(accountInRoom);
                     
                     var acc = _unitOfWork.Repository<Account>().Find(x => x.Id == accountInRoom.AccountId);
@@ -162,6 +171,9 @@ namespace ThinkTank.Service.Services.ImpService
         {
             try
             {
+                if (roomCode == null || roomCode == "")
+                    throw new CrudException(HttpStatusCode.BadRequest, "Information is invalid", "");
+
                 var room = _unitOfWork.Repository<Room>().GetAll().AsNoTracking().Include(c => c.AccountInRooms)
                       .SingleOrDefault(c => c.Code == roomCode);
 
@@ -173,7 +185,7 @@ namespace ThinkTank.Service.Services.ImpService
                 IList<LeaderboardResponse> responses = new List<LeaderboardResponse>();
                 if (room.AccountInRooms.Count() > 0)
                 {
-                    var orderedAccounts = room.AccountInRooms.OrderByDescending(x => x.Mark);
+                    var orderedAccounts = room.AccountInRooms.Where(x=>x.Mark>0).OrderByDescending(x => x.Mark);
                     var rank = 1;
 
                     foreach (var account in orderedAccounts)
@@ -311,9 +323,9 @@ namespace ThinkTank.Service.Services.ImpService
         {
             try
             {
-                if (roomId <= 0)
+                if (roomId <= 0 || accountId <=0)
                 {
-                    throw new CrudException(HttpStatusCode.BadRequest, "Id Room Invalid", "");
+                    throw new CrudException(HttpStatusCode.BadRequest, "Information is invalid", "");
                 }
                var room = _unitOfWork.Repository<Room>().GetAll().Include(x => x.Topic).Include(x=>x.AccountInRooms)
                     .Include(x => x.Topic.Game).FirstOrDefault(u => u.Id == roomId);
@@ -322,7 +334,16 @@ namespace ThinkTank.Service.Services.ImpService
                 {
                     throw new CrudException(HttpStatusCode.NotFound, $"Not found room with id{roomId.ToString()}", "");
                 }
-                
+                var account = _unitOfWork.Repository<Account>().Find(x => x.Id == accountId);
+
+                if (account == null)
+                    throw new CrudException(HttpStatusCode.NotFound, $"Account Id {accountId} Not Found!!!!!", "");
+
+                if (account.Status.Equals(false))
+                {
+                    throw new CrudException(HttpStatusCode.BadRequest, $"Account Id {accountId} Not Available!!!!!", "");
+                }
+
                 if (room.AccountInRooms.SingleOrDefault(x => x.IsAdmin == true).AccountId != accountId)
                     throw new CrudException(HttpStatusCode.BadRequest, $"Only the admin role has the right to cancel rooms", "");
                 
@@ -357,20 +378,31 @@ namespace ThinkTank.Service.Services.ImpService
         {
             try
             {
-                if (roomId <= 0)
+                if (roomId <= 0 || accountId <=0)
                 {
-                    throw new CrudException(HttpStatusCode.BadRequest, "Id Room Invalid", "");
+                    throw new CrudException(HttpStatusCode.BadRequest, "Information Invalid", "");
                 }
+
                 var room = _unitOfWork.Repository<Room>().GetAll().Include(x => x.Topic).Include(x => x.AccountInRooms)
                     .Include(x => x.Topic.Game).FirstOrDefault(u => u.Id == roomId);
                 if (room == null)
                 {
                     throw new CrudException(HttpStatusCode.NotFound, $"Not found room with id{roomId.ToString()}", "");
                 }
+
                 var accountInRoom = _unitOfWork.Repository<AccountInRoom>().Find(x => x.AccountId == accountId && x.RoomId==roomId);
                 if (accountInRoom == null)
                     throw new CrudException(HttpStatusCode.BadRequest, $"This account does not participate in the room {roomId}", "");
-                
+                var account = _unitOfWork.Repository<Account>().Find(x => x.Id == accountId);
+
+                if (account == null)
+                    throw new CrudException(HttpStatusCode.NotFound, $"Account Id {accountId} Not Found!!!!!", "");
+
+                if (account.Status.Equals(false))
+                {
+                    throw new CrudException(HttpStatusCode.BadRequest, $"Account Id {accountId} Not Available!!!!!", "");
+                }
+
                 if (room.StartTime != null && room.StartTime < date)
                     throw new CrudException(HttpStatusCode.BadRequest, $"The room has started so {accountId} can't leave", "");
                 
@@ -397,51 +429,12 @@ namespace ThinkTank.Service.Services.ImpService
             {
                 throw new CrudException(HttpStatusCode.InternalServerError, "Leave room error!!!!!", ex.Message);
             }
-        }
-        public async Task<RoomResponse> GetToUpdateStatusRoom(string roomCode)
-        {
-            try
-            {
-                if (roomCode =="" || roomCode==null)
-                {
-                    throw new CrudException(HttpStatusCode.BadRequest, "Id Room Invalid", "");
-                }
-                var room = _unitOfWork.Repository<Room>().GetAll().Include(x => x.Topic).Include(x => x.AccountInRooms)
-                    .Include(x => x.Topic.Game).FirstOrDefault(u => u.Code == roomCode);
-
-                if (room == null)
-                {
-                    throw new CrudException(HttpStatusCode.NotFound, $"Not found room with code {roomCode}", "");
-                }
-                room.Status = false;
-                room.EndTime = date;
-                await _unitOfWork.Repository<Room>().Update(room, room.Id);
-                await _unitOfWork.CommitAsync();
-                var rs = _mapper.Map<RoomResponse>(room);
-                rs.TopicName = room.Topic.Name;
-                rs.GameName = room.Topic.Game.Name;
-                rs.AccountInRoomResponses = _mapper.Map<List<AccountInRoomResponse>>(room.AccountInRooms);
-                foreach (var acc in rs.AccountInRoomResponses)
-                {
-                    acc.Avatar = _unitOfWork.Repository<Account>().Find(x => x.Id == acc.AccountId).Avatar;
-                    acc.Username = _unitOfWork.Repository<Account>().Find(x => x.Id == acc.AccountId).UserName;
-                }
-                return rs;
-            }
-            catch (CrudException ex)
-            {
-                throw ex;
-            }
-            catch (Exception ex)
-            {
-                throw new CrudException(HttpStatusCode.InternalServerError, "Update status room error!!!!!", ex.Message);
-            }
-        }
+        }   
         public async Task<RoomResponse> GetToStartRoom(string roomCode, int accountId, int time)
         {
             try
             {
-                if (roomCode ==null || roomCode =="")
+                if (roomCode ==null || roomCode =="" || accountId <=0 || time <0)
                 {
                     throw new CrudException(HttpStatusCode.BadRequest, "Information Invalid", "");
                 }
@@ -457,6 +450,15 @@ namespace ThinkTank.Service.Services.ImpService
                 
                 if(roomOfAccount.AccountInRooms.SingleOrDefault(x=>x.AccountId==accountId && x.IsAdmin==true)==null)
                     throw new CrudException(HttpStatusCode.BadRequest, $"Account Id {accountId} does not have permission to start this room id", "");
+                var account = _unitOfWork.Repository<Account>().Find(x => x.Id == accountId);
+
+                if (account == null)
+                    throw new CrudException(HttpStatusCode.NotFound, $"Account Id {accountId} Not Found!!!!!", "");
+
+                if (account.Status.Equals(false))
+                {
+                    throw new CrudException(HttpStatusCode.BadRequest, $"Account Id {accountId} Not Available!!!!!", "");
+                }
                 roomOfAccount.StartTime = date;
                 roomOfAccount.Status = true;
 

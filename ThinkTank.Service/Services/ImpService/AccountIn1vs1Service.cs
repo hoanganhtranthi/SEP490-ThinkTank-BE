@@ -48,7 +48,13 @@ namespace ThinkTank.Service.Services.ImpService
         {
             try
             {
+                if (createAccount1vs1Request.AccountId1 <= 0 || createAccount1vs1Request.AccountId2 <= 0 || createAccount1vs1Request.Coin <= 0
+                    || createAccount1vs1Request.RoomOfAccountIn1vs1Id == null || createAccount1vs1Request.RoomOfAccountIn1vs1Id == "" || createAccount1vs1Request.WinnerId <= 0
+                    || createAccount1vs1Request.StartTime == null)
+                    throw new CrudException(HttpStatusCode.BadRequest, "Information is invalid","");
+
                 var accIn1vs1 = _mapper.Map<CreateAccountIn1vs1Request, AccountIn1vs1>(createAccount1vs1Request);
+
                 var a = _unitOfWork.Repository<Account>().Find(a => a.Id == createAccount1vs1Request.AccountId1);
                 if (a == null)
                 {
@@ -83,12 +89,14 @@ namespace ThinkTank.Service.Services.ImpService
                 accIn1vs1.Game = c;
                 accIn1vs1.AccountId1Navigation = a;
                 accIn1vs1.AccountId2Navigation = a2;
+
                 if (a.Coin < createAccount1vs1Request.Coin)
                     throw new CrudException(HttpStatusCode.BadRequest, $"Not enough coin for this 1vs1 of account Id {a.Id}", "");
                 a.Coin -= createAccount1vs1Request.Coin;
                 if (a2.Coin < createAccount1vs1Request.Coin)
                     throw new CrudException(HttpStatusCode.BadRequest, $"Not enough coin for this 1vs1 of account Id {a2.Id}", "");
                 a2.Coin -= createAccount1vs1Request.Coin;
+                
                 if (createAccount1vs1Request.WinnerId == a.Id) 
                 {
                     a.Coin += (createAccount1vs1Request.Coin * 2);
@@ -106,6 +114,7 @@ namespace ThinkTank.Service.Services.ImpService
                     a.Coin +=createAccount1vs1Request.Coin;
                     a2.Coin += createAccount1vs1Request.Coin;
                 }
+                
                 await _unitOfWork.Repository<AccountIn1vs1>().CreateAsync(accIn1vs1);
                 await _unitOfWork.Repository<Account>().Update(a, a.Id);
                 await _unitOfWork.Repository<Account>().Update(a2, a2.Id);
@@ -153,12 +162,7 @@ namespace ThinkTank.Service.Services.ImpService
                     if (badge.CompletedLevel < challage.CompletedMilestone)
                     {
                         if (name.Equals("The Tycoon"))
-                        {
-                            if (account.Coin < challage.CompletedMilestone)
-                                badge.CompletedLevel = (int)account.Coin;
-                            else badge.CompletedLevel = challage.CompletedMilestone;
-                        }
-
+                            badge.CompletedLevel = account.Coin < challage.CompletedMilestone ? (int)account.Coin : challage.CompletedMilestone;
                         else badge.CompletedLevel += 1;
                     }
                     if (badge.CompletedLevel == challage.CompletedMilestone)
@@ -253,7 +257,7 @@ namespace ThinkTank.Service.Services.ImpService
             {
                 if (gameId <= 0 || accountId1 <=0 || accountId2 <=0)
                 {
-                    throw new CrudException(HttpStatusCode.BadRequest, "Id  Invalid", "");
+                    throw new CrudException(HttpStatusCode.BadRequest, "Information  Invalid", "");
                 }
                 var game = _unitOfWork.Repository<Game>().Find(u => u.Id == gameId);
 
@@ -283,6 +287,7 @@ namespace ThinkTank.Service.Services.ImpService
                 var friend=_unitOfWork.Repository<Friend>().Find(x=>x.AccountId2 == accountId2 && x.AccountId1==accountId1&& x.Status==true || x.AccountId1==accountId2 && x.AccountId2==accountId1 && x.Status==true);
                 if (friend == null)
                     throw new CrudException(HttpStatusCode.BadRequest, $"Account Id {accountId1} and account id {accountId2} is not friend so can not play 1vs1 together","");
+                
                 var uniqueId = Guid.NewGuid().ToString().Substring(0, 8).ToUpper();
                 #region send noti for account
                 List<string> fcmTokens = new List<string>();
@@ -359,12 +364,14 @@ namespace ThinkTank.Service.Services.ImpService
                 }
 
                 var game = await _unitOfWork.Repository<Game>().FindAsync(x => x.Id == gameId);
+
                 if (game == null)
                     throw new CrudException(HttpStatusCode.BadRequest, $"Game Id {gameId} not found", "");
                 var list = await CacheService.Instance.GetJobsAsync("account1vs1");
                 string acc =  list.SingleOrDefault(x => x == $"{id}+{coin}+{gameId}+{uniqueId}");
                 if (acc == null)
                     throw new CrudException(HttpStatusCode.BadRequest, $"Account Id {id} Not Found In Cache!!!!!", "");
+
                 Thread.Sleep(delay * 1000);
                  await RemoveFromCacheAsync( acc);
                 return true;
@@ -496,7 +503,7 @@ namespace ThinkTank.Service.Services.ImpService
         {
             try
             {
-                if (room1vs1Id == null || room1vs1Id =="" )
+                if (room1vs1Id == null || room1vs1Id =="" || isUser1==null || time<0 || progressTime <0 )
                 {
                     throw new CrudException(HttpStatusCode.BadRequest, "Information Invalid", "");
                 }

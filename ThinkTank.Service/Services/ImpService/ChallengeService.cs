@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Security.Principal;
 using System.Text;
 using System.Threading.Tasks;
 using ThinkTank.Data.Entities;
@@ -70,9 +71,13 @@ namespace ThinkTank.Service.Services.ImpService
         {
             try
             {
+                if (accountId <= 0 || challengeId != null && challengeId <=0)
+                    throw new CrudException(HttpStatusCode.BadRequest, "Information is invalid", "");
+
                 var acc = _unitOfWork.Repository<Account>().GetAll().Include(x => x.Badges).SingleOrDefault(x => x.Id == accountId);
                 if (acc == null)
                     throw new  CrudException(HttpStatusCode.NotFound, $"Account Id {accountId} is not found ","");
+                if (acc.Status == false) throw new CrudException(HttpStatusCode.BadRequest, "Your account is block", "");
                 if (challengeId != null)
                 {
                     var challenge = _unitOfWork.Repository<Challenge>().Find(x => x.Id == challengeId);

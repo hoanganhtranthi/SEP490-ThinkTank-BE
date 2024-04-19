@@ -13,7 +13,6 @@ namespace ThinkTank.Service.Services.IService
     public interface IAccountService
     {
         Task<PagedResults<AccountResponse>> GetAccounts(AccountRequest request, PagingRequest paging);
-        Task<dynamic> CreateMailMessage(string username);
         Task<AccountResponse> LoginPlayer(LoginRequest request);
         Task<AccountResponse> LoginAdmin(LoginRequest request);
         Task<AccountResponse> CreateAccount(CreateAccountRequest createAccountRequest);

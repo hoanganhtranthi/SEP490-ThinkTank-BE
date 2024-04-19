@@ -19,7 +19,7 @@ namespace ThinkTank.API.Controllers
             _topicService = topicService;
         }
         /// <summary>
-        /// Get list of topic
+        /// Get list of topic (StatusTopicType: 1: All, 2: Has Asset, 3: No Asset)
         /// </summary>
         /// <param name="pagingRequest"></param>
         /// <param name="request"></param>

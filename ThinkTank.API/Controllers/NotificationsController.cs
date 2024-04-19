@@ -54,11 +54,11 @@ namespace ThinkTank.API.Controllers
             return Ok(rs);
         }
         /// <summary>
-        /// Delete notification
+        /// Delete list of notification
         /// </summary>
         /// <param name="notificationId"></param>
         /// <returns></returns>
-      [Authorize(Policy = "Player")]
+        [Authorize(Policy = "Player")]
         [HttpDelete()]
         public async Task<ActionResult<NotificationResponse>> DeleteNotification([FromBody] List<int> notificationId)
         {

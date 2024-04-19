@@ -22,7 +22,7 @@ namespace ThinkTank.API.Controllers
         /// <param name="pagingRequest"></param>
         /// <param name="reportRequest"></param>
         /// <returns></returns>
-      [Authorize(Policy = "Admin")]
+        [Authorize(Policy = "Admin")]
         [HttpGet]
         public async Task<ActionResult<List<ReportResponse>>> GetReports([FromQuery] PagingRequest pagingRequest, [FromQuery] ReportRequest reportRequest)
         {
@@ -46,7 +46,7 @@ namespace ThinkTank.API.Controllers
         /// </summary>
         /// <param name="report"></param>
         /// <returns></returns>
-     // [Authorize(Policy = "Player")]
+        [Authorize(Policy = "Player")]
         [HttpPost()]
         public async Task<ActionResult<ReportResponse>> AddReport([FromBody] CreateReportRequest report)
         {

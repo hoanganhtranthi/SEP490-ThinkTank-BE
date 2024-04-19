@@ -1,9 +1,11 @@
 ﻿
+using StackExchange.Redis;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using ThinkTank.Service.DTO.Response;
+using static ThinkTank.Service.Helpers.Enum;
 
 namespace ThinkTank.Service.Helpers
 {
@@ -43,14 +45,14 @@ namespace ThinkTank.Service.Helpers
             }
         }
 
-        public static List<T> Sorting(SortType.SortOrder sortType, IEnumerable<T> searchResult, string colName)
+        public static List<T> Sorting(SortOrder sortType, IEnumerable<T> searchResult, string colName)
         {
 
-            if (sortType == SortType.SortOrder.Ascending)
+            if (sortType == SortOrder.Ascending)
             {
                 return searchResult.OrderBy(item => typeof(T).GetProperties().First(x => x.Name.Contains(colName, StringComparison.CurrentCultureIgnoreCase)).GetValue(item)).ToList();
             }
-            else if (sortType == SortType.SortOrder.Descending)
+            else if (sortType == SortOrder.Descending)
             {
                 return searchResult.OrderByDescending(item => typeof(T).GetProperties().First(x => x.Name.Contains(colName, StringComparison.CurrentCultureIgnoreCase)).GetValue(item)).ToList();
             }

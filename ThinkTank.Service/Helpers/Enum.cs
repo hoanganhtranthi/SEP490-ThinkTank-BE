@@ -39,5 +39,11 @@ namespace ThinkTank.Service.Helpers
             True = 2,
             False = 3
         }
+        public enum SortOrder
+        {
+            Ascending = 0,
+            Descending = 1,
+            None = 2
+        }
     }
 }

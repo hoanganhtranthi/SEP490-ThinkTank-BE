@@ -27,12 +27,12 @@
             <returns></returns>
         </member>
         <member name="M:ThinkTank.API.Controllers.AccountIn1vs1sController.FindAccountIn1vs1(System.Int32,System.Int32,System.Int32)">
-            <summary>
-            Find Opponent of Account In 1vs1
-            </summary>
-            <param name="accountId"></param>
+             <summary>
+             Find Opponent of Account In 1vs1
+             </summary>
+             <param name="accountId"></param>
              <param name="gameId"></param>
-              <param name="coin"></param>
+             <param name="coin"></param>
             <returns></returns>
         </member>
         <member name="M:ThinkTank.API.Controllers.AccountIn1vs1sController.CreateRoomPlayCountervailingWithFriend(System.Int32,System.Int32,System.Int32)">
@@ -49,9 +49,9 @@
             Remove Account From Cache
             </summary>
             <param name="accountId"></param>
-             <param name="gameId"></param>
-              <param name="coin"></param>
-               <param name="roomOfAccount1vs1Id"></param>
+            <param name="gameId"></param>
+            <param name="coin"></param>
+            <param name="roomOfAccount1vs1Id"></param>
             <returns></returns>
         </member>
         <member name="M:ThinkTank.API.Controllers.AccountIn1vs1sController.GetToStartRoom(System.String,System.Boolean,System.Int32,System.Int32)">
@@ -152,13 +152,6 @@
             Ban Account
             </summary>
             <param name="id"></param>
-            <returns></returns>
-        </member>
-        <member name="M:ThinkTank.API.Controllers.AccountsController.Verification(System.String)">
-            <summary>
-            Send Verification Code  
-            </summary>
-            <param name="username"></param>
             <returns></returns>
         </member>
         <member name="M:ThinkTank.API.Controllers.AccountsController.CreateCustomer(ThinkTank.Service.DTO.Request.CreateAccountRequest)">
@@ -322,6 +315,7 @@
             Get Coin Reward Of Account
             </summary>
             <param name="accountId"></param>
+            <param name="challengeId"></param>
             <returns></returns>
         </member>
         <member name="M:ThinkTank.API.Controllers.ContestsController.GetContests(ThinkTank.Service.DTO.Request.PagingRequest,ThinkTank.Service.DTO.Request.ContestRequest)">
@@ -365,13 +359,6 @@
         <member name="M:ThinkTank.API.Controllers.ContestsController.DeleteContest(System.Int32)">
             <summary>
             Delete contest
-            </summary>
-            <param name="id"></param>
-            <returns></returns>
-        </member>
-        <member name="M:ThinkTank.API.Controllers.ContestsController.GetToUpdateStatusContest(System.Int32)">
-            <summary>
-            Update Status Contest
             </summary>
             <param name="id"></param>
             <returns></returns>
@@ -479,7 +466,7 @@
         </member>
         <member name="M:ThinkTank.API.Controllers.IconsController.GetIcons(ThinkTank.Service.DTO.Request.PagingRequest,ThinkTank.Service.DTO.Request.IconRequest)">
             <summary>
-            Get list of icons
+            Get list of icons (StatusIconType: 1:All, 2:Icon the account has purchased, 3:icon that the account has not purchased)
             </summary>
             <param name="pagingRequest"></param>
             <param name="iconRequest"></param>
@@ -516,7 +503,7 @@
         </member>
         <member name="M:ThinkTank.API.Controllers.NotificationsController.DeleteNotification(System.Collections.Generic.List{System.Int32})">
             <summary>
-            Delete notification
+            Delete list of notification
             </summary>
             <param name="notificationId"></param>
             <returns></returns>
@@ -605,16 +592,9 @@
             <param name="time"></param>
             <returns></returns>
         </member>
-        <member name="M:ThinkTank.API.Controllers.RoomsController.GetToUpdateStatusRoom(System.String)">
-            <summary>
-            Update status of room when room ended
-            </summary>
-            <param name="roomCode"></param>
-            <returns></returns>
-        </member>
         <member name="M:ThinkTank.API.Controllers.TopicsController.GetTopics(ThinkTank.Service.DTO.Request.PagingRequest,ThinkTank.Service.DTO.Request.TopicRequest)">
             <summary>
-            Get list of topic
+            Get list of topic (StatusTopicType: 1: All, 2: Has Asset, 3: No Asset)
             </summary>
             <param name="pagingRequest"></param>
             <param name="request"></param>
@@ -639,7 +619,7 @@
             Get list of type assets in contest
             </summary>
             <param name="pagingRequest"></param>
-            <param name="assetRequest"></param>
+            <param name="typeAssetInContestRequest"></param>
             <returns></returns>
         </member>
         <member name="M:ThinkTank.API.Controllers.TypeOfAssetInContestsController.GetTypeOfAssetsInContestById(System.Int32)">
@@ -654,7 +634,7 @@
             Get list type of assets
             </summary>
             <param name="pagingRequest"></param>
-            <param name="assetRequest"></param>
+            <param name="typeOfAssetRequest"></param>
             <returns></returns>
         </member>
         <member name="M:ThinkTank.API.Controllers.TypeOfAssetsController.GetTypeOfAssetsById(System.Int32)">

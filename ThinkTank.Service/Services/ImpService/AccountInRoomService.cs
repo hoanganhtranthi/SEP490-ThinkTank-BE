@@ -37,6 +37,9 @@ namespace ThinkTank.Service.Services.ImpService
         {
             try
             {
+                if (createAccountInRoomRequest.AccountId <= 0 || createAccountInRoomRequest.Duration < 0 || createAccountInRoomRequest.Mark < 0 || createAccountInRoomRequest.PieceOfInformation < 0)
+                    throw new CrudException(HttpStatusCode.BadRequest, "Information is invalid", "");
+
                 var a = _unitOfWork.Repository<Account>().Find(a => a.Id == createAccountInRoomRequest.AccountId);
                 if (a == null)
                 {
@@ -46,12 +49,15 @@ namespace ThinkTank.Service.Services.ImpService
                 {
                     throw new CrudException(HttpStatusCode.BadRequest, $"Account Id {createAccountInRoomRequest.AccountId} Not Available!!!!!", "");
                 }                
+
                 var room = _unitOfWork.Repository<Room>().Find(x => x.Code == roomCode);
+
                 if (room == null)
                     throw new CrudException(HttpStatusCode.NotFound, $"This room Id {createAccountInRoomRequest.AccountId} is not found !!!", "");
                 var accountInRoom = _unitOfWork.Repository<AccountInRoom>().GetAll().SingleOrDefault(x => x.AccountId == createAccountInRoomRequest.AccountId && x.RoomId == room.Id);
                 if(accountInRoom == null)
                     throw new CrudException(HttpStatusCode.NotFound, $"This account in room Id {createAccountInRoomRequest.AccountId} is not found in room {roomCode}!!!", "");
+                
                 _mapper.Map<CreateAndUpdateAccountInRoomRequest, AccountInRoom>(createAccountInRoomRequest,accountInRoom);
                 accountInRoom.CompletedTime = date;
                 await _unitOfWork.Repository<AccountInRoom>().Update(accountInRoom,accountInRoom.Id);
@@ -105,14 +111,17 @@ namespace ThinkTank.Service.Services.ImpService
             try
             {
                 var filter = _mapper.Map<AccountInRoomResponse>(accountInRoomRequest);
+
                 var accountInRooms = _unitOfWork.Repository<AccountInRoom>().GetAll().AsNoTracking().Include(x => x.Account)
                     .ProjectTo<AccountInRoomResponse>(_mapper.ConfigurationProvider)
                     .DynamicFilter(filter).ToList();
+
                 foreach (var account in accountInRooms)
                 {
                     account.Username = _unitOfWork.Repository<Account>().Find(x => x.Id == account.AccountId).UserName;
                     account.Avatar = _unitOfWork.Repository<Account>().Find(x => x.Id == account.AccountId).Avatar;
                 }
+
                 var sort = PageHelper<AccountInRoomResponse>.Sorting(paging.SortType, accountInRooms, paging.ColName);
                 var result = PageHelper<AccountInRoomResponse>.Paging(sort, paging.Page, paging.PageSize);
                 return result;

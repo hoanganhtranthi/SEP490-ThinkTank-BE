@@ -49,7 +49,7 @@ namespace ThinkTank.API.Controllers
         /// <param name="userRequest"></param>
         /// <param name="id"></param>
         /// <returns></returns>
-        [Authorize(Policy = "Player")]
+       [Authorize(Policy = "Player")]
         [HttpPut("{id:int}")]
         public async Task<ActionResult<AccountResponse>> UpdateAccount([FromBody] UpdateAccountRequest userRequest, int id)
         {
@@ -79,18 +79,6 @@ namespace ThinkTank.API.Controllers
         public async Task<ActionResult<AccountResponse>> GetToBanAccount(int accId)
         {
             var rs = await _accountService.GetToBanAccount(accId);
-            return Ok(rs);
-        }
-        /// <summary>
-        /// Send Verification Code  
-        /// </summary>
-        /// <param name="username"></param>
-        /// <returns></returns>
-        [AllowAnonymous]
-        [HttpPost("{username}/verification-code")]
-        public async Task<ActionResult<string>> Verification(string username)
-        {
-            var rs = await _accountService.CreateMailMessage(username);
             return Ok(rs);
         }
         /// <summary>

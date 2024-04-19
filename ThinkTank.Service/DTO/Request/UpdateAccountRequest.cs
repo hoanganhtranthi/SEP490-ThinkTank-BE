@@ -9,6 +9,7 @@ namespace ThinkTank.Service.DTO.Request
 {
     public class UpdateAccountRequest
     {
+
         public string FullName { get; set; } = null!;
         [RegularExpression(@"^([a-zA-Z0-9_\-\.]+)@((\[[0-9]{1,3}" +
        @"\.[0-9]{1,3}\.[0-9]{1,3}\.)|(([a-zA-Z0-9\-]+\" +

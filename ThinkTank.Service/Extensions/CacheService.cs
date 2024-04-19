@@ -59,11 +59,6 @@ namespace Repository.Extensions
                 return _instance;
             }
         }
-        public async Task EnqueueJobAsync(int job)
-        {
-            await redis.ListLeftPushAsync("jobQueue", JsonSerializer.Serialize(job));
-            await redis.HashSetAsync(job.ToString(), "status", "queued");
-        }
         // Fetch all jobs in the queue, along with their status
         public async Task<List<string>> GetJobsAsync(string key)
         {
