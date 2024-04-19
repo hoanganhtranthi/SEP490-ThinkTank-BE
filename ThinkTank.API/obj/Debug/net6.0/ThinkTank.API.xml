@@ -266,7 +266,7 @@
             <param name="accountId"></param>
             <returns></returns>
         </member>
-        <member name="M:ThinkTank.API.Controllers.AnalysesController.GetAnalysisOfEachTypeOfMemoryOfAccount(System.Int32,System.Int32)">
+        <member name="M:ThinkTank.API.Controllers.AnalysesController.GetAverageScoreAnalysis(System.Int32,System.Int32)">
             <summary>
             Get analysis average score by account Id 
             </summary>
