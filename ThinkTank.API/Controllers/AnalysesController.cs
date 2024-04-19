@@ -59,7 +59,7 @@ namespace ThinkTank.API.Controllers
         /// <returns></returns>
         [Authorize(Policy = "Player")]
         [HttpGet("{userId:int},{gameId:int}/average-score")]
-        public async Task<ActionResult<AnalysisAverageScoreResponse>> GetAnalysisOfEachTypeOfMemoryOfAccount(int gameId, int userId)
+        public async Task<ActionResult<AnalysisAverageScoreResponse>> GetAverageScoreAnalysis(int gameId, int userId)
         {
             var rs = await _analysisService.GetAverageScoreAnalysis(gameId,userId);
             return Ok(rs);
