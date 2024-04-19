@@ -49,8 +49,8 @@ namespace ThinkTank.API.Controllers
         /// <param name="request"></param>
         /// <returns></returns>
        [Authorize(Policy = "Admin")]
-        [HttpPost()]
-        public async Task<ActionResult<TopicResponse>> CreatTopic([FromBody] TopicRequest request)
+       [HttpPost()]
+        public async Task<ActionResult<TopicResponse>> CreatTopic([FromBody] CreateTopicRequest request)
         {
             var rs = await _topicService.CreateTopic(request);
             return Ok(rs);

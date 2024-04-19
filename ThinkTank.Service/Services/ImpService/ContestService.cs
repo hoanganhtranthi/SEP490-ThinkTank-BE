@@ -602,7 +602,7 @@ namespace ThinkTank.Service.Services.ImpService
             try
             {
                 if (contestId <= 0 || request.Name == null || request.Name == "" || request.Thumbnail == null || request.Thumbnail == ""
-                    || request.StartTime == null || request.EndTime == null))
+                    || request.StartTime == null || request.EndTime == null)
                     throw new CrudException(HttpStatusCode.BadRequest, "Information is invalid", "");
 
                 Contest contest = _unitOfWork.Repository<Contest>()

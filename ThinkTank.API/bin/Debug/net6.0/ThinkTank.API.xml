@@ -607,7 +607,7 @@
             <param name="id"></param>
             <returns></returns>
         </member>
-        <member name="M:ThinkTank.API.Controllers.TopicsController.CreatTopic(ThinkTank.Service.DTO.Request.TopicRequest)">
+        <member name="M:ThinkTank.API.Controllers.TopicsController.CreatTopic(ThinkTank.Service.DTO.Request.CreateTopicRequest)">
             <summary>
             Create Topic
             </summary>
