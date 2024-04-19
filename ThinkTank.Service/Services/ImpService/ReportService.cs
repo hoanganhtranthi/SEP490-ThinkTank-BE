@@ -16,6 +16,7 @@ using ThinkTank.Service.Services.IService;
 using Microsoft.EntityFrameworkCore;
 using ThinkTank.Service.Helpers;
 using ThinkTank.Service.Utilities;
+using System.Security.Principal;
 
 namespace ThinkTank.Service.Services.ImpService
 {
@@ -39,7 +40,8 @@ namespace ThinkTank.Service.Services.ImpService
         {
             try
             {
-                if (createReportRequest.AccountId1 == createReportRequest.AccountId2)
+                if (createReportRequest.AccountId1 == createReportRequest.AccountId2 || createReportRequest.AccountId1 <=0 || createReportRequest.AccountId2<=0
+                    ||createReportRequest.Description==null || createReportRequest.Description=="" || createReportRequest.Title==null || createReportRequest.Title=="")
                     throw new CrudException(HttpStatusCode.BadRequest, "Add report Invalid !!!", "");
 
                 var report = _mapper.Map<CreateReportRequest, Report>(createReportRequest);
@@ -48,17 +50,20 @@ namespace ThinkTank.Service.Services.ImpService
                 {
                     throw new CrudException(HttpStatusCode.NotFound, $" Account Id {createReportRequest.AccountId1} is not found !!!", "");
                 }
+                if (s.Status == false) throw new CrudException(HttpStatusCode.BadRequest, "Your account is block", "");
                 var cus = _unitOfWork.Repository<Account>().Find(s => s.Id == createReportRequest.AccountId2);
                 if (cus == null)
                 {
                     throw new CrudException(HttpStatusCode.NotFound, $" Account Id {createReportRequest.AccountId2} is not found !!!", "");
                 }
 
+                if (cus.Status == false) throw new CrudException(HttpStatusCode.BadRequest, "Your account is block", "");
+
                 var reportsWithinTimeframe = _unitOfWork.Repository<Report>()
-             .GetAll()
-            .AsNoTracking()
-            .Where(x => x.AccountId1 == createReportRequest.AccountId1 && EF.Functions.DateDiffMinute(x.DateReport.Value, date) <= 10)
-            .ToList();
+                .GetAll()
+                .AsNoTracking()
+                .Where(x => x.AccountId1 == createReportRequest.AccountId1 && EF.Functions.DateDiffMinute(x.DateReport.Value, date) <= 10)
+                .ToList();
 
                 if (reportsWithinTimeframe.Count() > 3)
                 {
@@ -67,8 +72,10 @@ namespace ThinkTank.Service.Services.ImpService
 
                 report.DateReport = date;
                 await _unitOfWork.Repository<Report>().CreateAsync(report);
+
                 if (s.Avatar == null)
                     s.Avatar = "https://firebasestorage.googleapis.com/v0/b/thinktank-79ead.appspot.com/o/System%2Flogo_2_bg%201%20%281%29.png?alt=media&token=437436e4-28ce-4a0c-a7d2-a8763064151f";
+                
                 #region send noti for account
                 List<string> fcmTokens = new List<string>();
                 if(cus.Fcm != null)

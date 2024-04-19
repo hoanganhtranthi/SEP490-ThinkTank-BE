@@ -17,7 +17,7 @@ namespace ThinkTank.API.Controllers
         }
 
         /// <summary>
-        /// Get list of icons
+        /// Get list of icons (StatusIconType: 1:All, 2:Icon the account has purchased, 3:icon that the account has not purchased)
         /// </summary>
         /// <param name="pagingRequest"></param>
         /// <param name="iconRequest"></param>

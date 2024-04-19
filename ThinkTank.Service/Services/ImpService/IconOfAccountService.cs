@@ -33,6 +33,9 @@ namespace ThinkTank.Service.Services.ImpService
         {
             try
             {
+                if(createIconRequest.AccountId <=0 || createIconRequest.IconId <=0)
+                    throw new CrudException(HttpStatusCode.BadRequest, "Information is invalid", "");
+
                 IconOfAccount iconOfAccount = _unitOfWork.Repository<IconOfAccount>()
                       .Find(c => c.IconId == createIconRequest.IconId && c.AccountId==createIconRequest.AccountId);
 
@@ -48,21 +51,29 @@ namespace ThinkTank.Service.Services.ImpService
                 {
                     throw new CrudException(HttpStatusCode.BadRequest, "Account Not Available!!!!!", "");
                 }
+
                 Icon icon = _unitOfWork.Repository<Icon>().Find(x => x.Id == createIconRequest.IconId);
                 if (icon == null)
                     throw new CrudException(HttpStatusCode.NotFound, $"Not found icon with id {createIconRequest.IconId}", "");
                 if (icon.Status ==false)
                     throw new CrudException(HttpStatusCode.BadRequest, $"Icon Id {createIconRequest.IconId} is not available", "");
                 var rs = _mapper.Map<CreateIconOfAccountRequest, IconOfAccount>(createIconRequest);
+
                 rs.IsAvailable = true;
+
                 if (account.Coin < icon.Price)
                     throw new CrudException(HttpStatusCode.BadRequest, "Not enough coin to buy icon", "");
                 account.Coin = account.Coin - icon.Price;
+
                 await _unitOfWork.Repository<IconOfAccount>().CreateAsync(rs);
                 var badge = _unitOfWork.Repository<Badge>().GetAll().Include(x => x.Challenge).SingleOrDefault(x => x.AccountId == account.Id && x.Challenge.Name.Equals("The Tycoon"));
-                badge.CompletedLevel = (int)account.Coin;
+                if (badge.CompletedDate != null)
+                {
+                    badge.CompletedLevel = (int)account.Coin;
+                    await _unitOfWork.Repository<Badge>().Update(badge, badge.Id);
+                }
+
                 await _unitOfWork.Repository<Account>().Update(account, createIconRequest.AccountId);
-                await _unitOfWork.Repository<Badge>().Update(badge, badge.Id);
                 await _unitOfWork.CommitAsync();
                 var response = _mapper.Map<IconOfAccountResponse>(rs);
                 response.UserName = account.UserName;

@@ -27,12 +27,14 @@ namespace ThinkTank.Service.Services.ImpService
             _unitOfWork = unitOfWork;
             _mapper = mapper;
         }
-        public async Task<TopicResponse> CreateTopic(TopicRequest request)
+        public async Task<TopicResponse> CreateTopic(CreateTopicRequest request)
         {
             try
             {
+                if (request.GameId <= 0 || request.Name == null || request.Name == "")
+                    throw new CrudException(HttpStatusCode.BadRequest, "Information is invalid", "");
 
-                var topic = _mapper.Map<TopicRequest, Topic>(request);
+                var topic = _mapper.Map<CreateTopicRequest, Topic>(request);
                 var s = _unitOfWork.Repository<Topic>().Find(s => s.Name == request.Name && s.GameId==request.GameId);
                 if (s != null)
                 {

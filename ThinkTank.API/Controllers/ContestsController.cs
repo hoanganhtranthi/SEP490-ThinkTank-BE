@@ -39,7 +39,7 @@ namespace ThinkTank.API.Controllers
         /// <param name="id"></param>
         /// <param name="request"></param>
         /// <returns></returns>
-     //   [Authorize(Policy = "All")]
+        [Authorize(Policy = "All")]
         [HttpGet("{id:int}/leaderboard")]
         public async Task<ActionResult<List<LeaderboardResponse>>> GetLeaderboardOfContest(int id, [FromQuery] PagingRequest request)
         {
@@ -51,7 +51,6 @@ namespace ThinkTank.API.Controllers
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        // GET api/<ContestController>/5
         [Authorize(Policy = "All")]
         [HttpGet("{id:int}")]
         public async Task<ActionResult<ContestResponse>> GetContest(int id)
@@ -64,7 +63,7 @@ namespace ThinkTank.API.Controllers
         /// </summary>
         /// <param name="contestRequest"></param>
         /// <returns></returns>
-      [Authorize(Policy = "Admin")]
+        [Authorize(Policy = "Admin")]
         [HttpPost]
         public async Task<ActionResult<ContestResponse>> CreateContest([FromBody] CreateAndUpdateContestRequest contestRequest)
         {
@@ -97,19 +96,6 @@ namespace ThinkTank.API.Controllers
         public async Task<ActionResult<ContestResponse>> DeleteContest(int id)
         {
             var rs = await _contestService.DeleteContest(id);
-            if (rs == null) return NotFound();
-            return Ok(rs);
-        }
-        /// <summary>
-        /// Update Status Contest
-        /// </summary>
-        /// <param name="id"></param>
-        /// <returns></returns>
-       [Authorize(Policy = "Admin")]
-        [HttpGet("{id:int}/ended-contest")]
-        public async Task<ActionResult<ContestResponse>> GetToUpdateStatusContest(int id)
-        {
-            var rs = await _contestService.UpdateStateContest(id);
             if (rs == null) return NotFound();
             return Ok(rs);
         }

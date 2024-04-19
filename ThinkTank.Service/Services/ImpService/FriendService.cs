@@ -43,7 +43,7 @@ namespace ThinkTank.Service.Services.ImpService
         {
             try
             {
-                if(createFriendRequest.AccountId1==createFriendRequest.AccountId2)
+                if(createFriendRequest.AccountId1==createFriendRequest.AccountId2 || createFriendRequest.AccountId1 <=0 || createFriendRequest.AccountId2 <=0)
                     throw new CrudException(HttpStatusCode.BadRequest, "Add friend Invalid !!!", "");
 
                 var friend = _mapper.Map<CreateFriendRequest, Friend>(createFriendRequest);
@@ -52,18 +52,23 @@ namespace ThinkTank.Service.Services.ImpService
                 {
                     throw new CrudException(HttpStatusCode.NotFound, $" Account Id {createFriendRequest.AccountId1} is not found !!!", "");
                 }
+                if (s.Status == false) throw new CrudException(HttpStatusCode.BadRequest, "Your account is block", "");
                 var cus = _unitOfWork.Repository<Account>().Find(s => s.Id == createFriendRequest.AccountId2);
                 if (cus == null)
                 {
                     throw new CrudException(HttpStatusCode.NotFound, $" Account Id {createFriendRequest.AccountId2} is not found !!!", "");
                 }
+                if (cus.Status == false) throw new CrudException(HttpStatusCode.BadRequest, "Your account is block", "");
                 var friendOfAccount = _unitOfWork.Repository<Friend>().Find(x => x.AccountId1 == createFriendRequest.AccountId1 && x.AccountId2==createFriendRequest.AccountId2
                 || x.AccountId1==createFriendRequest.AccountId2 && x.AccountId2==createFriendRequest.AccountId1);
+                
                 if (friendOfAccount != null)
                     throw new CrudException(HttpStatusCode.BadRequest, "This friendship has already !!!", "");
+                
                 if (_unitOfWork.Repository<Friend>().GetAll()
                     .Count(a => a.AccountId1 == createFriendRequest.AccountId1 || a.AccountId2 == createFriendRequest.AccountId2) > 100)
                     throw new CrudException(HttpStatusCode.BadRequest, $"Account Id {createFriendRequest.AccountId1} is full of friends !!!", "");
+                
                 friend.Status = false;
                 await _unitOfWork.Repository<Friend>().CreateAsync(friend);
                 #region send noti for account
@@ -86,6 +91,7 @@ namespace ThinkTank.Service.Services.ImpService
                     _firebaseMessagingService.SendToDevices(fcmTokens,
                                                            new FirebaseAdmin.Messaging.Notification() { Title = "ThinkTank Community", Body = $"{s.FullName} sent you a friend request.", ImageUrl = s.Avatar }, data);
                 #endregion            
+               
                 Notification notification = new Notification
                 {
                     AccountId = cus.Id,
@@ -118,6 +124,9 @@ namespace ThinkTank.Service.Services.ImpService
         {
             try
             {
+                if (id <=0 )
+                    throw new CrudException(HttpStatusCode.BadRequest, "Information is invalid", "");
+
                 Friend friend = _unitOfWork.Repository<Friend>().GetAll().Include(x => x.AccountId1Navigation).Include(x => x.AccountId2Navigation).FirstOrDefault(u => u.Id == id);
 
                 if (friend == null)
@@ -294,6 +303,7 @@ namespace ThinkTank.Service.Services.ImpService
                 await _unitOfWork.Repository<Friend>().Update(friend, id);
                 if (friend.AccountId2Navigation.Avatar == null)
                     friend.AccountId2Navigation.Avatar = "https://firebasestorage.googleapis.com/v0/b/thinktank-79ead.appspot.com/o/System%2Favatar-trang-4.jpg?alt=media&token=2ab24327-c484-485a-938a-ed30dc3b1688";
+                if (friend.AccountId1Navigation.Status == false) throw new CrudException(HttpStatusCode.BadRequest, "Your account is block", "");
                 #region send noti for account
                 List<string> fcmTokens = new List<string>();
                 if(friend.AccountId1Navigation.Fcm != null)
@@ -365,7 +375,7 @@ namespace ThinkTank.Service.Services.ImpService
                 {
                     var badge = _unitOfWork.Repository<Badge>().GetAll().Include(x => x.Challenge).SingleOrDefault(x => x.AccountId == account.Id && x.Challenge.Name.Equals(name));
                     var challage = _unitOfWork.Repository<Challenge>().Find(x => x.Name.Equals(name));
-                    if (badge != null)
+                    if (badge != null && account.Status==true)
                     {
                         if (badge.CompletedLevel < challage.CompletedMilestone)
                             badge.CompletedLevel += 1;

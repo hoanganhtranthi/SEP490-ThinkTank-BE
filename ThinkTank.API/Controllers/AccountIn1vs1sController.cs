@@ -22,7 +22,7 @@ namespace ThinkTank.API.Controllers
         /// <param name="pagingRequest"></param>
         /// <param name="accountIn1Vs1Request"></param>
         /// <returns></returns>
-         [Authorize(Policy = "Admin")]
+        [Authorize(Policy = "Admin")]
         [HttpGet]
         public async Task<ActionResult<List<AccountIn1vs1Response>>> GetAccountIn1vs1s([FromQuery] PagingRequest pagingRequest, [FromQuery] AccountIn1vs1Request accountIn1Vs1Request)
         {
@@ -48,7 +48,7 @@ namespace ThinkTank.API.Controllers
         /// </summary>
         /// <param name="request"></param>
         /// <returns></returns>
-     [Authorize(Policy = "Player")]
+        [Authorize(Policy = "Player")]
         [HttpPost]
         public async Task<ActionResult<AccountIn1vs1Response>> CreateAccountIn1vs1([FromBody] CreateAccountIn1vs1Request request)
         {
@@ -59,9 +59,9 @@ namespace ThinkTank.API.Controllers
         /// Find Opponent of Account In 1vs1
         /// </summary>
         /// <param name="accountId"></param>
-        ///  <param name="gameId"></param>
-        ///   <param name="coin"></param>
-        /// <returns></returns>
+        /// <param name="gameId"></param>
+        /// <param name="coin"></param>
+        ///<returns></returns>
         [Authorize(Policy = "Player")]
         [HttpGet("{accountId:int},{gameId:int},{coin:int}/opponent-of-account")]
         public async Task<ActionResult<dynamic>> FindAccountIn1vs1( int accountId,  int gameId,  int coin)
@@ -87,9 +87,9 @@ namespace ThinkTank.API.Controllers
         /// Remove Account From Cache
         /// </summary>
         /// <param name="accountId"></param>
-        ///  <param name="gameId"></param>
-        ///   <param name="coin"></param>
-        ///    <param name="roomOfAccount1vs1Id"></param>
+        /// <param name="gameId"></param>
+        /// <param name="coin"></param>
+        /// <param name="roomOfAccount1vs1Id"></param>
         /// <returns></returns>
         [Authorize(Policy = "Player")]
         [HttpGet("{accountId:int},{gameId:int},{coin:int},{roomOfAccount1vs1Id},{delay:int}/account-removed")]

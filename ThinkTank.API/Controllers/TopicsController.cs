@@ -19,7 +19,7 @@ namespace ThinkTank.API.Controllers
             _topicService = topicService;
         }
         /// <summary>
-        /// Get list of topic
+        /// Get list of topic (StatusTopicType: 1: All, 2: Has Asset, 3: No Asset)
         /// </summary>
         /// <param name="pagingRequest"></param>
         /// <param name="request"></param>
@@ -49,8 +49,8 @@ namespace ThinkTank.API.Controllers
         /// <param name="request"></param>
         /// <returns></returns>
        [Authorize(Policy = "Admin")]
-        [HttpPost()]
-        public async Task<ActionResult<TopicResponse>> CreatTopic([FromBody] TopicRequest request)
+       [HttpPost()]
+        public async Task<ActionResult<TopicResponse>> CreatTopic([FromBody] CreateTopicRequest request)
         {
             var rs = await _topicService.CreateTopic(request);
             return Ok(rs);

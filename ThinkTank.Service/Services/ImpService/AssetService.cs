@@ -103,7 +103,10 @@ namespace ThinkTank.Service.Services.ImpService
                 List<Asset> gameId = new List<Asset>();
                 foreach (var a in request)
                 {
-                   var topic = _unitOfWork.Repository<Topic>().GetAll().Include(x => x.Game).SingleOrDefault(x => x.Id == a.TopicId);
+                    if (a.TopicId <= 0 || a.TypeOfAssetId <=0 || a.Value==null || a.Value=="")
+                        throw new CrudException(HttpStatusCode.BadRequest, "Information is invalid", "");
+
+                    var topic = _unitOfWork.Repository<Topic>().GetAll().Include(x => x.Game).SingleOrDefault(x => x.Id == a.TopicId);
                    if (topic == null)
                         throw new CrudException(HttpStatusCode.NotFound, $"This topic {a.TopicId} is not found !!!", "");
                    
@@ -165,6 +168,9 @@ namespace ThinkTank.Service.Services.ImpService
                 List<Asset> gameId = new List<Asset>();
                 foreach (var a in request)
                 {
+                    if (a <= 0)
+                        throw new CrudException(HttpStatusCode.BadRequest, "Information is invalid", "");
+
                     var asset = _unitOfWork.Repository<Asset>().GetAll().Include(x => x.Topic).Include(x => x.Topic.Game).SingleOrDefault(x => x.Id == a);
                     if (asset == null)
                         throw new CrudException(HttpStatusCode.NotFound, $"Asset Id {a} is not found","");

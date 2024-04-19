@@ -45,6 +45,10 @@ namespace ThinkTank.Service.Services.ImpService
         {
             try
             {
+                if (createAchievementRequest.AccountId <= 0 || createAchievementRequest.Duration <= 0 || createAchievementRequest.Level <= 0 || createAchievementRequest.Mark <= 0
+                    || createAchievementRequest.PieceOfInformation <= 0 || createAchievementRequest.GameId <= 0)
+                    throw new CrudException(HttpStatusCode.BadRequest, "Information is invalid", "");
+
                 var achievement = _mapper.Map<CreateAchievementRequest, Achievement>(createAchievementRequest);
                 var game = _unitOfWork.Repository<Game>().Find(x => x.Id == createAchievementRequest.GameId);
                 if (game == null)
@@ -317,6 +321,8 @@ namespace ThinkTank.Service.Services.ImpService
         {
             try
             {
+                if (id <= 0 || accountId != null && accountId <=0)
+                    throw new CrudException(HttpStatusCode.BadRequest, "Information is invalid", "");
                 var game = _unitOfWork.Repository<Game>().Find(x => x.Id == id);
                 if (game == null)
                     throw new CrudException(HttpStatusCode.NotFound, $"Game Id {id} not found", "");
@@ -336,7 +342,7 @@ namespace ThinkTank.Service.Services.ImpService
                                 achievementsList.Add(rs);
                         }
                     }
-                    var orderedAccounts = achievementsList.OrderByDescending(x => x.Mark);
+                    var orderedAccounts = achievementsList.Where(x=>x.Mark >0).OrderByDescending(x => x.Mark);
                     var rank = 1;
 
                     foreach (var achievement in orderedAccounts)

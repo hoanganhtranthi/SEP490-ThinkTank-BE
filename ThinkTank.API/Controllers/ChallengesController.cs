@@ -35,6 +35,7 @@ namespace ThinkTank.API.Controllers
         /// Get Coin Reward Of Account
         /// </summary>
         /// <param name="accountId"></param>
+        /// <param name="challengeId"></param>
         /// <returns></returns>
          [Authorize(Policy = "Player")]
         [HttpGet("{accountId:int}")]

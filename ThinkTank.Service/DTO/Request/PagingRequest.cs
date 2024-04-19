@@ -2,7 +2,7 @@
 
 
 using System.ComponentModel.DataAnnotations;
-using static ThinkTank.Service.Helpers.SortType;
+using static ThinkTank.Service.Helpers.Enum;
 
 namespace ThinkTank.Service.DTO.Request
 {
