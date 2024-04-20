@@ -16,6 +16,7 @@ using ThinkTank.Service.Services.IService;
 using Microsoft.EntityFrameworkCore;
 using ThinkTank.Service.Helpers;
 using ThinkTank.Service.Utilities;
+using System.Security.Principal;
 
 namespace ThinkTank.Service.Services.ImpService
 {
@@ -23,9 +24,13 @@ namespace ThinkTank.Service.Services.ImpService
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
+        private readonly DateTime date;
         private readonly IFirebaseMessagingService _firebaseMessagingService;
         public ReportService(IUnitOfWork unitOfWork, IMapper mapper, IFirebaseMessagingService firebaseMessagingService)
         {
+            if (TimeZoneInfo.Local.BaseUtcOffset != TimeSpan.FromHours(7))
+                date = DateTime.UtcNow.ToLocalTime().AddHours(7);
+            else date = DateTime.Now;
             _unitOfWork = unitOfWork;
             _mapper = mapper;
             _firebaseMessagingService = firebaseMessagingService;
@@ -35,7 +40,8 @@ namespace ThinkTank.Service.Services.ImpService
         {
             try
             {
-                if (createReportRequest.AccountId1 == createReportRequest.AccountId2)
+                if (createReportRequest.AccountId1 == createReportRequest.AccountId2 || createReportRequest.AccountId1 <=0 || createReportRequest.AccountId2<=0
+                    ||createReportRequest.Description==null || createReportRequest.Description=="" || createReportRequest.Title==null || createReportRequest.Title=="")
                     throw new CrudException(HttpStatusCode.BadRequest, "Add report Invalid !!!", "");
 
                 var report = _mapper.Map<CreateReportRequest, Report>(createReportRequest);
@@ -44,18 +50,36 @@ namespace ThinkTank.Service.Services.ImpService
                 {
                     throw new CrudException(HttpStatusCode.NotFound, $" Account Id {createReportRequest.AccountId1} is not found !!!", "");
                 }
+                if (s.Status == false) throw new CrudException(HttpStatusCode.BadRequest, "Your account is block", "");
                 var cus = _unitOfWork.Repository<Account>().Find(s => s.Id == createReportRequest.AccountId2);
                 if (cus == null)
                 {
                     throw new CrudException(HttpStatusCode.NotFound, $" Account Id {createReportRequest.AccountId2} is not found !!!", "");
                 }
-                report.DateTime = DateTime.Now;
+
+                if (cus.Status == false) throw new CrudException(HttpStatusCode.BadRequest, "Your account is block", "");
+
+                var reportsWithinTimeframe = _unitOfWork.Repository<Report>()
+                .GetAll()
+                .AsNoTracking()
+                .Where(x => x.AccountId1 == createReportRequest.AccountId1 && EF.Functions.DateDiffMinute(x.DateReport.Value, date) <= 10)
+                .ToList();
+
+                if (reportsWithinTimeframe.Count() > 3)
+                {
+                    throw new CrudException(HttpStatusCode.BadRequest, "During 10 minutes, you can only send a maximum of 3 reports", "");
+                }
+
+                report.DateReport = date;
                 await _unitOfWork.Repository<Report>().CreateAsync(report);
+
                 if (s.Avatar == null)
                     s.Avatar = "https://firebasestorage.googleapis.com/v0/b/thinktank-79ead.appspot.com/o/System%2Flogo_2_bg%201%20%281%29.png?alt=media&token=437436e4-28ce-4a0c-a7d2-a8763064151f";
+                
                 #region send noti for account
                 List<string> fcmTokens = new List<string>();
-                fcmTokens.Add(cus.Fcm);
+                if(cus.Fcm != null)
+                    fcmTokens.Add(cus.Fcm);
                 var data = new Dictionary<string, string>()
                 {
                     ["click_action"] = "FLUTTER_NOTIFICATION_CLICK",
@@ -76,9 +100,10 @@ namespace ThinkTank.Service.Services.ImpService
                 {
                     AccountId = cus.Id,
                     Avatar = s.Avatar,
-                    DateTime = DateTime.Now,
-                    Description = $"You have a report for acting {createReportRequest.Titile}.",
-                    Titile = "ThinkTank Report"
+                    DateNotification = date,
+                    Description = $"You have a report for acting {createReportRequest.Title}.",
+                    Title = "ThinkTank Report",
+                    Status=false,
                 };
                 await _unitOfWork.Repository<Notification>().CreateAsync(notification);
                 await _unitOfWork.CommitAsync();
@@ -105,11 +130,11 @@ namespace ThinkTank.Service.Services.ImpService
                 {
                     throw new CrudException(HttpStatusCode.BadRequest, "Id Report Invalid", "");
                 }
-                var response = _unitOfWork.Repository<Report>().GetAll().Include(x => x.AccountId1Navigation).Include(x => x.AccountId2Navigation).FirstOrDefault(u => u.Id == id);
+                var response = _unitOfWork.Repository<Report>().GetAll().AsNoTracking().Include(x => x.AccountId1Navigation).Include(x => x.AccountId2Navigation).FirstOrDefault(u => u.Id == id);
 
                 if (response == null)
                 {
-                    throw new CrudException(HttpStatusCode.NotFound, $"Not found report with id {id.ToString()}", "");
+                    throw new CrudException(HttpStatusCode.NotFound, $"Not found report with id {id}", "");
                 }
 
                 var rs = _mapper.Map<ReportResponse>(response);
@@ -133,18 +158,19 @@ namespace ThinkTank.Service.Services.ImpService
             {
 
                 var filter = _mapper.Map<ReportResponse>(request);
-                var friends = _unitOfWork.Repository<Report>().GetAll().Include(a => a.AccountId1Navigation)
+                var reports = _unitOfWork.Repository<Report>().GetAll().AsNoTracking().Include(a => a.AccountId1Navigation)
                     .Include(a => a.AccountId2Navigation).Select(x => new ReportResponse
                     {
                         Id = x.Id,
                         AccountId1 = x.AccountId1,
                         AccountId2 = x.AccountId2,
-                        Titile = x.Titile,
+                        DateReport=x.DateReport,
+                        Title = x.Title,
                         Description=x.Description,
                         UserName1 = x.AccountId1Navigation.UserName,
                         UserName2 = x.AccountId2Navigation.UserName,
                     }).DynamicFilter(filter).ToList();
-                var sort = PageHelper<ReportResponse>.Sorting(paging.SortType, friends, paging.ColName);
+                var sort = PageHelper<ReportResponse>.Sorting(paging.SortType, reports, paging.ColName);
                 var result = PageHelper<ReportResponse>.Paging(sort, paging.Page, paging.PageSize);
                 return result;
             }

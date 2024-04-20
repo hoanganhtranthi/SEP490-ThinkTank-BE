@@ -17,12 +17,12 @@ namespace ThinkTank.API.Controllers
         }
 
         /// <summary>
-        /// Get list of icons
+        /// Get list of icons (StatusIconType: 1:All, 2:Icon the account has purchased, 3:icon that the account has not purchased)
         /// </summary>
         /// <param name="pagingRequest"></param>
         /// <param name="iconRequest"></param>
         /// <returns></returns>
-        [Authorize(Policy = "All")]
+        [Authorize(Policy = "Player")]
         [HttpGet]
         public async Task<ActionResult<List<IconResponse>>> GetIcons([FromQuery] PagingRequest pagingRequest, [FromQuery] IconRequest iconRequest)
         {
@@ -34,47 +34,11 @@ namespace ThinkTank.API.Controllers
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        [Authorize(Policy = "All")]
+        [Authorize(Policy = "Player")]
         [HttpGet("{id:int}")]
         public async Task<ActionResult<IconResponse>> GetIcon(int id)
         {
             var rs = await _iconService.GetIconById(id);
-            return Ok(rs);
-        }
-        /// <summary>
-        /// Update status of icon
-        /// </summary>
-        /// <param name="iconId"></param>
-        /// <returns></returns>
-        //[Authorize(Policy = "Admin")]
-        [HttpGet("{iconId:int}/status")]
-        public async Task<ActionResult<IconResponse>> GetToUpdateStatus(int iconId)
-        {
-            var rs = await _iconService.GetToUpdateStatus(iconId);
-            return Ok(rs);
-        }
-        /// <summary>
-        /// Add icon
-        /// </summary>
-        /// <param name="icon"></param>
-        /// <returns></returns>
-       // [Authorize(Policy = "")]
-        [HttpPost()]
-        public async Task<ActionResult<IconResponse>> AddIcon([FromBody] CreateIconRequest icon)
-        {
-            var rs = await _iconService.CreateIcon(icon);
-            return Ok(rs);
-        }
-        /// <summary>
-        /// Buy Icon 
-        /// </summary>
-        /// <param name="icon"></param>
-        /// <returns></returns>
-       [Authorize(Policy = "Player")]
-        [HttpPost("iconOfAccount")]
-        public async Task<ActionResult<IconResponse>> AddIconOfAccount([FromBody] IconOfAccountRequest icon)
-        {
-            var rs = await _iconService.CreateIconOfAccount(icon);
             return Ok(rs);
         }
     }

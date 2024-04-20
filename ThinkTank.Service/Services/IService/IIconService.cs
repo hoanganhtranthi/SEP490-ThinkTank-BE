@@ -11,9 +11,6 @@ namespace ThinkTank.Service.Services.IService
     public interface IIconService
     {
         Task<PagedResults<IconResponse>> GetIcons(IconRequest request, PagingRequest paging);
-        Task<IconResponse> CreateIcon(CreateIconRequest createIconRequest);
         Task<IconResponse> GetIconById(int id);
-        Task<IconResponse> GetToUpdateStatus(int id);
-        Task<IconOfAccountResponse> CreateIconOfAccount(IconOfAccountRequest request);
     }
 }

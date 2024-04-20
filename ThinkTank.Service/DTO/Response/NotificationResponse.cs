@@ -12,9 +12,9 @@ namespace ThinkTank.Service.DTO.Response
     {
         [Key]
         public int Id { get; set; }
-        public string? Titile { get; set; } 
+        public string? Title { get; set; } 
         public string? Description { get; set; } 
-        public DateTime? DateTime { get; set; }
+        public DateTime? DateNotification { get; set; }
         public string? Avatar { get; set; }
         [BooleanAttribute]
         public bool? Status { get; set; }

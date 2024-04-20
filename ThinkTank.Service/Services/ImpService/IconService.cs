@@ -27,33 +27,6 @@ namespace ThinkTank.Service.Services.ImpService
             _unitOfWork = unitOfWork;
             _mapper = mapper;
         }
-
-        public async Task<IconResponse> CreateIcon(CreateIconRequest createIconRequest)
-        {
-            try
-            {
-                var icon = _mapper.Map<CreateIconRequest, Icon>(createIconRequest);
-                var s = _unitOfWork.Repository<Icon>().Find(s => s.Name == createIconRequest.Name);
-                if (s != null)
-                    throw new CrudException(HttpStatusCode.BadRequest, "This icon has already !!!", "");
-                if (createIconRequest.Price <= 0)
-                    throw new CrudException(HttpStatusCode.BadRequest, "Price is invalid", "");
-
-                icon.Status = true;
-                await _unitOfWork.Repository<Icon>().CreateAsync(icon);
-                await _unitOfWork.CommitAsync();
-                return _mapper.Map<IconResponse>(icon);
-            }
-            catch (CrudException ex)
-            {
-                throw ex;
-            }
-            catch (Exception ex)
-            {
-                throw new CrudException(HttpStatusCode.InternalServerError, "Add Icon Error!!!", ex?.Message);
-            }
-        }
-
         public async Task<IconResponse> GetIconById(int id)
         {
             try
@@ -62,27 +35,13 @@ namespace ThinkTank.Service.Services.ImpService
                 {
                     throw new CrudException(HttpStatusCode.BadRequest, "Id Icon Invalid", "");
                 }
-                var response = _unitOfWork.Repository<Icon>().GetAll().Include(x=>x.IconOfAccounts).Select(x=>new IconResponse
-                {
-                    Name = x.Name,
-                    Avatar=x.Avatar,
-                    Id=x.Id,
-                    Price=x.Price,
-                    Status=x.Status,
-                    IconOfAccounts=new List<IconOfAccountResponse>(x.IconOfAccounts.Select(a=>new IconOfAccountResponse
-                    {
-                        Id=a.Id,
-                        AccountId=a.AccountId,
-                        IsAvailable=a.IsAvailable,
-                        UserName=a.Account.UserName
-                    }))
-                }).SingleOrDefault(x => x.Id == id);
+                var response = _unitOfWork.Repository<Icon>().Find(x => x.Id == id);
 
                 if (response == null)
                 {
-                    throw new CrudException(HttpStatusCode.NotFound, $"Not found icon with id {id.ToString()}", "");
+                    throw new CrudException(HttpStatusCode.NotFound, $"Not found icon with id {id}", "");
                 }
-                return response;
+                return _mapper.Map<IconResponse>(response);
             }
             catch (CrudException ex)
             {
@@ -98,35 +57,38 @@ namespace ThinkTank.Service.Services.ImpService
         {
             try
             {
-                var query = _unitOfWork.Repository<Icon>().GetAll().Include(x => x.IconOfAccounts).Select(x => new IconResponse
+                var query = _unitOfWork.Repository<Icon>().GetAll()
+                    .Include(x => x.IconOfAccounts)
+                    .AsNoTracking()
+                    .ProjectTo<IconResponse>(_mapper.ConfigurationProvider);
+
+
+                if (request.AccountId != null)
                 {
-                    Name = x.Name,
-                    Avatar = x.Avatar,
-                    Id = x.Id,
-                    Price = x.Price,
-                    Status = x.Status,
-                    IconOfAccounts = new List<IconOfAccountResponse>(x.IconOfAccounts.Select(a => new IconOfAccountResponse
+                    var isTrue = request.StatusIcon == Helpers.Enum.StatusIconType.True;
+                    var isFalse = request.StatusIcon == Helpers.Enum.StatusIconType.False;
+                    var iconIds = await GetIconIdsByAccountId((int)request.AccountId);
+                    if (isTrue)
                     {
-                        Id = a.Id,
-                        AccountId = a.AccountId,
-                        IsAvailable = a.IsAvailable,
-                        UserName = a.Account.UserName
-                    })).ToList()
-                });
+                        query = query.Where(icon => iconIds.Contains(icon.Id));
+                    }
+                    if(isFalse)
+                    {
+                        query = query.Where(icon => !iconIds.Contains(icon.Id));
+                    }
+                }
 
                 if (request.MinPrice != null || request.MaxPrice != null)
                 {
-                    query = query.Where(a => (request.MinPrice == null || a.Price >= request.MinPrice) && (request.MaxPrice == null || a.Price <= request.MaxPrice));
+                    query = query.Where(icon => (request.MinPrice == null || icon.Price >= request.MinPrice) && (request.MaxPrice == null || icon.Price <= request.MaxPrice));
                 }
-                if (request.AccountId != null)
-                {
-                    query = query.AsEnumerable().Where(x => x.IconOfAccounts.Any(a => a.AccountId == request.AccountId)).AsQueryable();
-                }
-                var filter = _mapper.Map<IconResponse>(request);
-                var rs = query.DynamicFilter(filter);
 
-                var sort = PageHelper<IconResponse>.Sorting(paging.SortType, rs, paging.ColName);
-                var result = PageHelper<IconResponse>.Paging(sort, paging.Page, paging.PageSize);
+
+                var filter = _mapper.Map<IconResponse>(request);
+                query = query.DynamicFilter(filter);
+
+                var sortedIcons = PageHelper<IconResponse>.Sorting(paging.SortType, query, paging.ColName);
+                var result = PageHelper<IconResponse>.Paging(sortedIcons, paging.Page, paging.PageSize);
 
                 return result;
             }
@@ -134,89 +96,31 @@ namespace ThinkTank.Service.Services.ImpService
             {
                 throw new CrudException(HttpStatusCode.InternalServerError, "Get icon list error!!!!!", ex.Message);
             }
-
         }
 
-        public async Task<IconResponse> GetToUpdateStatus(int id)
+        private async Task<List<int>> GetIconIdsByAccountId(int accountId)
         {
             try
             {
-                if (id <= 0)
-                {
-                    throw new CrudException(HttpStatusCode.BadRequest, "Id Icon Invalid", "");
-                }
-                Icon icon = _unitOfWork.Repository<Icon>()
-                      .Find(c => c.Id == id);
+                var account = await _unitOfWork.Repository<Account>()
+                    .GetAll()
+                    .Include(x => x.IconOfAccounts)
+                    .AsNoTracking()
+                    .SingleOrDefaultAsync(a => a.Id == accountId);
 
-                if (icon == null)
+                if (account != null)
                 {
-                    throw new CrudException(HttpStatusCode.NotFound, $"Not found icon with id{id.ToString()}", "");
+                    return account.IconOfAccounts.Select(x => x.IconId).ToList();
                 }
-                icon.Status = !icon.Status;
-                await _unitOfWork.Repository<Icon>().Update(icon, id);
-                await _unitOfWork.CommitAsync();
-                return _unitOfWork.Repository<Icon>().GetAll().Include(x => x.IconOfAccounts).Select(x => new IconResponse
-                {
-                    Name = x.Name,
-                    Avatar = x.Avatar,
-                    Id = x.Id,
-                    Price = x.Price,
-                    Status = x.Status,
-                    IconOfAccounts = new List<IconOfAccountResponse>(x.IconOfAccounts.Select(a => new IconOfAccountResponse
-                    {
-                        Id = a.Id,
-                        AccountId = a.AccountId,
-                        IsAvailable = a.IsAvailable,
-                        UserName = a.Account.UserName
-                    }))
-                }).SingleOrDefault(x => x.Id == id);
+
+                return new List<int>();
             }
             catch (CrudException ex)
             {
-                throw ex;
-            }
-            catch (Exception ex)
-            {
-                throw new CrudException(HttpStatusCode.InternalServerError, "Update status icon error!!!!!", ex.Message);
+                throw new CrudException(HttpStatusCode.InternalServerError, "Get list icons of account id error!!!!!", ex.Message);
             }
         }
-        public async Task<IconOfAccountResponse> CreateIconOfAccount(IconOfAccountRequest request)
-        {
-            try
-            {
-                Icon icon = _unitOfWork.Repository<Icon>()
-                      .Find(c => c.Id == request.IconId);
 
-                if (icon == null)
-                {
-                    throw new CrudException(HttpStatusCode.NotFound, $"Not found icon with id{request.IconId}", "");
-                }
 
-                Account account = _unitOfWork.Repository<Account>().Find(x => x.Id == request.AccountId);
-                if (account == null)
-                    throw new CrudException(HttpStatusCode.NotFound, $"Not found account with id {request.AccountId}", "");
-
-               var rs= _mapper.Map<IconOfAccountRequest, IconOfAccount>(request);
-                rs.IsAvailable = true;
-
-                if (account.Coin < icon.Price || account.Coin ==null)
-                    throw new CrudException(HttpStatusCode.BadRequest, "Not enough coin to buy icon","");
-                account.Coin = account.Coin - icon.Price;
-                await _unitOfWork.Repository<IconOfAccount>().CreateAsync(rs);
-                await _unitOfWork.Repository<Account>().Update(account, request.AccountId);
-                await _unitOfWork.CommitAsync();
-                var response = _mapper.Map<IconOfAccountResponse>(rs);
-                response.UserName=account.UserName;
-                return response;
-            }
-            catch (CrudException ex)
-            {
-                throw ex;
-            }
-            catch (Exception ex)
-            {
-                throw new CrudException(HttpStatusCode.InternalServerError, "Buy Icon Error!!!!!", ex.Message);
-            }
-        }
     }
 }

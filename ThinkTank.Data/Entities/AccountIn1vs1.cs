@@ -12,11 +12,11 @@ namespace ThinkTank.Data.Entities
         public int WinnerId { get; set; }
         public int AccountId1 { get; set; }
         public int AccountId2 { get; set; }
+        public string RoomOfAccountIn1vs1Id { get; set; }
         public int GameId { get; set; }
-        public int? TopicId { get; set; }
 
         public virtual Account AccountId1Navigation { get; set; } = null!;
         public virtual Account AccountId2Navigation { get; set; } = null!;
-        public virtual Topic? Topic { get; set; }
+        public virtual Game Game { get; set; } = null!;
     }
 }

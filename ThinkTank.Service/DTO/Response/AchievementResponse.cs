@@ -16,10 +16,12 @@ namespace ThinkTank.Service.DTO.Response
         [IntAttribute]
         public int? Level { get; set; }
         [IntAttribute]
-        public int? GameId { get; set; }
-        [IntAttribute]
         public int? AccountId { get; set; }
         public string? Username { get; set; }
-        public string?  GameName { get; set; }
+        [IntAttribute]
+        public int? GameId { get; set; }
+        [IntAttribute]
+        public int? PieceOfInformation { get; set; }
+        public string? GameName { get; set; }
     }
 }

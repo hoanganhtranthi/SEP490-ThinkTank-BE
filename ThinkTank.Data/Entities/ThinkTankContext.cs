@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.Extensions.Configuration;
 
 namespace ThinkTank.Data.Entities
 {
@@ -41,9 +42,17 @@ namespace ThinkTank.Data.Entities
         {
             if (!optionsBuilder.IsConfigured)
             {
-#warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see http://go.microsoft.com/fwlink/?LinkId=723263.
-                optionsBuilder.UseSqlServer("Server=tcp:thinktank.database.windows.net,1433;Initial Catalog=ThinkTank;Persist Security Info=False;User ID=adminSQL;Password=ThinkTank_SEP490;MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;MultipleActiveResultSets=True");
+                optionsBuilder.UseSqlServer(GetConnectionString());
             }
+        }
+        private string GetConnectionString()
+        {
+            IConfiguration config = new ConfigurationBuilder()
+                .SetBasePath(Directory.GetCurrentDirectory())
+                .AddJsonFile("appsettings.json", true, true)
+                .Build();
+            var strConn = config["ConnectionStrings:DefaultSQLConnection"];
+            return strConn;
         }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -95,6 +104,9 @@ namespace ThinkTank.Data.Entities
 
                 entity.Property(e => e.StartTime).HasColumnType("datetime");
 
+                entity.Property(e => e.RoomOfAccountIn1vs1Id)
+                   .HasMaxLength(8)
+                   .IsUnicode(false);
                 entity.HasOne(d => d.AccountId1Navigation)
                     .WithMany(p => p.AccountIn1vs1AccountId1Navigations)
                     .HasForeignKey(d => d.AccountId1)
@@ -107,10 +119,11 @@ namespace ThinkTank.Data.Entities
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("FK__AccountIn__Accou__2180FB33");
 
-                entity.HasOne(d => d.Topic)
+                entity.HasOne(d => d.Game)
                     .WithMany(p => p.AccountIn1vs1s)
-                    .HasForeignKey(d => d.TopicId)
-                    .HasConstraintName("FK__AccountIn__Topic__00DF2177");
+                    .HasForeignKey(d => d.GameId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("FK__AccountIn__GameI__278EDA44");
             });
 
             modelBuilder.Entity<AccountInContest>(entity =>
@@ -169,10 +182,11 @@ namespace ThinkTank.Data.Entities
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("FK__Achieveme__Accou__01142BA1");
 
-                entity.HasOne(d => d.Topic)
+                entity.HasOne(d => d.Game)
                     .WithMany(p => p.Achievements)
-                    .HasForeignKey(d => d.TopicId)
-                    .HasConstraintName("FK__Achieveme__Topic__74794A92");
+                    .HasForeignKey(d => d.GameId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("FK__Achieveme__GameI__7E8CC4B1");
             });
 
             modelBuilder.Entity<Asset>(entity =>
@@ -250,11 +264,18 @@ namespace ThinkTank.Data.Entities
                 entity.Property(e => e.EndTime).HasColumnType("datetime");
 
                 entity.Property(e => e.Name).HasMaxLength(50);
+                entity.Property(e => e.PlayTime).HasColumnType("decimal(18, 1)");
 
                 entity.Property(e => e.StartTime).HasColumnType("datetime");
 
                 entity.Property(e => e.Thumbnail).IsUnicode(false);
+
+                entity.HasOne(d => d.Game)
+                    .WithMany(p => p.Contests)
+                    .HasForeignKey(d => d.GameId)
+                    .HasConstraintName("FK__Contest__GameId__51EF2864");
             });
+
 
             modelBuilder.Entity<Friend>(entity =>
             {
@@ -279,6 +300,7 @@ namespace ThinkTank.Data.Entities
 
                 entity.Property(e => e.Name).HasMaxLength(50);
             });
+
 
             modelBuilder.Entity<Icon>(entity =>
             {
@@ -306,17 +328,18 @@ namespace ThinkTank.Data.Entities
                     .HasConstraintName("FK__IconOfAcc__IconI__6754599E");
             });
 
+
             modelBuilder.Entity<Notification>(entity =>
             {
                 entity.ToTable("Notification");
 
                 entity.Property(e => e.Avatar).IsUnicode(false);
 
-                entity.Property(e => e.DateTime).HasColumnType("datetime");
+                entity.Property(e => e.DateNotification).HasColumnType("datetime");
 
                 entity.Property(e => e.Description).HasMaxLength(500);
 
-                entity.Property(e => e.Titile).HasMaxLength(300);
+                entity.Property(e => e.Title).HasMaxLength(300);
 
                 entity.HasOne(d => d.Account)
                     .WithMany(p => p.Notifications)
@@ -329,11 +352,11 @@ namespace ThinkTank.Data.Entities
             {
                 entity.ToTable("Report");
 
-                entity.Property(e => e.DateTime).HasColumnType("datetime");
+                entity.Property(e => e.DateReport).HasColumnType("datetime");
 
                 entity.Property(e => e.Description).HasMaxLength(500);
 
-                entity.Property(e => e.Titile).HasMaxLength(200);
+                entity.Property(e => e.Title).HasMaxLength(200);
 
                 entity.HasOne(d => d.AccountId1Navigation)
                     .WithMany(p => p.ReportAccountId1Navigations)
@@ -358,6 +381,8 @@ namespace ThinkTank.Data.Entities
 
                 entity.Property(e => e.EndTime).HasColumnType("datetime");
 
+                entity.Property(e => e.Name).HasMaxLength(200);
+
                 entity.Property(e => e.StartTime).HasColumnType("datetime");
 
                 entity.HasOne(d => d.Topic)
@@ -365,7 +390,8 @@ namespace ThinkTank.Data.Entities
                     .HasForeignKey(d => d.TopicId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("FK__Room__TopicId__05D8E0BE");
-            });          
+            });
+
 
             modelBuilder.Entity<Topic>(entity =>
             {

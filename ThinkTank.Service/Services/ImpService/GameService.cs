@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using AutoMapper.QueryableExtensions;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -21,8 +22,12 @@ namespace ThinkTank.Service.Services.ImpService
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
+        private readonly DateTime date;
         public GameService(IUnitOfWork unitOfWork, IMapper mapper)
         {
+            if (TimeZoneInfo.Local.BaseUtcOffset != TimeSpan.FromHours(7))
+                date = DateTime.UtcNow.ToLocalTime().AddHours(7);
+            else date = DateTime.Now;
             _unitOfWork = unitOfWork;
             _mapper = mapper;
         }     
@@ -35,17 +40,23 @@ namespace ThinkTank.Service.Services.ImpService
                 {
                     throw new CrudException(HttpStatusCode.BadRequest, "Id Game Invalid", "");
                 }
-                var response = await _unitOfWork.Repository<Game>().GetAsync(u => u.Id == id);
+                var response = _unitOfWork.Repository<Game>().GetAll().AsNoTracking().Include(x => x.Topics).Select(x => new GameResponse
+                {
+                    Id = x.Id,
+                    Name = x.Name,
+                    AmoutPlayer= _unitOfWork.Repository<Achievement>().GetAll().Include(x => x.Game).Where(x => x.GameId == id).Select(a => a.AccountId).Distinct().Count(),
+                    Topics = new List<TopicResponse>(x.Topics.Select(a => new TopicResponse
+                    {
+                        Id = a.Id,
+                        Name = a.Name
+                    }))
+                }).SingleOrDefault(x=>x.Id == id);
 
                 if (response == null)
                 {
                     throw new CrudException(HttpStatusCode.NotFound, $"Not found game with id {id.ToString()}", "");
                 }
-
-                var amount = _unitOfWork.Repository<Achievement>().GetAll().Where(x => x.GameId == id).Select(a=>a.AccountId).Distinct().Count();
-                var rs= _mapper.Map<GameResponse>(response);
-                rs.AmoutPlayer = amount;
-                return rs;
+                return response;
             }
             catch (CrudException ex)
             {
@@ -57,59 +68,76 @@ namespace ThinkTank.Service.Services.ImpService
             }
         }
 
-        public async Task<PagedResults<ReportGameLevelResponse>> GetGameLevelById(int id, PagingRequest paging)
+        public async Task<dynamic> GetReportOGame()
         {
             try
             {
-                if (id <= 0)
+                var currentDateMonth = date.Month;
+
+                var totalSinglePlayer = _unitOfWork.Repository<Achievement>()
+                    .GetAll().AsNoTracking()
+                    .Where(x => x.CompletedTime.Month == currentDateMonth)
+                    .Select(x => x.AccountId)
+                    .Distinct()
+                    .Count();
+
+                var totalMultiplayerMode = _unitOfWork.Repository<AccountInRoom>()
+                    .GetAll().AsNoTracking()
+                    .Where(x => x.CompletedTime.Value.Month == currentDateMonth)
+                    .Select(x => x.AccountId)
+                    .Distinct()
+                    .Count();
+
+                HashSet<int> uniqueAccounts = new HashSet<int>();
+
+                var accountPairs = _unitOfWork.Repository<AccountIn1vs1>()
+                    .GetAll().AsNoTracking()
+                    .Select(x => new { x.AccountId1, x.AccountId2 });
+
+                foreach (var pair in accountPairs)
                 {
-                    throw new CrudException(HttpStatusCode.BadRequest, "Id Game Invalid", "");
+                    uniqueAccounts.Add(pair.AccountId1);
+                    uniqueAccounts.Add(pair.AccountId2);
                 }
 
-                var game = await _unitOfWork.Repository<Game>().GetAsync(u => u.Id == id);
+                var total1vs1Mode = uniqueAccounts.Count;
 
-                if (game == null)
+
+                var totalContest = _unitOfWork.Repository<Contest>()
+                    .GetAll().AsNoTracking()
+                    .Where(x => x.StartTime.Month == currentDateMonth)
+                    .Count();
+
+                var totalRoom = _unitOfWork.Repository<Room>()
+                    .GetAll().Include(x=>x.AccountInRooms).AsNoTracking()
+                    .Where(x => x.StartTime.Value.Month == currentDateMonth)
+                    .Count();
+
+                var totalUser = _unitOfWork.Repository<Account>()
+                    .GetAll().AsNoTracking()
+                    .Count();
+
+                var totalNewbieUser = _unitOfWork.Repository<Account>()
+                    .GetAll().AsNoTracking()
+                    .Where(x => x.RegistrationDate.Value.Month == currentDateMonth)
+                    .Count();
+
+                var total = total1vs1Mode + totalMultiplayerMode + totalSinglePlayer;
+                var percent1vs1Mode = total1vs1Mode != 0 ? (double)total1vs1Mode / total * 100 : 0.0;
+                var percentMultiplayerMode = totalMultiplayerMode != 0 ? (double)totalMultiplayerMode / total * 100 : 0.0;
+                var percentSinglePlayer = totalSinglePlayer != 0 ? (double)totalSinglePlayer / total * 100 : 0.0;
+
+                return new
                 {
-                    throw new CrudException(HttpStatusCode.NotFound, $"Not found game with id {id}", "");
-                }
+                    TotalSinglePlayerMode = percentSinglePlayer,
+                    Total1vs1Mode = percent1vs1Mode,
+                    TotalMultiplayerMode = percentMultiplayerMode,
+                    TotalContest = totalContest,
+                    TotalRoom = totalRoom,
+                    TotalUser = totalUser,
+                    TotalNewbieUser = totalNewbieUser,
+                };
 
-                var responseLevels = new List<ReportGameLevelResponse>();
-
-                var achievements = _unitOfWork.Repository<Achievement>()
-                    .GetAll()
-                    .Where(x => x.GameId == id && x.Mark > 0)
-                    .ToList();
-
-                foreach (var achievement in achievements)
-                {
-                    var existingResponseLevel = responseLevels.FirstOrDefault(a => a.Level == achievement.Level);
-                    if (existingResponseLevel == null)
-                    {
-                        var responseLevel = new ReportGameLevelResponse
-                        {
-                            Level = achievement.Level,
-                            AmoutPlayer = 1,
-                            GameMode = GetGameMode(achievement),
-                            AccountIdsChecked=new List<int>()
-                            
-                        };
-                        responseLevel.AccountIdsChecked.Add(achievement.AccountId);
-                        responseLevels.Add(responseLevel);
-                    }
-                    else
-                    {
-                        if (!existingResponseLevel.AccountIdsChecked.Contains(achievement.AccountId))
-                        {
-                            existingResponseLevel.AmoutPlayer++;
-                            existingResponseLevel.AccountIdsChecked.Add(achievement.AccountId);                          
-                        }
-                        if (existingResponseLevel.GameMode != GetGameMode(achievement))
-                            existingResponseLevel.GameMode += ", " + GetGameMode(achievement);
-                    }
-                }
-                var sort = PageHelper<ReportGameLevelResponse>.Sorting(paging.SortType, responseLevels, "Level");
-                var result = PageHelper<ReportGameLevelResponse>.Paging(sort, paging.Page, paging.PageSize);
-                return result;
             }
             catch (CrudException ex)
             {
@@ -117,32 +145,25 @@ namespace ThinkTank.Service.Services.ImpService
             }
             catch (Exception ex)
             {
-                throw new CrudException(HttpStatusCode.InternalServerError, "Get Game By ID Error", ex.InnerException?.Message);
+                throw new CrudException(HttpStatusCode.InternalServerError, "Get Report Game  Error", ex.InnerException?.Message);
             }
         }
-
-        private string GetGameMode(Achievement achievement)
-        {
-            var isSingleMode = _unitOfWork.Repository<AccountIn1vs1>()
-                .GetAll()
-                .Any(a =>
-                    (a.AccountId1 == achievement.AccountId || a.AccountId2 == achievement.AccountId) && 
-                    a.EndTime == achievement.CompletedTime);
-
-            return isSingleMode ? "Multiplayer Mode" : "Single Mode";
-        }
-
         public async Task<PagedResults<GameResponse>> GetGames(GameRequest request, PagingRequest paging)
         {
             try
             {
 
                 var filter = _mapper.Map<GameResponse>(request);
-                var games = _unitOfWork.Repository<Game>().GetAll().Select(x=>new GameResponse
+                var games = _unitOfWork.Repository<Game>().GetAll().AsNoTracking().Include(x=>x.Topics).Select(x=>new GameResponse
                 {
                     Id = x.Id,
                     Name=x.Name,
-                    AmoutPlayer =_unitOfWork.Repository<Achievement>().GetAll().Where(x => x.GameId ==x.Id).Select(a => a.AccountId).Distinct().Count()
+                    AmoutPlayer= _unitOfWork.Repository<Achievement>().GetAll().AsNoTracking().Include(x => x.Game).Where(a => a.GameId == x.Id).Select(a => a.AccountId).Distinct().Count(),
+                Topics =new List<TopicResponse>(x.Topics.Select(a=>new TopicResponse
+                    {
+                        Id=a.Id,
+                        Name=a.Name
+                    }))
             })  .DynamicFilter(filter) .ToList();
                 var sort = PageHelper<GameResponse>.Sorting(paging.SortType, games, paging.ColName);
                 var result = PageHelper<GameResponse>.Paging(sort, paging.Page, paging.PageSize);

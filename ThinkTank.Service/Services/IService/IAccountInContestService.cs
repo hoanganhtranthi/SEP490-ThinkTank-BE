@@ -11,8 +11,8 @@ namespace ThinkTank.Service.Services.IService
     public interface IAccountInContestService
     {
         Task<PagedResults<AccountInContestResponse>> GetAccountInContests(AccountInContestRequest request, PagingRequest paging);
-        Task<AccountInContestResponse> GetAccountInContest(AccountInContestRequest account);
+        Task<AccountInContestResponse> GetAccountInContestById(int id);
         Task<AccountInContestResponse> CreateAccountInContest(CreateAccountInContestRequest request);
-        Task<AccountInContestResponse> UpdateAccountInContest(int accountInContestId ,UpdateAccountInContestRequest request);
+        Task<AccountResponse> MinusCoinOfAccount(int id, int contestId);
     }
 }

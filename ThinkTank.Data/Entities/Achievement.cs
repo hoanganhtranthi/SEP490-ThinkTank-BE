@@ -10,12 +10,11 @@ namespace ThinkTank.Data.Entities
         public decimal Duration { get; set; }
         public int Mark { get; set; }
         public int Level { get; set; }
-        public int GameId { get; set; }
         public int AccountId { get; set; }
-        public int? TopicId { get; set; }
         public int? PieceOfInformation { get; set; }
+        public int GameId { get; set; }
 
         public virtual Account Account { get; set; } = null!;
-        public virtual Topic? Topic { get; set; }
+        public virtual Game Game { get; set; } = null!;
     }
 }

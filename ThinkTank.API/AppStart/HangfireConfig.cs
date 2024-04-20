@@ -24,8 +24,10 @@ namespace ThinkTank.API.AppStart
                             SlidingInvisibilityTimeout = TimeSpan.FromMinutes(5),
                             QueuePollInterval = TimeSpan.Zero,
                             UseRecommendedIsolationLevel = true,
-                            DisableGlobalLocks = true
+                            DisableGlobalLocks = true,
+                            
                         });
+                
             });
             services.AddHangfireServer();
         }

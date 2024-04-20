@@ -1,6 +1,7 @@
 ﻿
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -82,13 +83,24 @@ namespace ThinkTank.Data.Repository
             Context.Entry(existEntity).CurrentValues.SetValues(entity);
             Table.Update(existEntity);
         }
-
+        public async Task UpdateDispose(T entity, int Id)
+        {
+            using (var context = new ThinkTankContext())
+            {
+                T existing = context.Set<T>().Find(Id);
+                if (existing != null)
+                {
+                    context.Entry(existing).CurrentValues.SetValues(entity);
+                    context.Set<T>().Update(existing);
+                }
+            }
+        }
         public DbSet<T> GetAll()
         {
             return Table;
         }
 
-        public void DeleteRange(T[] entity)
+        public async Task DeleteRange(T[] entity)
         {
             Context.RemoveRange(entity);
         }

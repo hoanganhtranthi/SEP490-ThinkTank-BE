@@ -10,8 +10,8 @@ namespace ThinkTank.Service.Services.IService
 {
     public interface IIconOfAccountService
     {
-        Task<PagedResults<IconResponse>> GetIcons(IconRequest request, PagingRequest paging);
-        Task<IconResponse> CreateIcon(CreateIconRequest createIconRequest);
-        Task<IconResponse> GetIconById(int id);
+        Task<PagedResults<IconOfAccountResponse>> GetIconOfAccounts(IconOfAccountRequest request, PagingRequest paging);
+        Task<IconOfAccountResponse> CreateIconOfAccount(CreateIconOfAccountRequest createIconRequest);
+        Task<IconOfAccountResponse> GetIconOfAccountById(int id);
     }
 }

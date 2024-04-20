@@ -41,5 +41,29 @@ namespace ThinkTank.API.Controllers
             var rs = await _notificationService.GetNotificationById(id);
             return Ok(rs);
         }
+        /// <summary>
+        /// Update status notification
+        /// </summary>
+        /// <param name="notificationId"></param>
+        /// <returns></returns>
+        [Authorize(Policy = "Player")]
+        [HttpGet("{notificationId:int}/status")]
+        public async Task<ActionResult<NotificationResponse>> GetToUpdateStatus(int notificationId)
+        {
+            var rs = await _notificationService.GetToUpdateStatus(notificationId);
+            return Ok(rs);
+        }
+        /// <summary>
+        /// Delete list of notification
+        /// </summary>
+        /// <param name="notificationId"></param>
+        /// <returns></returns>
+        [Authorize(Policy = "Player")]
+        [HttpDelete()]
+        public async Task<ActionResult<NotificationResponse>> DeleteNotification([FromBody] List<int> notificationId)
+        {
+            var rs = await _notificationService.DeleteNotification(notificationId);
+            return Ok(rs);
+        }
     }
 }

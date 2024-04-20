@@ -12,19 +12,19 @@ namespace ThinkTank.API.Controllers
     [ApiController]
     public class TopicsController : Controller
     {
-        /*
+        
         private readonly ITopicService _topicService;
         public TopicsController(ITopicService topicService)
         {
             _topicService = topicService;
         }
         /// <summary>
-        /// Get list of topic
+        /// Get list of topic (StatusTopicType: 1: All, 2: Has Asset, 3: No Asset)
         /// </summary>
         /// <param name="pagingRequest"></param>
-        /// <param name="anonymousRequest"></param>
+        /// <param name="request"></param>
         /// <returns></returns>
-        [AllowAnonymous]
+        [Authorize(Policy ="All")]
         [HttpGet]
         public async Task<ActionResult<List<TopicResponse>>> GetTopics([FromQuery] PagingRequest pagingRequest, [FromQuery] TopicRequest request)
         {
@@ -36,7 +36,7 @@ namespace ThinkTank.API.Controllers
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        [AllowAnonymous]
+        [Authorize(Policy ="All")]
         [HttpGet("{id:int}")]
         public async Task<ActionResult<TopicResponse>> GetTopic(int id)
         {
@@ -48,27 +48,12 @@ namespace ThinkTank.API.Controllers
         /// </summary>
         /// <param name="request"></param>
         /// <returns></returns>
-       // [Authorize(Policy = "Admin")]
-        [HttpPost()]
-        public async Task<ActionResult<TopicResponse>> CreateAnonymousResource([FromBody] CreateTopicOfGameRequest request)
+       [Authorize(Policy = "Admin")]
+       [HttpPost()]
+        public async Task<ActionResult<TopicResponse>> CreatTopic([FromBody] CreateTopicRequest request)
         {
             var rs = await _topicService.CreateTopic(request);
             return Ok(rs);
         }
-        /// <summary>
-        /// Update topic
-        /// </summary>
-        /// <param name="name"></param>
-        /// <param name="id"></param>
-        /// <returns></returns>
-        //[Authorize(Policy = "Admin")]
-        [HttpPut("{id:int}")]
-        public async Task<ActionResult<TopicResponse>> UpdateResource([FromBody] string name, int id)
-        {
-            var rs = await _topicService.UpdateTopic(id, name);
-            if (rs == null) return NotFound();
-            return Ok(rs);
-        }
-        */
     }
 }

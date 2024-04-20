@@ -26,8 +26,8 @@ namespace ThinkTank.Data.Entities
         public string FullName { get; set; } = null!;
         public string UserName { get; set; } = null!;
         public string Email { get; set; } = null!;
-        public byte[] PasswordHash { get; set; } = null!;
-        public byte[] PasswordSalt { get; set; } = null!;
+        public byte[]? PasswordHash { get; set; } 
+        public byte[]? PasswordSalt { get; set; }
         public string? Gender { get; set; }
         public DateTime? DateOfBirth { get; set; }
         public string? Avatar { get; set; }
@@ -39,6 +39,7 @@ namespace ThinkTank.Data.Entities
         public bool? Status { get; set; }
         public string? GoogleId { get; set; }
         public DateTime? RegistrationDate { get; set; }
+        public int? VersionToken { get; set; }
 
         public virtual ICollection<AccountIn1vs1> AccountIn1vs1AccountId1Navigations { get; set; }
         public virtual ICollection<AccountIn1vs1> AccountIn1vs1AccountId2Navigations { get; set; }

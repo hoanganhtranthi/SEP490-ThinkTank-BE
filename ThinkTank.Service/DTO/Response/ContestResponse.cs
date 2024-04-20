@@ -20,7 +20,12 @@ namespace ThinkTank.Service.DTO.Response
         [DateRangeAttribute]
         public DateTime? EndTime { get; set; }
         public bool? Status { get; set; }
-
+        [IntAttribute]
+        public int? GameId { get; set; }
+        public decimal? PlayTime { get; set; }
+        public string?  GameName { get; set; }
+        public int? AmoutPlayer { get; set; }
+        public int? CoinBetting { get; set; }
         public virtual ICollection<AssetOfContestResponse> AssetOfContests { get; set; }
 
     }

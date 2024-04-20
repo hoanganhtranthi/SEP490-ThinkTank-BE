@@ -146,7 +146,7 @@ namespace ThinkTank.Service.Services.ImpService
             }
             catch (Exception ex)
             {
-                throw new CrudException(HttpStatusCode.InternalServerError, "Get Analysis of Account By Account Id and Game Id error!!!!!", ex.Message);
+                throw new CrudException(HttpStatusCode.InternalServerError, "Get Analysis of Account by Account Id and GameId error!!!!!", ex.Message);
             }
         }
         public async Task<dynamic> GetAnalysisOfMemoryTypeByAccountId(int accountId)

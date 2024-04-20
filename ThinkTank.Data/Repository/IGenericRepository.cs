@@ -22,8 +22,8 @@ namespace ThinkTank.Data.Repository
         T Find(Func<T, bool> predicate);
         Task<T> FindAsync(Expression<Func<T, bool>> predicate);
         Task<T> GetById(int id);
-        void DeleteRange(T[] entity);
+        Task DeleteRange(T[] entity);
         Task Update(T entity, int Id);
-
+        Task UpdateDispose(T entity, int Id);
     }
 }

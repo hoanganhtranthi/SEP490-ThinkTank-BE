@@ -18,12 +18,12 @@ namespace ThinkTank.API.Controllers
             _friendService = friendService;
         }
         /// <summary>
-        /// Get list of friendships (1: All, 2 : True, 3:False, 4: Null)
+        /// Get list of friendships of account Id (1: All, 2 : True, 3:False, 4: Null)
         /// </summary>
         /// <param name="pagingRequest"></param>
         /// <param name="friendRequest"></param>
         /// <returns></returns>
-        [Authorize(Policy = "All")]
+        [Authorize(Policy = "Player")]
         [HttpGet]
         public async Task<ActionResult<List<FriendResponse>>> GetFriends([FromQuery] PagingRequest pagingRequest, [FromQuery] FriendRequest friendRequest)
         {
@@ -35,7 +35,7 @@ namespace ThinkTank.API.Controllers
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        [Authorize(Policy = "All")]
+        [Authorize(Policy = "Player")]
         [HttpGet("{id:int}")]
         public async Task<ActionResult<FriendResponse>> GetFriend(int id)
         {
@@ -47,7 +47,7 @@ namespace ThinkTank.API.Controllers
         /// </summary>
         /// <param name="friendId"></param>
         /// <returns></returns>
-        [Authorize(Policy = "Player")]
+      [Authorize(Policy = "Player")]
         [HttpGet("{friendId:int}/status")]
         public async Task<ActionResult<FriendResponse>> GetToUpdateStatus(int friendId)
         {

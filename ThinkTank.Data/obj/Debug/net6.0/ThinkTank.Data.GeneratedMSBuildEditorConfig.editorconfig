@@ -8,8 +8,4 @@ build_property.PlatformNeutralAssembly =
 build_property.EnforceExtendedAnalyzerRules = 
 build_property._SupportedPlatformList = Linux,macOS,Windows
 build_property.RootNamespace = ThinkTank.Data
-<<<<<<< Updated upstream
-build_property.ProjectDir = C:\Users\ADMIN\Documents\GitHub\SEP490-ThinkTank-BE\ThinkTank.Data\
-=======
-build_property.ProjectDir = C:\Users\ADMIN\Documents\GitHub\SEP490-ThinkTank-BE-new\ThinkTank.Data\
->>>>>>> Stashed changes
+build_property.ProjectDir = C:\Users\ADMIN\Downloads\SEP490-ThinkTank-BE-hanh\SEP490-ThinkTank-BE-hanh\ThinkTank.Data\

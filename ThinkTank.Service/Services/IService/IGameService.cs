@@ -12,6 +12,6 @@ namespace ThinkTank.Service.Services.IService
     {
         Task<PagedResults<GameResponse>> GetGames(GameRequest request, PagingRequest paging);
         Task<GameResponse> GetGameById(int id);
-        Task<PagedResults<ReportGameLevelResponse>> GetGameLevelById(int id,PagingRequest paging);
+        Task<dynamic> GetReportOGame();
     }
 }

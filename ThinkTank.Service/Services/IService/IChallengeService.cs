@@ -10,6 +10,7 @@ namespace ThinkTank.Service.Services.IService
 {
     public interface IChallengeService
     {
-        Task<PagedResults<ChallengeResponse>> GetChallenges(ChallengeRequest request, PagingRequest paging);
+        Task<List<ChallengeResponse>> GetChallenges(ChallengeRequest request);
+        Task<List<ChallengeResponse>> GetCoinReward(int accountId, int? challengeId);
     }
 }

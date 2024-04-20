@@ -24,7 +24,7 @@ namespace ThinkTank.API.Controllers
         /// <param name="pagingRequest"></param>
         /// <param name="userRequest"></param>
         /// <returns></returns>
-        [Authorize(Policy = "All")]
+        [Authorize(Policy = "Admin")]
         [HttpGet]
         public async Task<ActionResult<List<AccountResponse>>> GetAccounts([FromQuery] PagingRequest pagingRequest, [FromQuery] AccountRequest accountRequest)
         {
@@ -36,7 +36,7 @@ namespace ThinkTank.API.Controllers
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        [Authorize(Policy = "Admin")]
+        [Authorize(Policy = "All")]
         [HttpGet("{id:int}")]
         public async Task<ActionResult<AccountResponse>> GetAccount(int id)
         {
@@ -49,7 +49,7 @@ namespace ThinkTank.API.Controllers
         /// <param name="userRequest"></param>
         /// <param name="id"></param>
         /// <returns></returns>
-        [Authorize(Policy = "Player")]
+       [Authorize(Policy = "Player")]
         [HttpPut("{id:int}")]
         public async Task<ActionResult<AccountResponse>> UpdateAccount([FromBody] UpdateAccountRequest userRequest, int id)
         {
@@ -82,17 +82,6 @@ namespace ThinkTank.API.Controllers
             return Ok(rs);
         }
         /// <summary>
-        /// Send Verification Code  
-        /// </summary>
-        /// <returns></returns>
-        [AllowAnonymous]
-        [HttpPost("verification-code")]
-        public async Task<ActionResult<string>> Verification([FromQuery] string email)
-        {
-            var rs = await _accountService.CreateMailMessage(email);
-            return Ok(rs);
-        }
-        /// <summary>
         /// Sign Up account
         /// </summary>
         /// <param name="account"></param>
@@ -114,6 +103,18 @@ namespace ThinkTank.API.Controllers
         public async Task<ActionResult<AccountResponse>> LoginPlayer([FromBody] LoginRequest model)
         {
             var rs = await _accountService.LoginPlayer(model);
+            return Ok(rs);
+        }
+        /// <summary>
+        /// Check Login of user
+        /// </summary>
+        /// <param name="model"></param>
+        /// <returns></returns>
+        [AllowAnonymous]
+        [HttpPost("authentication-cheking")]
+        public async Task<ActionResult<AccountResponse>> GetIdToLogin([FromBody] LoginRequest model, [FromQuery] string? googleId)
+        {
+            var rs = await _accountService.GetIdToLogin(model,googleId);
             return Ok(rs);
         }
         /// <summary>
@@ -160,7 +161,7 @@ namespace ThinkTank.API.Controllers
         /// <param name="userId"></param>
         /// <returns></returns>
         [AllowAnonymous]
-        [HttpPost("token-revoke")]
+        [HttpPost("{userId:int}/token-revoke")]
         public async Task<ActionResult<AccountResponse>> RevokeRefreshToken(int userId)
         {
             var rs = await _accountService.RevokeRefreshToken(userId);
@@ -174,9 +175,9 @@ namespace ThinkTank.API.Controllers
         /// <returns></returns>
         [AllowAnonymous]
         [HttpPost("google-authentication")]
-        public async Task<ActionResult<AccountResponse>> LoginGoogle([FromQuery] string googleId, [FromQuery] string fcm)
+        public async Task<ActionResult<AccountResponse>> LoginGoogle([FromBody] LoginGoogleRequest request)
         {
-            var rs = await _accountService.LoginGoogle(googleId,fcm);
+            var rs = await _accountService.LoginGoogle(request);
             return Ok(rs);
         }
         /// <summary>
@@ -185,8 +186,8 @@ namespace ThinkTank.API.Controllers
         /// <param name="accountId"></param>
         /// <returns></returns>
         [Authorize(Policy = "All")]
-        [HttpGet("game-level-of-account")]
-        public async Task<ActionResult<List<GameLevelOfAccountResponse>>> GetGameLevelByAccountId([FromQuery] int accountId)
+        [HttpGet("{accountId:int}/game-level-of-account")]
+        public async Task<ActionResult<List<GameLevelOfAccountResponse>>> GetGameLevelByAccountId( int accountId)
         {
             var rs = await _accountService.GetGameLevelByAccountId(accountId);
             return Ok(rs);

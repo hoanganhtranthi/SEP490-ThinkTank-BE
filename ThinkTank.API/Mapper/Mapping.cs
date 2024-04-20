@@ -19,6 +19,7 @@ namespace MuTote.API.Mapper
             CreateMap<Account, AccountResponse>();
             CreateMap<CreateAccountRequest, Account>();
             CreateMap<UpdateAccountRequest, Account>();
+            CreateMap<LoginGoogleRequest, Account>();
 
             CreateMap<FriendRequest, Friend>();
             CreateMap<FriendRequest, FriendResponse>();
@@ -43,43 +44,68 @@ namespace MuTote.API.Mapper
             CreateMap<Achievement, AchievementResponse>();
             CreateMap<CreateAchievementRequest, Achievement>();
 
+            CreateMap<CreateTopicRequest, Topic>();
             CreateMap<TopicRequest, Topic>();
             CreateMap<TopicRequest, TopicResponse>();
             CreateMap<Topic, TopicResponse>();
-            CreateMap<CreateTopicOfGameRequest, Topic>();
 
             CreateMap<IconRequest, Icon>();
             CreateMap<IconRequest, IconResponse>();
             CreateMap<Icon, IconResponse>();
             CreateMap<CreateIconRequest, Icon>();
 
+            CreateMap<CreateIconOfAccountRequest, IconOfAccount>();
+            CreateMap<IconOfAccount, IconOfAccountResponse>();
+            CreateMap<IconOfAccountRequest, IconOfAccountResponse>();
             CreateMap<IconOfAccountRequest, IconOfAccount>();
-            CreateMap<IconOfAccount,IconOfAccountResponse>();
 
 
-            CreateMap<CreateContestRequest, Contest>();
+            CreateMap<CreateAndUpdateContestRequest, Contest>();
             CreateMap<Contest, ContestResponse>();
             CreateMap<ContestRequest, ContestResponse>();
             CreateMap<ContestRequest, Contest>();
-            CreateMap<UpdateContestRequest, Contest>();
+
+            CreateMap<CreateAssetRequest, Asset>();
+            CreateMap<Asset, AssetResponse>().ReverseMap();
+            CreateMap<AssetRequest,AssetResponse>();
+            CreateMap<AssetRequest, Asset>();
+
+            CreateMap<TypeOfAsset, TypeOfAssetResponse>().ReverseMap();
+            CreateMap<TypeOfAssetRequest, TypeOfAssetResponse>();
+            CreateMap<TypeOfAssetRequest, TypeOfAsset>();
 
             CreateMap<ChallengeRequest, ChallengeResponse>();
             CreateMap<ChallengeRequest, Challenge>();
             CreateMap<Challenge, ChallengeResponse>();
 
-            CreateMap<BadgeRequest, Badge>();
-            CreateMap<BadgeRequest, BadgeResponse>();
-            CreateMap<Badge, BadgeResponse>();
             CreateMap<CreateBadgeRequest, Badge>();
 
             CreateMap<AccountInContestRequest, AccountInContest>();
             CreateMap<AccountInContest, AccountInContestResponse>();
             CreateMap<AccountInContestRequest, AccountInContestResponse>();
             CreateMap<CreateAccountInContestRequest, AccountInContest>();
-            CreateMap<UpdateAccountInContestRequest, AccountInContest>();
+
+            CreateMap<AccountIn1vs1Request, AccountIn1vs1>();
+            CreateMap<AccountIn1vs1, AccountIn1vs1Response>();
+            CreateMap<AccountIn1vs1Request, AccountIn1vs1Response>();
+            CreateMap<CreateAccountIn1vs1Request, AccountIn1vs1>();
 
             CreateMap<CreateAssetOfContestRequest, AssetOfContest>();
-            CreateMap<AssetOfContest, AssetOfContestResponse>();
+            CreateMap<AssetOfContest, AssetOfContestResponse>().ReverseMap();
+
+            CreateMap<TypeOfAssetInContest, TypeOfAssetInContestResponse>().ReverseMap();
+            CreateMap<TypeOfAssetInContestRequest, TypeOfAssetInContestResponse>();
+            CreateMap<TypeOfAssetInContestRequest, TypeOfAssetInContest>();
+
+            CreateMap<CreateRoomRequest, Room>();
+            CreateMap<Room, RoomResponse>().ReverseMap();
+            CreateMap<RoomRequest, RoomResponse>();
+            CreateMap<RoomRequest, Room>();
+
+            CreateMap<AccountInRoomRequest, AccountInRoom>();
+            CreateMap<AccountInRoom, AccountInRoomResponse>();
+            CreateMap<AccountInRoomRequest, AccountInRoomResponse>();
+            CreateMap<CreateAndUpdateAccountInRoomRequest, AccountInRoom>();
         }
 
     }
