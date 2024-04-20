@@ -64,7 +64,90 @@ namespace ThinkTank.Service.Services.ImpService
                 contest.EndTime = createContestRequest.EndTime;
                 contest.CoinBetting = createContestRequest.CoinBetting;
                 contest.Status = null;
+<<<<<<< Updated upstream
                 //create prize of contest
+=======
+
+                List<AssetOfContestResponse> result = new List<AssetOfContestResponse>();
+                List<AssetOfContest> list = new List<AssetOfContest>();
+
+                foreach (var type in createContestRequest.Assets)
+                {
+                    if(type.Value ==null || type.Value == "" || type.TypeOfAssetId <=0)
+                            throw new CrudException(HttpStatusCode.BadRequest, "Information is invalid", "");
+
+                    var asset = _mapper.Map<CreateAssetOfContestRequest, AssetOfContest>(type);
+                    var t = _unitOfWork.Repository<TypeOfAssetInContest>().Find(t => t.Id == type.TypeOfAssetId);
+                    if (t == null)
+                    {
+                        throw new CrudException(HttpStatusCode.NotFound, "Type Of Asset In Contest Not Found!!!!!", "");
+                    }
+
+                    if (game.Name.Equals("Flip Card") || game.Name.Equals("Images Walkthrough"))
+                    {
+                        if (t.Type.Equals("Description+ImgLink") || t.Type.Equals("AudioLink"))
+                        {
+                            throw new CrudException(HttpStatusCode.NotFound, "Type Of Asset In Contest Invalid!!!!!", "");
+                        }
+                        else
+                        {
+                            if (asset.Value.Contains(";") || asset.Value.Contains(".mp3"))
+                            {
+                                throw new CrudException(HttpStatusCode.NotFound, "Asset In Contest Invalid!!!!!", "");
+                            }
+                        }
+                    }
+                    else if (game.Name.Equals("Music Password"))
+                    {
+                        if (t.Type.Equals("Description+ImgLink") || t.Type.Equals("ImgLink"))
+                        {
+                            throw new CrudException(HttpStatusCode.NotFound, "Type Of Asset In Contest Invalid!!!!!", "");
+                        }
+                        else
+                        {
+                            if (!asset.Value.Contains(".mp3"))
+                            {
+                                throw new CrudException(HttpStatusCode.NotFound, "Asset In Contest Invalid!!!!!", "");
+                            }
+                        }
+                    }
+                    else
+                    {
+                        if (t.Type.Equals("ImgLink") || t.Type.Equals("AudioLink"))
+                        {
+                            throw new CrudException(HttpStatusCode.NotFound, "Type Of Asset In Contest Invalid!!!!!", "");
+                        }
+                        else
+                        {
+                            if (!asset.Value.Contains(";"))
+                            {
+                                throw new CrudException(HttpStatusCode.NotFound, "Asset In Contest Invalid!!!!!", "");
+                            }
+                        }
+                    }
+
+                    var existingAsset = _unitOfWork.Repository<AssetOfContest>().Find(s => s.Value.Equals(type.Value));
+                    if (existingAsset != null)
+                    {
+                        throw new CrudException(HttpStatusCode.BadRequest, "This resource has already !!!", "");
+                    }
+
+                    AssetOfContest assetOfContest = new AssetOfContest();
+                    assetOfContest.Value = type.Value;
+                    assetOfContest.TypeOfAssetId = type.TypeOfAssetId;
+                    assetOfContest.ContestId = contest.Id;
+                    assetOfContest.Contest = contest;
+                    AssetOfContestResponse response = new AssetOfContestResponse();
+                    response.Id = assetOfContest.Id;
+                    response.Value = assetOfContest.Value;
+                    response.NameOfContest = contest.Name;
+                    response.Type = t.Type;
+                    list.Add(assetOfContest);
+                    contest.AssetOfContests = list;
+                    result.Add(response);
+                }
+
+>>>>>>> Stashed changes
                 await _unitOfWork.Repository<Contest>().CreateAsync(contest);
                 await _unitOfWork.CommitAsync();
 
@@ -408,8 +491,96 @@ namespace ThinkTank.Service.Services.ImpService
                 var jobId = _cacheService.GetData<string>($"Contest{contest.Id}JobIdEndTime");
                 if (jobId != null)
                     BackgroundJob.Delete(jobId);
+<<<<<<< Updated upstream
                 _mapper.Map<UpdateContestRequest, Contest>(request, contest);
                 contest.Id = contestId;               
+=======
+                    await firebaseRealtimeDatabaseService.RemoveData($"Contest{contest.Id}JobIdEndTime");
+                }
+              await  _unitOfWork.Repository<AssetOfContest>().DeleteRange(contest.AssetOfContests.ToArray());
+                List<AssetOfContestResponse> result = new List<AssetOfContestResponse>();
+                List<AssetOfContest> list = new List<AssetOfContest>();
+                foreach (var type in request.Assets)
+                {
+                    if (type.Value == null || type.Value == "" || type.TypeOfAssetId <= 0)
+                        throw new CrudException(HttpStatusCode.BadRequest, "Information is invalid", "");
+
+                    var asset = _mapper.Map<CreateAssetOfContestRequest, AssetOfContest>(type);
+                    var t = _unitOfWork.Repository<TypeOfAssetInContest>().Find(t => t.Id == type.TypeOfAssetId);
+                    if (t == null)
+                    {
+                        throw new CrudException(HttpStatusCode.InternalServerError, "Type Of Asset In Contest Not Found!!!!!", "");
+                    }
+
+                    if (game.Name.Equals("Flip Card") || game.Name.Equals("Images Walkthrough"))
+                    {
+                        if (t.Type.Equals("Description+ImgLink") || t.Type.Equals("AudioLink"))
+                        {
+                            throw new CrudException(HttpStatusCode.NotFound, "Type Of Asset In Contest Invalid!!!!!", "");
+                        }
+                        else
+                        {
+                            if (asset.Value.Contains(";") || asset.Value.Contains(".mp3"))
+                            {
+                                throw new CrudException(HttpStatusCode.NotFound, "Asset In Contest Invalid!!!!!", "");
+                            }
+                        }
+                    }
+                    else if (game.Name.Equals("Music Password"))
+                    {
+                        if (t.Type.Equals("Description+ImgLink") || t.Type.Equals("ImgLink"))
+                        {
+                            throw new CrudException(HttpStatusCode.NotFound, "Type Of Asset In Contest Invalid!!!!!", "");
+                        }
+                        else
+                        {
+                            if (!asset.Value.Contains(".mp3"))
+                            {
+                                throw new CrudException(HttpStatusCode.NotFound, "Asset In Contest Invalid!!!!!", "");
+                            }
+                        }
+                    }
+                    else
+                    {
+                        if (t.Type.Equals("ImgLink") || t.Type.Equals("AudioLink"))
+                        {
+                            throw new CrudException(HttpStatusCode.NotFound, "Type Of Asset In Contest Invalid!!!!!", "");
+                        }
+                        else
+                        {
+                            if (!asset.Value.Contains(";"))
+                            {
+                                throw new CrudException(HttpStatusCode.NotFound, "Asset In Contest Invalid!!!!!", "");
+                            }
+                        }
+                    }
+
+                    var existingAsset = _unitOfWork.Repository<AssetOfContest>().Find(s => s.Value.Equals(type.Value));
+                    if (existingAsset != null)
+                    {
+                        throw new CrudException(HttpStatusCode.BadRequest, "This resource has already !!!", "");
+                    }
+
+                    AssetOfContest assetOfContest = new AssetOfContest();
+                    assetOfContest.Value = type.Value;
+                    assetOfContest.TypeOfAssetId = type.TypeOfAssetId;
+                    assetOfContest.ContestId = contest.Id;
+                    await _unitOfWork.Repository<AssetOfContest>().CreateAsync(assetOfContest);
+                    AssetOfContestResponse response = new AssetOfContestResponse();
+                    response.Id = assetOfContest.Id;
+                    response.Value = assetOfContest.Value;
+                    response.NameOfContest = contest.Name;
+                    response.Type = t.Type;
+                    list.Add(assetOfContest);
+                    contest.AssetOfContests = list;
+                    result.Add(response);
+                }
+
+                contest.Thumbnail = request.Thumbnail != null && request.Thumbnail != "" ? request.Thumbnail : contest.Thumbnail;
+                _mapper.Map<CreateAndUpdateContestRequest, Contest>(request, contest);
+                contest.Id = contestId;
+
+>>>>>>> Stashed changes
                 await _unitOfWork.Repository<Contest>().Update(contest, contestId);
                 await _unitOfWork.CommitAsync();
                 var expiryTime = contest.EndTime;
@@ -444,6 +615,7 @@ namespace ThinkTank.Service.Services.ImpService
                 {
                     throw new CrudException(HttpStatusCode.NotFound, $"Not found contest with id{id.ToString()}", "");
                 }
+<<<<<<< Updated upstream
 
                 var assets = _unitOfWork.Repository<AssetOfContest>().GetAll().Where(a => a.ContestId == id).ToList();
                 foreach(var asset in assets)
@@ -451,6 +623,11 @@ namespace ThinkTank.Service.Services.ImpService
                     await _unitOfWork.Repository<AssetOfContest>().RemoveAsync(asset);
                 }
                 
+=======
+                if (contest.StartTime <= DateTime.Now)
+                    throw new CrudException(HttpStatusCode.BadRequest, "The contest has already started and you cannot delete it", "");
+               await _unitOfWork.Repository<AssetOfContest>().DeleteRange(contest.AssetOfContests.ToArray());
+>>>>>>> Stashed changes
                 await _unitOfWork.Repository<Contest>().RemoveAsync(contest);
                 await _unitOfWork.CommitAsync();
 
