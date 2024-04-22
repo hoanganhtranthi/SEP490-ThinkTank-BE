@@ -11,10 +11,10 @@ namespace ThinkTank.API.Controllers
     [ApiController]
     public class RoomsController : Controller
     {
-        private readonly IRoomService roomService;
+        private readonly IRoomService _roomService;
         public RoomsController(IRoomService roomService)
         {
-            this.roomService = roomService;
+            _roomService = roomService;
         }
         /// <summary>
         /// Get list of rooms
@@ -26,7 +26,7 @@ namespace ThinkTank.API.Controllers
         [HttpGet]
         public async Task<ActionResult<List<RoomResponse>>> GetRooms([FromQuery] PagingRequest pagingRequest, [FromQuery] RoomRequest roomRequest)
         {
-            var rs = await roomService.GetRooms(roomRequest, pagingRequest);
+            var rs = await _roomService.GetRooms(roomRequest, pagingRequest);
             return Ok(rs);
         }
         /// <summary>
@@ -38,7 +38,7 @@ namespace ThinkTank.API.Controllers
         [HttpGet("{id:int}")]
         public async Task<ActionResult<RoomResponse>> GetRoomsById(int id)
         {
-            var rs = await roomService.GetRoomById(id);
+            var rs = await _roomService.GetRoomById(id);
             return Ok(rs);
         }
         /// <summary>
@@ -46,11 +46,11 @@ namespace ThinkTank.API.Controllers
         /// </summary>
         /// <param name="room"></param>
         /// <returns></returns>
-      //  [Authorize(Policy = "Player")]
+        [Authorize(Policy = "Player")]
         [HttpPost()]
         public async Task<ActionResult<RoomResponse>> CreateRoom([FromBody] CreateRoomRequest room)
         {
-            var rs = await roomService.CreateRoom(room);
+            var rs = await _roomService.CreateRoom(room);
             return Ok(rs);
         }
         /// <summary>
@@ -63,7 +63,7 @@ namespace ThinkTank.API.Controllers
         [HttpDelete("{id:int},{accountId:int}")]
         public async Task<ActionResult<RoomResponse>> DeleteRoom(int id, int accountId)
         {
-            var rs = await roomService.DeleteRoom(id, accountId);
+            var rs = await _roomService.DeleteRoom(id, accountId);
             if (rs == null) return NotFound();
             return Ok(rs);
         }
@@ -76,7 +76,7 @@ namespace ThinkTank.API.Controllers
         [HttpGet("{roomCode}/leaderboard")]
         public async Task<ActionResult<List<LeaderboardResponse>>> GetLeaderboard(string roomCode)
         {
-            var rs = await roomService.GetLeaderboardOfRoom(roomCode);
+            var rs = await _roomService.GetLeaderboardOfRoom(roomCode);
             return Ok(rs);
         }
         /// <summary>
@@ -89,7 +89,7 @@ namespace ThinkTank.API.Controllers
         [HttpPut("{roomCode}")]
         public async Task<ActionResult<RoomResponse>> UpdateRoom(string roomCode, [FromBody] List<CreateAndUpdateAccountInRoomRequest> createAccountInRoomRequests)
         {
-            var rs = await roomService.UpdateRoom(roomCode,createAccountInRoomRequests);
+            var rs = await _roomService.UpdateRoom(roomCode,createAccountInRoomRequests);
             return Ok(rs);
         }
         /// <summary>
@@ -102,7 +102,7 @@ namespace ThinkTank.API.Controllers
         [HttpPut("{roomId:int},{accountId:int}")]
         public async Task<ActionResult<RoomResponse>> LeaveRoom(int roomId, int accountId)
         {
-            var rs = await roomService.LeaveRoom(roomId, accountId);
+            var rs = await _roomService.LeaveRoom(roomId, accountId);
             return Ok(rs);
         }
         /// <summary>
@@ -112,11 +112,11 @@ namespace ThinkTank.API.Controllers
         /// <param name="roomCode"></param>
         /// <param name="time"></param>
         /// <returns></returns>
-       // [Authorize(Policy = "Player")]
+        [Authorize(Policy = "Player")]
         [HttpGet("{accountId:int},{roomCode},{time:int}/started-room")]
         public async Task<ActionResult<RoomResponse>> GetToStartRoom(int accountId,string roomCode,int time)
         {
-            var rs = await roomService.GetToStartRoom(roomCode,accountId,time);
+            var rs = await _roomService.GetToStartRoom(roomCode,accountId,time);
             if (rs == null) return NotFound();
             return Ok(rs);
         }

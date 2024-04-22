@@ -92,15 +92,19 @@ namespace ThinkTank.Service.Services.ImpService
                 {
                     throw new CrudException(HttpStatusCode.BadRequest, "Id Notificationship Invalid", "");
                 }
-                var notification = _unitOfWork.Repository<Notification>().GetAll().Include(x => x.Account).FirstOrDefault(u => u.Id == id);
+
+                var notification = _unitOfWork.Repository<Notification>().GetAll()
+                    .Include(x => x.Account).FirstOrDefault(u => u.Id == id);
 
                 if (notification == null)
                 {
                     throw new CrudException(HttpStatusCode.NotFound, $"Not found notificationship with id{id.ToString()}", "");
                 }
+
                 notification.Status = true;
                 await _unitOfWork.Repository<Notification>().Update(notification, id);
                 await _unitOfWork.CommitAsync();
+
                 var rs = _mapper.Map<NotificationResponse>(notification);
                 rs.Username = notification.Account.UserName;
                 return rs;
@@ -125,14 +129,17 @@ namespace ThinkTank.Service.Services.ImpService
                     {
                         throw new CrudException(HttpStatusCode.BadRequest, "Id Notificationship Invalid", "");
                     }
-                    var notification = _unitOfWork.Repository<Notification>().GetAll().Include(x => x.Account).FirstOrDefault(u => u.Id == id);
+                    var notification = _unitOfWork.Repository<Notification>().GetAll()
+                        .Include(x => x.Account).FirstOrDefault(u => u.Id == id);
 
                     if (notification == null)
                     {
-                        throw new CrudException(HttpStatusCode.NotFound, $"Not found notificationship with id{id.ToString()}", "");
+                        throw new CrudException(HttpStatusCode.NotFound, $"Not found notificationship with id{id}", "");
                     }
+
                     _unitOfWork.Repository<Notification>().Delete(notification);
                     await _unitOfWork.CommitAsync();
+
                     var rs = _mapper.Map<NotificationResponse>(notification);
                     rs.Username = notification.Account.UserName;
                     result.Add(rs);
@@ -145,7 +152,7 @@ namespace ThinkTank.Service.Services.ImpService
             }
             catch (Exception ex)
             {
-                throw new CrudException(HttpStatusCode.InternalServerError, "Delete notification error!!!!!", ex.Message);
+                throw new CrudException(HttpStatusCode.InternalServerError, "Delete list notifications error!!!!!", ex.Message);
             }
         }
     }

@@ -38,30 +38,48 @@ namespace ThinkTank.Service.Services.ImpService
             _mapper = mapper;
             _firebaseMessagingService = firebaseMessagingService;
         }
-        public async Task<AccountResponse> MinusCoinOfAccount(int id, int contestId)
+        public async Task<AccountInContestResponse> CreateAccountInContest(CreateAndUpdateAccountInContestRequest request)
         {
             try
             {
-                if (id <= 0 || contestId <= 0)
-                    throw new CrudException(HttpStatusCode.BadRequest, "Invalid Information", "");
-                var a = _unitOfWork.Repository<Account>().Find(a => a.Id == id);
-                if (a == null)
+                if (request.ContestId <= 0 || request.AccountId <= 0 || request.Duration < 0 || request.Mark < 0)
+                    throw new CrudException(HttpStatusCode.BadRequest, "Information is invalid", "");
+
+                var acc = _unitOfWork.Repository<Account>().Find(a => a.Id == request.AccountId);
+                if (acc == null)
                 {
-                    throw new CrudException(HttpStatusCode.NotFound, $"Account Id {id} Not Found!!!!!", "");
+                    throw new CrudException(HttpStatusCode.NotFound, $"Account Id {request.AccountId} Not Found!!!!!", "");
                 }
-                if (a.Status.Equals(false))
+                if (acc.Status.Equals(false))
                 {
-                    throw new CrudException(HttpStatusCode.BadRequest, $"Account Id {id} Not Available!!!!!", "");
+                    throw new CrudException(HttpStatusCode.BadRequest, $"Account Id {request.AccountId} Not Available!!!!!", "");
                 }
-                var contest=_unitOfWork.Repository<Contest>().Find(x=>x.Id==contestId);
+                var contest=_unitOfWork.Repository<Contest>().Find(x=>x.Id==request.ContestId);
                 if(contest == null)
-                    throw new CrudException(HttpStatusCode.NotFound, $"Contest Id {contestId} Not Found!!!!!", "");
-                a.Coin -= contest.CoinBetting;
-                if (a.Coin < contest.CoinBetting)
+                    throw new CrudException(HttpStatusCode.NotFound, $"Contest Id {request.ContestId} Not Found!!!!!", "");
+
+                if (acc.Coin < contest.CoinBetting)
                     throw new CrudException(HttpStatusCode.BadRequest, "Not enough coin for this contest", "");
-                await _unitOfWork.Repository<Account>().Update(a, id);
+
+                acc.Coin -= contest.CoinBetting;
+
+                var accountInContest = _mapper.Map<AccountInContest>(request);
+                accountInContest.AccountId = acc.Id;
+                accountInContest.ContestId = request.ContestId;
+                accountInContest.Contest = contest;
+                await _unitOfWork.Repository<AccountInContest>().CreateAsync(accountInContest);
+
+                //Update lại coin trong badge Tycoon của account nếu chưa đạt đủ 4000 coin
+                var badge = _unitOfWork.Repository<Badge>().GetAll().Include(x => x.Challenge).SingleOrDefault(x => x.AccountId == acc.Id && x.Challenge.Name.Equals("The Tycoon"));
+                if (badge.CompletedDate == null  && badge.CompletedLevel < badge.Challenge.CompletedMilestone)
+                {
+                    badge.CompletedLevel = (int)acc.Coin;
+                    await _unitOfWork.Repository<Badge>().Update(badge, badge.Id);
+                }
+
+                await _unitOfWork.Repository<Account>().Update(acc, acc.Id);
                 await _unitOfWork.CommitAsync();
-                return _mapper.Map<AccountResponse>(a);
+                return _mapper.Map<AccountInContestResponse>(accountInContest);
             }
             catch (CrudException ex)
             {
@@ -72,7 +90,7 @@ namespace ThinkTank.Service.Services.ImpService
                 throw new CrudException(HttpStatusCode.InternalServerError, "Minus coin of account error!!!", ex?.Message);
             }
         }
-        private async Task<List<Badge>> GetBadgeCompleted(Account account)
+        private async Task<List<Badge>> GetListBadgesCompleted(Account account)
         {
             var result = new List<Badge>();
             var badges = _unitOfWork.Repository<Badge>().GetAll().Include(x => x.Challenge).Where(x => x.AccountId == account.Id).ToList();
@@ -86,18 +104,18 @@ namespace ThinkTank.Service.Services.ImpService
             }
             return result;
         }
-        public async Task<AccountInContestResponse> CreateAccountInContest(CreateAccountInContestRequest request)
+        public async Task<AccountInContestResponse> UpdateAccountInContest(CreateAndUpdateAccountInContestRequest request)
         {
             try
             {
                 if (request.ContestId <= 0 || request.AccountId <= 0 || request.Duration < 0 || request.Mark < 0)
                     throw new CrudException(HttpStatusCode.BadRequest, "Information is invalid", "");
 
-                var acc = _mapper.Map<CreateAccountInContestRequest, AccountInContest>(request);
-                var s = _unitOfWork.Repository<AccountInContest>().Find(s => s.ContestId == request.ContestId && s.AccountId == request.AccountId);
-                if (s != null)
+                var accountInContest = _unitOfWork.Repository<AccountInContest>()
+                    .Find(s => s.ContestId == request.ContestId && s.AccountId == request.AccountId);
+                if (accountInContest == null)
                 {
-                    throw new CrudException(HttpStatusCode.BadRequest, "Account in Contest has already !!!", "");
+                    throw new CrudException(HttpStatusCode.NotFound, "Account in Contest is not found !!!", "");
                 }
 
                 var a = _unitOfWork.Repository<Account>().Find(a => a.Id == request.AccountId);
@@ -109,6 +127,7 @@ namespace ThinkTank.Service.Services.ImpService
                 {
                     throw new CrudException(HttpStatusCode.BadRequest, "Account Not Available!!!!!", "");
                 }
+
                 var c = _unitOfWork.Repository<Contest>().Find(c => c.Id == request.ContestId);
                 if (c == null)
                 {
@@ -118,15 +137,21 @@ namespace ThinkTank.Service.Services.ImpService
                 {
                     throw new CrudException(HttpStatusCode.BadRequest, "Contest Not Available!!!!!", "");
                 }
-                acc.Prize = request.Mark / 10;
-                acc.CompletedTime = date;
-                a.Coin += acc.Prize;
-                await _unitOfWork.Repository<AccountInContest>().CreateAsync(acc);
+
+                 _mapper.Map<CreateAndUpdateAccountInContestRequest, AccountInContest>(request,accountInContest);
+                accountInContest.Prize = request.Mark / 10;
+                accountInContest.CompletedTime = date;
+                a.Coin += accountInContest.Prize;
+
+                await _unitOfWork.Repository<AccountInContest>().Update(accountInContest,accountInContest.Id);
                 await _unitOfWork.Repository<Account>().Update(a, request.AccountId);
+                
+                //Get badge
                 await GetBadge(a, "The Tycoon");
                 await GetBadge(a, "Super enthusiastic");
+
                 await _unitOfWork.CommitAsync();
-                var rs = _mapper.Map<AccountInContestResponse>(acc);
+                var rs = _mapper.Map<AccountInContestResponse>(accountInContest);
                 rs.ContestName = c.Name;
                 rs.UserName = a.UserName;
                 rs.Avatar = a.Avatar;
@@ -143,7 +168,9 @@ namespace ThinkTank.Service.Services.ImpService
         }
         private async Task GetBadge(Account account, string name)
         {
-            var result = await GetBadgeCompleted(account);
+            //Get list badge mà account đó đã hoàn thành
+            var result = await GetListBadgesCompleted(account);
+
             if (result.SingleOrDefault(x => x.Challenge.Name.Equals(name)) == null)
             {
                 var badge = _unitOfWork.Repository<Badge>().GetAll().Include(x => x.Challenge).SingleOrDefault(x => x.AccountId == account.Id && x.Challenge.Name.Equals(name));
@@ -167,7 +194,7 @@ namespace ThinkTank.Service.Services.ImpService
                         var data = new Dictionary<string, string>()
                         {
                             ["click_action"] = "FLUTTER_NOTIFICATION_CLICK",
-                            ["Action"] = "achievement",
+                            ["Action"] = "home",
                             ["Argument"] = JsonConvert.SerializeObject(new JsonSerializerSettings
                             {
                                 ContractResolver = new DefaultContractResolver

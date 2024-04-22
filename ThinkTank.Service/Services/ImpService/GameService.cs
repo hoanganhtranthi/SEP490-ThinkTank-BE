@@ -40,6 +40,7 @@ namespace ThinkTank.Service.Services.ImpService
                 {
                     throw new CrudException(HttpStatusCode.BadRequest, "Id Game Invalid", "");
                 }
+
                 var response = _unitOfWork.Repository<Game>().GetAll().AsNoTracking().Include(x => x.Topics).Select(x => new GameResponse
                 {
                     Id = x.Id,
@@ -88,19 +89,9 @@ namespace ThinkTank.Service.Services.ImpService
                     .Distinct()
                     .Count();
 
-                HashSet<int> uniqueAccounts = new HashSet<int>();
 
-                var accountPairs = _unitOfWork.Repository<AccountIn1vs1>()
-                    .GetAll().AsNoTracking()
-                    .Select(x => new { x.AccountId1, x.AccountId2 });
-
-                foreach (var pair in accountPairs)
-                {
-                    uniqueAccounts.Add(pair.AccountId1);
-                    uniqueAccounts.Add(pair.AccountId2);
-                }
-
-                var total1vs1Mode = uniqueAccounts.Count;
+                var total1vs1Mode = _unitOfWork.Repository<AccountIn1vs1>()
+                    .GetAll().AsNoTracking().Count();
 
 
                 var totalContest = _unitOfWork.Repository<Contest>()
@@ -165,6 +156,7 @@ namespace ThinkTank.Service.Services.ImpService
                         Name=a.Name
                     }))
             })  .DynamicFilter(filter) .ToList();
+
                 var sort = PageHelper<GameResponse>.Sorting(paging.SortType, games, paging.ColName);
                 var result = PageHelper<GameResponse>.Paging(sort, paging.Page, paging.PageSize);
                 return result;

@@ -35,6 +35,7 @@ namespace ThinkTank.Service.Services.ImpService
                 {
                     throw new CrudException(HttpStatusCode.BadRequest, "Id Icon Invalid", "");
                 }
+
                 var response = _unitOfWork.Repository<Icon>().Find(x => x.Id == id);
 
                 if (response == null)
@@ -49,7 +50,7 @@ namespace ThinkTank.Service.Services.ImpService
             }
             catch (Exception ex)
             {
-                throw new CrudException(HttpStatusCode.InternalServerError, "Get icon By ID Error!!!", ex.InnerException?.Message);
+                throw new CrudException(HttpStatusCode.InternalServerError, "Get Icon By ID Error!!!", ex.InnerException?.Message);
             }
         }
 
@@ -57,37 +58,43 @@ namespace ThinkTank.Service.Services.ImpService
         {
             try
             {
-                var query = _unitOfWork.Repository<Icon>().GetAll()
+                var icons = _unitOfWork.Repository<Icon>().GetAll()
                     .Include(x => x.IconOfAccounts)
                     .AsNoTracking()
                     .ProjectTo<IconResponse>(_mapper.ConfigurationProvider);
 
-
                 if (request.AccountId != null)
                 {
+                    var acc = _unitOfWork.Repository<Account>().Find(x => x.Id == request.AccountId);
+                    if (acc == null)
+                        throw new CrudException(HttpStatusCode.NotFound, $"Account Id {acc.Id} is not found", "");
+                    if (acc.Status == false)
+                        throw new CrudException(HttpStatusCode.BadRequest, $"Account Id {acc.Id} is block", "");
+
                     var isTrue = request.StatusIcon == Helpers.Enum.StatusIconType.True;
                     var isFalse = request.StatusIcon == Helpers.Enum.StatusIconType.False;
-                    var iconIds = await GetIconIdsByAccountId((int)request.AccountId);
+                    var iconsOfAccount = await GetIconIdsByAccountId((int)request.AccountId);
+
                     if (isTrue)
                     {
-                        query = query.Where(icon => iconIds.Contains(icon.Id));
+                        icons = icons.Where(icon => iconsOfAccount.Contains(icon.Id));
                     }
                     if(isFalse)
                     {
-                        query = query.Where(icon => !iconIds.Contains(icon.Id));
+                        icons = icons.Where(icon => !iconsOfAccount.Contains(icon.Id));
                     }
                 }
 
                 if (request.MinPrice != null || request.MaxPrice != null)
                 {
-                    query = query.Where(icon => (request.MinPrice == null || icon.Price >= request.MinPrice) && (request.MaxPrice == null || icon.Price <= request.MaxPrice));
+                    icons = icons.Where(icon => (request.MinPrice == null || icon.Price >= request.MinPrice) && (request.MaxPrice == null || icon.Price <= request.MaxPrice));
                 }
 
 
                 var filter = _mapper.Map<IconResponse>(request);
-                query = query.DynamicFilter(filter);
+                icons = icons.DynamicFilter(filter);
 
-                var sortedIcons = PageHelper<IconResponse>.Sorting(paging.SortType, query, paging.ColName);
+                var sortedIcons = PageHelper<IconResponse>.Sorting(paging.SortType, icons, paging.ColName);
                 var result = PageHelper<IconResponse>.Paging(sortedIcons, paging.Page, paging.PageSize);
 
                 return result;

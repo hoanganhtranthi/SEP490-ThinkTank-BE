@@ -32,15 +32,6 @@ namespace ThinkTank.Data.Repository
             Context.Remove(entity);
         }
 
-        public async Task<List<T>> GetWhere(Expression<Func<T, bool>>? filter = null)
-        {
-            IQueryable<T> query = Table;
-            if (filter != null)
-            {
-                query = query.Where(filter);
-            }
-            return await query.ToListAsync();
-        }
 
         public async Task<T> GetAsync(Expression<Func<T, bool>>? filter = null)
         {

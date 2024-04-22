@@ -79,6 +79,16 @@ namespace ThinkTank.Service.Services.ImpService
                     throw new CrudException(HttpStatusCode.BadRequest, "Start Time or End Time is invalid", "");
                 }
 
+                if (game.Name.Equals("Flip Card"))
+                {
+                    if (!(createContestRequest.Assets.Count() == 3 || createContestRequest.Assets.Count() == 4 || createContestRequest.Assets.Count() == 6
+                         || createContestRequest.Assets.Count() == 8 || createContestRequest.Assets.Count() == 10 || createContestRequest.Assets.Count() == 12
+                         || createContestRequest.Assets.Count() == 14))
+                    {
+                        throw new CrudException(HttpStatusCode.NotFound, "The number of assets for the flip card game must be 3,4,6,8,10,12 or 14", "");
+                    }
+                }
+
                 contest.Name = createContestRequest.Name;
                 contest.Thumbnail = createContestRequest.Thumbnail;
                 contest.StartTime = createContestRequest.StartTime;
@@ -86,9 +96,8 @@ namespace ThinkTank.Service.Services.ImpService
                 contest.CoinBetting = createContestRequest.CoinBetting;
                 contest.GameId = createContestRequest.GameId;              
                 contest.Status = null;
-
-                List<AssetOfContestResponse> result = new List<AssetOfContestResponse>();
                 List<AssetOfContest> list = new List<AssetOfContest>();
+
 
                 foreach (var type in createContestRequest.Assets)
                 {
@@ -102,27 +111,73 @@ namespace ThinkTank.Service.Services.ImpService
                         throw new CrudException(HttpStatusCode.NotFound, "Type Of Asset In Contest Not Found!!!!!", "");
                     }
 
+                    if (game.Name.Equals("Flip Card") || game.Name.Equals("Images Walkthrough"))
+                    {
+                        if (t.Type.Equals("Description+ImgLink") || t.Type.Equals("AudioLink"))
+                        {
+                            throw new CrudException(HttpStatusCode.NotFound, "Type Of Asset In Contest Invalid!!!!!", "");
+                        }
+                        else
+                        {
+                            if (asset.Value.Contains(";") || asset.Value.Contains(".mp3"))
+                            {
+                                throw new CrudException(HttpStatusCode.NotFound, "Asset In Contest Invalid!!!!!", "");
+                            }
+                        }
+                    }
+                    else if (game.Name.Equals("Music Password"))
+                    {
+                        if (t.Type.Equals("Description+ImgLink") || t.Type.Equals("ImgLink"))
+                        {
+                            throw new CrudException(HttpStatusCode.NotFound, "Type Of Asset In Contest Invalid!!!!!", "");
+                        }
+                        else
+                        {
+                            if (!asset.Value.Contains(".mp3"))
+                            {
+                                throw new CrudException(HttpStatusCode.NotFound, "Asset In Contest Invalid!!!!!", "");
+                            }
+                        }
+                    }
+                    else
+                    {
+                        if (t.Type.Equals("ImgLink") || t.Type.Equals("AudioLink"))
+                        {
+                            throw new CrudException(HttpStatusCode.NotFound, "Type Of Asset In Contest Invalid!!!!!", "");
+                        }
+                        else
+                        {
+                            if (!asset.Value.Contains(";"))
+                            {
+                                throw new CrudException(HttpStatusCode.NotFound, "Asset In Contest Invalid!!!!!", "");
+                            }
+                        }
+                    }
+
+                    var existingAsset = _unitOfWork.Repository<AssetOfContest>().Find(s => s.Value.Equals(type.Value));
+                    if (existingAsset != null)
+                    {
+                        throw new CrudException(HttpStatusCode.BadRequest, "This resource has already !!!", "");
+                    }
+
                     AssetOfContest assetOfContest = new AssetOfContest();
                     assetOfContest.Value = type.Value;
                     assetOfContest.TypeOfAssetId = type.TypeOfAssetId;
                     assetOfContest.ContestId = contest.Id;
                     assetOfContest.Contest = contest;
-                    AssetOfContestResponse response = new AssetOfContestResponse();
-                    response.Id = assetOfContest.Id;
-                    response.Value = assetOfContest.Value;
-                    response.NameOfContest = contest.Name;
-                    response.Type = t.Type;
                     list.Add(assetOfContest);
                     contest.AssetOfContests = list;
-                    result.Add(response);
                 }
 
                 await _unitOfWork.Repository<Contest>().CreateAsync(contest);
                 await _unitOfWork.CommitAsync();
-                var id = BackgroundJob.Schedule(() =>
+
+                var startId = BackgroundJob.Schedule(() =>
                   SendNotification(contest.Id),
                  contest.StartTime.Subtract(date));
-               await firebaseRealtimeDatabaseService.SetAsync<string>($"Contest{contest.Id}JobIdStartTime", id);
+
+               await firebaseRealtimeDatabaseService.SetAsync<string>($"Contest{contest.Id}JobIdStartTime", startId);
+
                 var endId = BackgroundJob.Schedule(() =>
                   UpdateStateContest(contest.Id),
                           contest.EndTime.Subtract(date));
@@ -187,7 +242,7 @@ namespace ThinkTank.Service.Services.ImpService
                 throw ex;
             }
         }
-        private async Task<List<Badge>> GetBadgeCompleted(Account account)
+        private async Task<List<Badge>> GetListBadgesCompleted(Account account)
         {
             var result = new List<Badge>();
             var badges = _unitOfWork.Repository<Badge>().GetAll().Include(x => x.Challenge).Where(x => x.AccountId == account.Id).ToList();
@@ -208,27 +263,20 @@ namespace ThinkTank.Service.Services.ImpService
                 Contest contest = _unitOfWork.Repository<Contest>().GetAll().Include(c => c.AccountInContests)
                       .SingleOrDefault(c => c.Id == id);
 
-                if (contest == null)
-                {
-                    throw new CrudException(HttpStatusCode.NotFound, $"Not found contest with id{id}", "");
-                }
-                if (contest.Status == false)
-                    throw new CrudException(HttpStatusCode.BadRequest, $"Contest {id} has ended", "");
                 contest.Status = false;
-                var jobId = firebaseRealtimeDatabaseService.GetAsync<string>($"Contest{contest.Id}JobIdEndTime").Result;
-                if (jobId != null)
+
+                var jobEndId = firebaseRealtimeDatabaseService.GetAsync<string>($"Contest{contest.Id}JobIdEndTime").Result;
+                if (jobEndId != null)
                 {                   
                     await firebaseRealtimeDatabaseService.RemoveData($"Contest{contest.Id}JobIdEndTime");
                 }
+
                 var jobStartId = firebaseRealtimeDatabaseService.GetAsync<string>($"Contest{contest.Id}JobIdStartTime").Result;
                 if (jobStartId != null)
                 {
                     await firebaseRealtimeDatabaseService.RemoveData($"Contest{contest.Id}JobIdStartTime");
                 }
-                if (date < contest.StartTime)
-                    BackgroundJob.Delete(jobStartId);
-                if (date < contest.EndTime)
-                    BackgroundJob.Delete(jobId);
+
                 await _unitOfWork.Repository<Contest>().Update(contest, id);
                 #region send noti for account
                 var accounts = _unitOfWork.Repository<AccountInContest>().GetAll().Include(a => a.Account).Where(a => a.ContestId == contest.Id && a.Account.Status==true).ToList();
@@ -245,7 +293,7 @@ namespace ThinkTank.Service.Services.ImpService
                     }),
                 };
                 List<string> fcmTokens = new List<string>();
-                fcmTokens=accounts.Where(x=>x.Account.Fcm !=null).Select(x=>x.Account.Fcm).ToList();
+                fcmTokens=accounts.Where(x=>x.Account.Fcm !=null && x.Account.Fcm != "").Select(x=>x.Account.Fcm).ToList();
                 if (fcmTokens.Any())                   
                     _firebaseMessagingService.SendToDevices(fcmTokens,
                                                        new FirebaseAdmin.Messaging.Notification() { Title = "ThinkTank Contest", Body = $"\"{contest.Name}\"” is closed. Thank you for participating in the contest.", ImageUrl = $"{contest.Thumbnail}" }, data);
@@ -287,6 +335,7 @@ namespace ThinkTank.Service.Services.ImpService
                             break;
                     }
                     int reward = (int)Math.Round((decimal)(contest.CoinBetting * contest.AccountInContests.Count * (rewardPercentage / 100.0m)));
+
                     account.Coin =account.Coin+reward;
                     await _unitOfWork.Repository<Account>().Update(account, account.Id);
                     fcmTokens.Clear();
@@ -302,6 +351,8 @@ namespace ThinkTank.Service.Services.ImpService
                               Body = $"Congratulations! You won top 1 in the contest \"{contest.Name}\" and received {reward} ThinkTank coins”",
                               ImageUrl = $"{contest.Thumbnail}"
                           }, data);
+
+
                         Notification notification = new Notification
                         {
                             AccountId = account.Id,
@@ -331,7 +382,7 @@ namespace ThinkTank.Service.Services.ImpService
         }
         private async Task GetBadge(Account account, string name)
         {
-            var result = await GetBadgeCompleted(account);
+            var result = await GetListBadgesCompleted(account);
             if (result.SingleOrDefault(x => x.Challenge.Name.Equals(name)) == null)
             {
                 var badge = _unitOfWork.Repository<Badge>().GetAll().Include(x => x.Challenge).SingleOrDefault(x => x.AccountId == account.Id && x.Challenge.Name.Equals(name));
@@ -387,6 +438,7 @@ namespace ThinkTank.Service.Services.ImpService
                 {
                     throw new CrudException(HttpStatusCode.BadRequest, "Id Contest Invalid", "");
                 }
+
                 var response = _unitOfWork.Repository<Contest>().GetAll().AsNoTracking().Include(x=>x.Game).Include(x=>x.AccountInContests)
                                            .Select(x => new ContestResponse
                                            {
@@ -504,7 +556,7 @@ namespace ThinkTank.Service.Services.ImpService
                 IList<LeaderboardResponse> responses = new List<LeaderboardResponse>();
                 if (contest.AccountInContests.Count() > 0)
                 {
-                    var orderedAccounts = contest.AccountInContests.OrderByDescending(x => x.Mark);
+                    var orderedAccounts = contest.AccountInContests.Where(x => x.Mark != 0).OrderByDescending(x => x.Mark);
                     var rank = 1;
 
                     foreach (var account in orderedAccounts)
@@ -553,7 +605,8 @@ namespace ThinkTank.Service.Services.ImpService
             try
             {
                 var filter = _mapper.Map<ContestResponse>(request);
-                var contests = _unitOfWork.Repository<Contest>().GetAll().AsNoTracking().Include(x => x.AssetOfContests).Include(x=>x.Game)
+                var contests = _unitOfWork.Repository<Contest>().GetAll().AsNoTracking().
+                    Include(x => x.AssetOfContests).Include(x=>x.Game)
                                            .Select(x=>new ContestResponse
                                            {
                                                Id = x.Id,
@@ -607,59 +660,131 @@ namespace ThinkTank.Service.Services.ImpService
 
                 Contest contest = _unitOfWork.Repository<Contest>()
                      .GetAll().Include(x => x.AssetOfContests).SingleOrDefault(c => c.Id == contestId);
+
                 if (request.Assets == null || request.Assets.Count() == 0)
                     throw new CrudException(HttpStatusCode.BadRequest, "Assets Of Contest cannot be null", "");
+
                 if (contest == null)
-                    throw new CrudException(HttpStatusCode.NotFound, $"Not found contest with id {contestId.ToString()}", "");
+                    throw new CrudException(HttpStatusCode.NotFound, $"Not found contest with id {contestId}", "");
+
                 var game = _unitOfWork.Repository<Game>().Find(s => s.Id == request.GameId);
                 if (game == null)
                 {
                     throw new CrudException(HttpStatusCode.NotFound, $"Game {request.GameId} not found !!!", "");
                 }
+
                 var existingContest = _unitOfWork.Repository<Contest>().GetAll().FirstOrDefault(c => c.Name.Equals(request.Name) && c.Id != contestId);
                 if (existingContest != null)
                     throw new CrudException(HttpStatusCode.BadRequest, "Name of contest has already been taken", "");
+
                 if (request.StartTime > request.EndTime)
                     throw new CrudException(HttpStatusCode.BadRequest, "Start Time or End Time is invalid", "");
+
                 if (contest.StartTime <= date)
                     throw new CrudException(HttpStatusCode.BadRequest, "The contest has already started and you cannot update it", "");
-                var job = firebaseRealtimeDatabaseService.GetAsync<string>($"Contest{contest.Id}JobIdStartTime").Result;
-                if (job != null)
+
+                var startJob = firebaseRealtimeDatabaseService.GetAsync<string>($"Contest{contest.Id}JobIdStartTime").Result;
+                if (startJob != null)
                 {
-                    BackgroundJob.Delete(job);
+                    BackgroundJob.Delete(startJob);
                     await firebaseRealtimeDatabaseService.RemoveData($"Contest{contest.Id}JobIdStartTime");
                 }
-                var jobId = firebaseRealtimeDatabaseService.GetAsync<string>($"Contest{contest.Id}JobIdEndTime").Result;
-                if (jobId != null)
+
+                var endJob = firebaseRealtimeDatabaseService.GetAsync<string>($"Contest{contest.Id}JobIdEndTime").Result;
+                if (endJob != null)
                 {
-                    BackgroundJob.Delete(jobId);
+                    BackgroundJob.Delete(endJob);
                     await firebaseRealtimeDatabaseService.RemoveData($"Contest{contest.Id}JobIdEndTime");
                 }
-              await  _unitOfWork.Repository<AssetOfContest>().DeleteRange(contest.AssetOfContests.ToArray());
+
+                if (game.Name.Equals("Flip Card"))
+                {
+                    if (!(request.Assets.Count() == 3 || request.Assets.Count() == 4 || request.Assets.Count() == 6
+                         || request.Assets.Count() == 8 || request.Assets.Count() == 10 || request.Assets.Count() == 12
+                         || request.Assets.Count() == 14))
+                    {
+                        throw new CrudException(HttpStatusCode.NotFound, "The number of assets for the flip card game must be 3,4,6,8,10,12 or 14", "");
+                    }
+                }
+
+                await  _unitOfWork.Repository<AssetOfContest>().DeleteRange(contest.AssetOfContests.ToArray());
+
                 List<AssetOfContestResponse> result = new List<AssetOfContestResponse>();
                 List<AssetOfContest> list = new List<AssetOfContest>();
-                foreach (var type in request.Assets)
+
+                foreach (var assetOfContestRequest in request.Assets)
                 {
-                    if (type.Value == null || type.Value == "" || type.TypeOfAssetId <= 0)
+                    if (assetOfContestRequest.Value == null || assetOfContestRequest.Value == "" || assetOfContestRequest.TypeOfAssetId <= 0)
                         throw new CrudException(HttpStatusCode.BadRequest, "Information is invalid", "");
 
-                    var asset = _mapper.Map<CreateAssetOfContestRequest, AssetOfContest>(type);
-                    var t = _unitOfWork.Repository<TypeOfAssetInContest>().Find(t => t.Id == type.TypeOfAssetId);
-                    if (t == null)
+                    var asset = _mapper.Map<CreateAssetOfContestRequest, AssetOfContest>(assetOfContestRequest);
+
+                    var typeOfAsset = _unitOfWork.Repository<TypeOfAssetInContest>().Find(t => t.Id == assetOfContestRequest.TypeOfAssetId);
+                    if (typeOfAsset == null)
                     {
                         throw new CrudException(HttpStatusCode.InternalServerError, "Type Of Asset In Contest Not Found!!!!!", "");
                     }
 
+                    if (game.Name.Equals("Flip Card") || game.Name.Equals("Images Walkthrough"))
+                    {
+                        if (typeOfAsset.Type.Equals("Description+ImgLink") || typeOfAsset.Type.Equals("AudioLink"))
+                        {
+                            throw new CrudException(HttpStatusCode.NotFound, "Type Of Asset In Contest Invalid!!!!!", "");
+                        }
+                        else
+                        {
+                            if (asset.Value.Contains(";") || asset.Value.Contains(".mp3"))
+                            {
+                                throw new CrudException(HttpStatusCode.NotFound, "Asset In Contest Invalid!!!!!", "");
+                            }
+                        }
+                    }
+                    else if (game.Name.Equals("Music Password"))
+                    {
+                        if (typeOfAsset.Type.Equals("Description+ImgLink") || typeOfAsset.Type.Equals("ImgLink"))
+                        {
+                            throw new CrudException(HttpStatusCode.NotFound, "Type Of Asset In Contest Invalid!!!!!", "");
+                        }
+                        else
+                        {
+                            if (!asset.Value.Contains(".mp3"))
+                            {
+                                throw new CrudException(HttpStatusCode.NotFound, "Asset In Contest Invalid!!!!!", "");
+                            }
+                        }
+                    }
+                    else
+                    {
+                        if (typeOfAsset.Type.Equals("ImgLink") || typeOfAsset.Type.Equals("AudioLink"))
+                        {
+                            throw new CrudException(HttpStatusCode.NotFound, "Type Of Asset In Contest Invalid!!!!!", "");
+                        }
+                        else
+                        {
+                            if (!asset.Value.Contains(";"))
+                            {
+                                throw new CrudException(HttpStatusCode.NotFound, "Asset In Contest Invalid!!!!!", "");
+                            }
+                        }
+                    }
+
+                    var existingAsset = _unitOfWork.Repository<AssetOfContest>().Find(s => s.Value.Equals(assetOfContestRequest.Value));
+                    if (existingAsset != null)
+                    {
+                        throw new CrudException(HttpStatusCode.BadRequest, "This resource has already !!!", "");
+                    }
+
+
                     AssetOfContest assetOfContest = new AssetOfContest();
-                    assetOfContest.Value = type.Value;
-                    assetOfContest.TypeOfAssetId = type.TypeOfAssetId;
+                    assetOfContest.Value = assetOfContestRequest.Value;
+                    assetOfContest.TypeOfAssetId = assetOfContestRequest.TypeOfAssetId;
                     assetOfContest.ContestId = contest.Id;
                     await _unitOfWork.Repository<AssetOfContest>().CreateAsync(assetOfContest);
                     AssetOfContestResponse response = new AssetOfContestResponse();
                     response.Id = assetOfContest.Id;
                     response.Value = assetOfContest.Value;
                     response.NameOfContest = contest.Name;
-                    response.Type = t.Type;
+                    response.Type = typeOfAsset.Type;
                     list.Add(assetOfContest);
                     contest.AssetOfContests = list;
                     result.Add(response);
@@ -671,10 +796,13 @@ namespace ThinkTank.Service.Services.ImpService
 
                 await _unitOfWork.Repository<Contest>().Update(contest, contestId);
                 await _unitOfWork.CommitAsync();
-                var id = BackgroundJob.Schedule(() =>
+
+                var startId = BackgroundJob.Schedule(() =>
                   SendNotification(contest.Id),
                  contest.StartTime.Subtract(date));
-               await firebaseRealtimeDatabaseService.SetAsync<string>($"Contest{contest.Id}JobIdStartTime", id);
+
+               await firebaseRealtimeDatabaseService.SetAsync<string>($"Contest{contest.Id}JobIdStartTime", startId);
+
                 var endId = BackgroundJob.Schedule(() =>
                     UpdateStateContest(contest.Id),
                             contest.EndTime.Subtract(date));
@@ -705,23 +833,29 @@ namespace ThinkTank.Service.Services.ImpService
                 {
                     throw new CrudException(HttpStatusCode.NotFound, $"Not found contest with id{id.ToString()}", "");
                 }
+
                 if (contest.StartTime <= DateTime.Now)
-                    throw new CrudException(HttpStatusCode.BadRequest, "The contest has already started and you cannot update it", "");
+                    throw new CrudException(HttpStatusCode.BadRequest, "The contest has already started and you cannot delete it", "");
+
                await _unitOfWork.Repository<AssetOfContest>().DeleteRange(contest.AssetOfContests.ToArray());
-                await _unitOfWork.Repository<Contest>().RemoveAsync(contest);
-                await _unitOfWork.CommitAsync();
-                var job =firebaseRealtimeDatabaseService.GetAsync<string>($"Contest{contest.Id}JobIdStartTime").Result;
-                if (job != null)
+
+               await _unitOfWork.Repository<Contest>().RemoveAsync(contest);
+               await _unitOfWork.CommitAsync();
+
+                var startJob =firebaseRealtimeDatabaseService.GetAsync<string>($"Contest{contest.Id}JobIdStartTime").Result;
+                if (startJob != null)
                 {
-                    BackgroundJob.Delete(job);
+                    BackgroundJob.Delete(startJob);
                   await  firebaseRealtimeDatabaseService.RemoveData($"Contest{contest.Id}JobIdStartTime");
                 }
-                var jobId = firebaseRealtimeDatabaseService.GetAsync<string>($"Contest{contest.Id}JobIdEndTime").Result;
-                if (jobId != null)
+
+                var endJob = firebaseRealtimeDatabaseService.GetAsync<string>($"Contest{contest.Id}JobIdEndTime").Result;
+                if (endJob != null)
                 {
-                    BackgroundJob.Delete(jobId);
+                    BackgroundJob.Delete(endJob);
                     await firebaseRealtimeDatabaseService.RemoveData($"Contest{contest.Id}JobIdEndTime");
                 }
+
                 return _mapper.Map<ContestResponse>(contest);
             }
             catch (CrudException ex)
@@ -742,28 +876,32 @@ namespace ThinkTank.Service.Services.ImpService
                 .Include(x => x.AccountInContests).Include(x=>x.Game).AsNoTracking()
                 .Where(x => x.StartTime.Month == date.Month)
                 .OrderByDescending(x => x.AccountInContests.Count())
-                 .ToList();
+                .ToList();
+
                 var listBestContest=contests.Where(x => x.AccountInContests.Count() == contests.FirstOrDefault().AccountInContests.Count()).ToList();
+
                 var resultPercentAverageScore = new Dictionary<int,double>();
-                foreach (var best in listBestContest)
+                foreach (var contest in listBestContest)
                 {
-                    if (best != null)
+                    if (contest != null)
                     {
-                        var highScoreOfContest = best.AccountInContests.Any() ? best.AccountInContests.Max(x => x.Mark) : 0;
-                        var lowestScoreOfContest = best.AccountInContests.Any() ? best.AccountInContests.Min(x => x.Mark) : 0;
+
+                        var highScoreOfContest = contest.AccountInContests.Any() ? contest.AccountInContests.Max(x => x.Mark) : 0;
+                        var lowestScoreOfContest = contest.AccountInContests.Any() ? contest.AccountInContests.Min(x => x.Mark) : 0;
                         var averageScore = (highScoreOfContest + lowestScoreOfContest) / 2;
 
-                        var usersInAverageScore = best.AccountInContests.Any() ? best.AccountInContests
+                        var usersInAverageScore = contest.AccountInContests.Any() ? contest.AccountInContests
                             .Count(x => x.Mark > averageScore - 100 && x.Mark < averageScore + 100) : 0;
 
-                        var totalUserInContest = best.AccountInContests.Count();
-                       var  percentAverageScore = totalUserInContest > 0 ? (double)usersInAverageScore / totalUserInContest * 100 : 0;
-                        resultPercentAverageScore.Add(best.Id,percentAverageScore);
+                        var totalUserInContest = contest.AccountInContests.Count();
+                        var  percentAverageScore = totalUserInContest > 0 ? (double)usersInAverageScore / totalUserInContest * 100 : 0;
+
+                        resultPercentAverageScore.Add(contest.Id,percentAverageScore);
                     }
                 }
                 return new
                 {
-                    BestContestes=listBestContest.Select(x=>new
+                    BestContestes= listBestContest.Select(x=>new
                     {
                         NameTopContest = x.Name,
                         PercentAverageScore = resultPercentAverageScore.SingleOrDefault(a=>a.Key==x.Id).Value,

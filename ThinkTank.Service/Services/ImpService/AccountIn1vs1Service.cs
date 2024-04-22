@@ -28,11 +28,11 @@ namespace ThinkTank.Service.Services.ImpService
     public class AccountIn1vs1Service : IAccountIn1vs1Service
     {
         private readonly IUnitOfWork _unitOfWork;
-        private static SemaphoreSlim _semaphore = new SemaphoreSlim(1, 1);
+        private static SemaphoreSlim _semaphore = new SemaphoreSlim(1, 1); //chỉ cho phép một luồng truy cập vào critical section tại một thời điểm
         private readonly IMapper _mapper;
         private readonly IFirebaseMessagingService _firebaseMessagingService;
         private readonly IFirebaseRealtimeDatabaseService _firebaseRealtimeDatabaseService;
-        private readonly DateTime date;
+        private readonly DateTime date; // dùng để set date theo UTC 7 
         public AccountIn1vs1Service(IUnitOfWork unitOfWork, IMapper mapper, IFirebaseMessagingService firebaseMessagingService, IFirebaseRealtimeDatabaseService firebaseRealtimeDatabaseService)
         {
             if (TimeZoneInfo.Local.BaseUtcOffset != TimeSpan.FromHours(7))
@@ -136,7 +136,7 @@ namespace ThinkTank.Service.Services.ImpService
                 throw new CrudException(HttpStatusCode.InternalServerError, "Create Account In 1vs1 Error!!!", ex?.Message);
             }
         }
-        private async Task<List<Badge>> GetBadgeCompleted(Account account)
+        private async Task<List<Badge>> GetListBadgesCompleted(Account account)
         {
             var result = new List<Badge>();
             var badges = _unitOfWork.Repository<Badge>().GetAll().Include(x => x.Challenge).Where(x => x.AccountId == account.Id).ToList();
@@ -152,7 +152,7 @@ namespace ThinkTank.Service.Services.ImpService
         }
         private async Task GetBadge(Account account, string name)
         {
-            var result = await GetBadgeCompleted(account);
+            var result = await GetListBadgesCompleted(account);
             if (result.SingleOrDefault(x => x.Challenge.Name.Equals(name)) == null)
             {
                 var badge = _unitOfWork.Repository<Badge>().GetAll().Include(x => x.Challenge).SingleOrDefault(x => x.AccountId == account.Id && x.Challenge.Name.Equals(name));
@@ -169,6 +169,7 @@ namespace ThinkTank.Service.Services.ImpService
                     {
 
                         badge.CompletedDate = date;
+
                         #region send noti for account
                         List<string> fcmTokens = new List<string>();
                         if (account.Fcm != null)
@@ -176,7 +177,7 @@ namespace ThinkTank.Service.Services.ImpService
                         var data = new Dictionary<string, string>()
                         {
                             ["click_action"] = "FLUTTER_NOTIFICATION_CLICK",
-                            ["Action"] = "/achievement",
+                            ["Action"] = "home",
                             ["Argument"] = JsonConvert.SerializeObject(new JsonSerializerSettings
                             {
                                 ContractResolver = new DefaultContractResolver
@@ -284,11 +285,13 @@ namespace ThinkTank.Service.Services.ImpService
                 {
                     throw new CrudException(HttpStatusCode.BadRequest, $"Account Id {accountId2}  Not Available!!!!!", "");
                 }
-                var friend=_unitOfWork.Repository<Friend>().Find(x=>x.AccountId2 == accountId2 && x.AccountId1==accountId1&& x.Status==true || x.AccountId1==accountId2 && x.AccountId2==accountId1 && x.Status==true);
+                var friend=_unitOfWork.Repository<Friend>().Find(x=>x.AccountId2 == accountId2 && x.AccountId1==accountId1&& x.Status==true 
+                || x.AccountId1==accountId2 && x.AccountId2==accountId1 && x.Status==true);
                 if (friend == null)
                     throw new CrudException(HttpStatusCode.BadRequest, $"Account Id {accountId1} and account id {accountId2} is not friend so can not play 1vs1 together","");
                 
                 var uniqueId = Guid.NewGuid().ToString().Substring(0, 8).ToUpper();
+
                 #region send noti for account
                 List<string> fcmTokens = new List<string>();
                 if (a2.Fcm != null)
@@ -336,7 +339,7 @@ namespace ThinkTank.Service.Services.ImpService
             }
             catch (Exception ex)
             {
-                throw new CrudException(HttpStatusCode.InternalServerError, "Match play countervailing mode with friend error!!!!!", ex.Message);
+                throw new CrudException(HttpStatusCode.InternalServerError, "Match play countervailing mode with friend error !!!!!", ex.Message);
             }
         }
         private async Task RemoveFromCacheAsync(string accountInfo)
@@ -389,7 +392,7 @@ namespace ThinkTank.Service.Services.ImpService
             {
                 try
                 {
-                        await _semaphore.WaitAsync(); // Di chuyển semaphore vào bên trong để giảm thiểu thời gian chờ đợi
+                        await _semaphore.WaitAsync(); 
                         try
                         {
                             if (id <= 0 || coin <=0 || gameId <=0)
@@ -407,21 +410,31 @@ namespace ThinkTank.Service.Services.ImpService
                             {
                                 throw new CrudException(HttpStatusCode.BadRequest, $"Account Id {id} Not Available!!!!!", "");
                             }
+
+                            var game =  _unitOfWork.Repository<Game>().Find(x => x.Id == gameId);
+                            if(game==null)
+                                 throw new CrudException(HttpStatusCode.NotFound, $"Game Id {gameId} Not Found!!!!!", "");
+
                             var accountId = 0;
                             var uniqueId = "";
                             var accountFind = new Account();
-                            var list = await CacheService.Instance.GetJobsAsync("account1vs1");
-                            if (list?.Any() == true)
+                            var queue = await CacheService.Instance.GetJobsAsync("account1vs1");
+                            if (queue?.Any() == true)
                             {
-                                foreach (var accountInfo in list)
+                                foreach (var accountInfo in queue)
                                 {
                                     var accountValues = accountInfo.Split('+');
 
                                     var accountIdFromCache = Int32.Parse(accountValues[0]);
                                     var coinFromCache = Int32.Parse(accountValues[1]);
                                     var gameIdFromCache = Int32.Parse(accountValues[2]);
+
+                                    //check xem account da vao queue hay chua . Neu vao queue bao loi : Da vao queue roi   
                                     if (coinFromCache == coin && gameIdFromCache == gameId && accountIdFromCache == id)
                                         throw new CrudException(HttpStatusCode.BadRequest, $"Account Id {id} has been added to the queue", "");
+                                   
+                                    //Neu chua vao queue xem queue do co ai phu hop voi coin va gameId do hay khong
+                                    //Neu co thi get ra
                                     if (coinFromCache == coin && gameIdFromCache == gameId)
                                     {
                                         accountId = accountIdFromCache;
@@ -432,12 +445,15 @@ namespace ThinkTank.Service.Services.ImpService
                                     }
                                 }
 
+                                //Neu chua vao queue thi them vao queue
                                 if (accountId == 0)
                                 {
                                     uniqueId = Guid.NewGuid().ToString().Substring(0, 8).ToUpper();
                                     await AddToCacheAsync(id, coin, gameId,uniqueId);
                                 }
                             }
+
+                            //Neu queue dang rong thi them account nay vao
                             else
                             {
                                 uniqueId = Guid.NewGuid().ToString().Substring(0, 8).ToUpper();
@@ -455,6 +471,10 @@ namespace ThinkTank.Service.Services.ImpService
                         finally
                         {
                             _semaphore.Release();
+                            
+                            //try...finally:    
+                            // để đảm bảo rằng tài nguyên được giải phóng sau khi không còn cần thiết kể cả khi có ngoại lệ xảy ra
+                            // Điều này giúp tránh được deadlock vì tài nguyên sẽ luôn được giải phóng dù có lỗi xảy ra trong quá trình thực thi hay không.
                         }
                     }
             catch (CrudException ex)
@@ -508,14 +528,15 @@ namespace ThinkTank.Service.Services.ImpService
                     throw new CrudException(HttpStatusCode.BadRequest, "Information Invalid", "");
                 }
 
-                var roomRealtimeDatabase = await _firebaseRealtimeDatabaseService.GetAsyncOfRoom<dynamic>($"battle/{room1vs1Id}");
+                var roomRealtimeDatabase = await _firebaseRealtimeDatabaseService.GetAsyncOfFlutterRealtimeDatabase<dynamic>($"battle/{room1vs1Id}");
                 Thread.Sleep(time * 1000 + 15000);
-                await _unitOfWork.CommitAsync();
+
+
                 if (roomRealtimeDatabase != null)
                 {
                     if (isUser1 == true)
-                        await _firebaseRealtimeDatabaseService.SetAsyncOfRoom<int>($"battle/{room1vs1Id}/progress1", progressTime);
-                    else  await _firebaseRealtimeDatabaseService.SetAsyncOfRoom<int>($"battle/{room1vs1Id}/progress2", progressTime);
+                        await _firebaseRealtimeDatabaseService.SetAsyncOfFlutterRealtimeDatabase<int>($"battle/{room1vs1Id}/progress1", progressTime);
+                    else  await _firebaseRealtimeDatabaseService.SetAsyncOfFlutterRealtimeDatabase<int>($"battle/{room1vs1Id}/progress2", progressTime);
                 }             
                 return true ;
             }
@@ -525,7 +546,7 @@ namespace ThinkTank.Service.Services.ImpService
             }
             catch (Exception ex)
             {
-                throw new CrudException(HttpStatusCode.InternalServerError, "Start  To Play 1vs1 error!!!!!", ex.Message);
+                throw new CrudException(HttpStatusCode.InternalServerError, "Start To Play 1vs1 error!!!!!", ex.Message);
             }
         }
     }

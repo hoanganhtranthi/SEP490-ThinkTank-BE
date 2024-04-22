@@ -22,7 +22,7 @@ namespace ThinkTank.API.Controllers
         /// Get list of accounts
         /// </summary>
         /// <param name="pagingRequest"></param>
-        /// <param name="userRequest"></param>
+        /// <param name="accountRequest"></param>
         /// <returns></returns>
         [Authorize(Policy = "Admin")]
         [HttpGet]
@@ -58,21 +58,9 @@ namespace ThinkTank.API.Controllers
             return Ok(rs);
         }
         /// <summary>
-        /// Update Status Of Account (Online/Offline)
-        /// </summary>
-        /// <param name="id"></param>
-        /// <returns></returns>
-        [AllowAnonymous]
-        [HttpGet("{accId:int}/status")]
-        public async Task<ActionResult<AccountResponse>> GetToUpdateStatus(int accId)
-        {
-            var rs = await _accountService.GetToUpdateStatus(accId);
-            return Ok(rs);
-        }
-        /// <summary>
         /// Ban Account
         /// </summary>
-        /// <param name="id"></param>
+        /// <param name="accId"></param>
         /// <returns></returns>
         [Authorize(Policy = "Admin")]
         [HttpGet("{accId:int}/account-banned")]
@@ -111,7 +99,7 @@ namespace ThinkTank.API.Controllers
         /// <param name="model"></param>
         /// <returns></returns>
         [AllowAnonymous]
-        [HttpPost("authentication-cheking")]
+        [HttpPost("authentication-checking")]
         public async Task<ActionResult<AccountResponse>> GetIdToLogin([FromBody] LoginRequest model, [FromQuery] string? googleId)
         {
             var rs = await _accountService.GetIdToLogin(model,googleId);

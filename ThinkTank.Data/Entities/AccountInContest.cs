@@ -6,7 +6,7 @@ namespace ThinkTank.Data.Entities
     public partial class AccountInContest
     {
         public int Id { get; set; }
-        public DateTime CompletedTime { get; set; }
+        public DateTime? CompletedTime { get; set; }
         public decimal Duration { get; set; }
         public int Mark { get; set; }
         public int Prize { get; set; }

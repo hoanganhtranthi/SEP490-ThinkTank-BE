@@ -45,11 +45,12 @@ namespace ThinkTank.Service.Services.ImpService
                 }
 
                 Account account = _unitOfWork.Repository<Account>().Find(x => x.Id == createIconRequest.AccountId);
+
                 if (account == null)
                     throw new CrudException(HttpStatusCode.NotFound, $"Not found account with id {createIconRequest.AccountId}", "");
                 if (account.Status.Equals(false))
                 {
-                    throw new CrudException(HttpStatusCode.BadRequest, "Account Not Available!!!!!", "");
+                    throw new CrudException(HttpStatusCode.BadRequest, $"Account Id {account.Id} Not Available!!!!!", "");
                 }
 
                 Icon icon = _unitOfWork.Repository<Icon>().Find(x => x.Id == createIconRequest.IconId);
@@ -57,17 +58,19 @@ namespace ThinkTank.Service.Services.ImpService
                     throw new CrudException(HttpStatusCode.NotFound, $"Not found icon with id {createIconRequest.IconId}", "");
                 if (icon.Status ==false)
                     throw new CrudException(HttpStatusCode.BadRequest, $"Icon Id {createIconRequest.IconId} is not available", "");
-                var rs = _mapper.Map<CreateIconOfAccountRequest, IconOfAccount>(createIconRequest);
 
+                var rs = _mapper.Map<CreateIconOfAccountRequest, IconOfAccount>(createIconRequest);
                 rs.IsAvailable = true;
 
                 if (account.Coin < icon.Price)
                     throw new CrudException(HttpStatusCode.BadRequest, "Not enough coin to buy icon", "");
+
                 account.Coin = account.Coin - icon.Price;
 
                 await _unitOfWork.Repository<IconOfAccount>().CreateAsync(rs);
+
                 var badge = _unitOfWork.Repository<Badge>().GetAll().Include(x => x.Challenge).SingleOrDefault(x => x.AccountId == account.Id && x.Challenge.Name.Equals("The Tycoon"));
-                if (badge.CompletedDate != null)
+                if (badge.CompletedDate == null && badge.CompletedLevel < badge.Challenge.CompletedMilestone)
                 {
                     badge.CompletedLevel = (int)account.Coin;
                     await _unitOfWork.Repository<Badge>().Update(badge, badge.Id);
@@ -75,6 +78,7 @@ namespace ThinkTank.Service.Services.ImpService
 
                 await _unitOfWork.Repository<Account>().Update(account, createIconRequest.AccountId);
                 await _unitOfWork.CommitAsync();
+
                 var response = _mapper.Map<IconOfAccountResponse>(rs);
                 response.UserName = account.UserName;
                 response.IconAvatar = icon.Avatar;
@@ -95,7 +99,9 @@ namespace ThinkTank.Service.Services.ImpService
             try
             {
                 var filter = _mapper.Map<IconOfAccountResponse>(request);
-                var query = _unitOfWork.Repository<IconOfAccount>().GetAll().AsNoTracking().Include(x=>x.Account).Include(x=>x.Icon)
+
+                var iconOfAccountResponses = _unitOfWork.Repository<IconOfAccount>().GetAll().AsNoTracking()
+                    .Include(x=>x.Account).Include(x=>x.Icon)
                     .Select(x=>new IconOfAccountResponse
                     {
                         Id = x.Id,
@@ -106,7 +112,7 @@ namespace ThinkTank.Service.Services.ImpService
                         IsAvailable=x.IsAvailable,
                         IconName=x.Icon.Name
                     }).DynamicFilter(filter).ToList();
-                var sort = PageHelper<IconOfAccountResponse>.Sorting(paging.SortType, query, paging.ColName);
+                var sort = PageHelper<IconOfAccountResponse>.Sorting(paging.SortType, iconOfAccountResponses, paging.ColName);
                 var result = PageHelper<IconOfAccountResponse>.Paging(sort, paging.Page, paging.PageSize);
 
                 return result;
@@ -125,6 +131,7 @@ namespace ThinkTank.Service.Services.ImpService
                 {
                     throw new CrudException(HttpStatusCode.BadRequest, "Id Icon Invalid", "");
                 }
+
                 var response = _unitOfWork.Repository<IconOfAccount>().GetAll().AsNoTracking().Include(x => x.Icon).Include(x=>x.Account)
                      .Select(x => new IconOfAccountResponse
                      {

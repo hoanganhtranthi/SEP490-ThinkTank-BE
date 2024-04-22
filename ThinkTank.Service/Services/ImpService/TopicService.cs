@@ -35,13 +35,14 @@ namespace ThinkTank.Service.Services.ImpService
                     throw new CrudException(HttpStatusCode.BadRequest, "Information is invalid", "");
 
                 var topic = _mapper.Map<CreateTopicRequest, Topic>(request);
-                var s = _unitOfWork.Repository<Topic>().Find(s => s.Name == request.Name && s.GameId==request.GameId);
-                if (s != null)
+
+                var existingTopic = _unitOfWork.Repository<Topic>().Find(s => s.Name == request.Name && s.GameId==request.GameId);
+                if (existingTopic != null)
                 {
                     throw new CrudException(HttpStatusCode.BadRequest, $" Topic Name {request.Name} has already !!!", "");
                 }
-                var g = _unitOfWork.Repository<Game>().Find(x => x.Id == request.GameId);
-                if (g == null)
+                var game = _unitOfWork.Repository<Game>().Find(x => x.Id == request.GameId);
+                if (game == null)
                     throw new CrudException(HttpStatusCode.BadRequest, $" Game Id {request.GameId} is not found !!!", "");
                
                 await _unitOfWork.Repository<Topic>().CreateAsync(topic);
@@ -128,11 +129,15 @@ namespace ThinkTank.Service.Services.ImpService
                             Answer = x.Topic.GameId == 2 ? System.IO.Path.GetFileName(new Uri(x.Value).LocalPath) : null
                         }))
                     }).DynamicFilter(filter).ToList();
+
                 if (request.IsHavingAsset == Helpers.Enum.StatusTopicType.True)
                     topics = topics.Where(x => x.Assets.Count() > 0).ToList();
+
                 if (request.IsHavingAsset == Helpers.Enum.StatusTopicType.False)
                     topics = topics.Where(x => x.Assets.Count() == 0).ToList();
+
                 else topics = topics.ToList();
+
                 var sort = PageHelper<TopicResponse>.Sorting(paging.SortType, topics, paging.ColName);
                 var result = PageHelper<TopicResponse>.Paging(sort, paging.Page, paging.PageSize);
                 return result;

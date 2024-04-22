@@ -73,10 +73,8 @@ namespace Repository.Extensions
         }
         public async Task AddJobAsync<T>(T value, string key)
         {
-
             var db = redis;
             await db.ListLeftPushAsync(key, JsonSerializer.Serialize(value));
-            await connection.GetSubscriber().PublishAsync("account1vs1", "");
         }
         public async Task<bool> DeleteJobAsync<T>(string key, T value)
         {

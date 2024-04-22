@@ -10,10 +10,10 @@ namespace ThinkTank.API.Controllers
     [ApiController]
     public class TypeOfAssetsController : Controller
     {
-        private readonly ITypeOfAssetService _assetService;
-        public TypeOfAssetsController(ITypeOfAssetService assetService)
+        private readonly ITypeOfAssetService _typeOfAssetService;
+        public TypeOfAssetsController(ITypeOfAssetService typeOfAssetService)
         {
-            _assetService = assetService;
+            _typeOfAssetService = typeOfAssetService;
         }
 
         /// <summary>
@@ -26,7 +26,7 @@ namespace ThinkTank.API.Controllers
         [HttpGet]
         public async Task<ActionResult<List<TypeOfAssetResponse>>> GetTypeOfAssets([FromQuery] PagingRequest pagingRequest, [FromQuery] TypeOfAssetRequest typeOfAssetRequest)
         {
-            var rs = await _assetService.GetTypeOfAssets(typeOfAssetRequest, pagingRequest);
+            var rs = await _typeOfAssetService.GetTypeOfAssets(typeOfAssetRequest, pagingRequest);
             return Ok(rs);
         }
         /// <summary>
@@ -38,7 +38,7 @@ namespace ThinkTank.API.Controllers
         [HttpGet("{id:int}")]
         public async Task<ActionResult<TypeOfAssetResponse>> GetTypeOfAssetsById(int id)
         {
-            var rs = await _assetService.GetTypeOfAssetById(id);
+            var rs = await _typeOfAssetService.GetTypeOfAssetById(id);
             return Ok(rs);
         }
 

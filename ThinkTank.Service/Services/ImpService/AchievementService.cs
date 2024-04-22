@@ -29,8 +29,8 @@ namespace ThinkTank.Service.Services.ImpService
         private readonly IMapper _mapper;
         private readonly DateTime date;
         private readonly IFirebaseMessagingService _firebaseMessagingService;
-        private readonly IFirebaseRealtimeDatabaseService _firebaseRealtimeDatabaseService;
-        public AchievementService(IUnitOfWork unitOfWork, IMapper mapper,IFirebaseMessagingService firebaseMessagingService,IFirebaseRealtimeDatabaseService firebaseRealtimeDatabaseService)
+      
+        public AchievementService(IUnitOfWork unitOfWork, IMapper mapper,IFirebaseMessagingService firebaseMessagingService)
         {
             if (TimeZoneInfo.Local.BaseUtcOffset != TimeSpan.FromHours(7))
                 date = DateTime.UtcNow.ToLocalTime().AddHours(7);
@@ -38,7 +38,6 @@ namespace ThinkTank.Service.Services.ImpService
             _unitOfWork = unitOfWork;
             _mapper = mapper;
             _firebaseMessagingService = firebaseMessagingService;
-            _firebaseRealtimeDatabaseService = firebaseRealtimeDatabaseService;
         }
 
         public async Task<AchievementResponse> CreateAchievement(CreateAchievementRequest createAchievementRequest)
@@ -50,6 +49,7 @@ namespace ThinkTank.Service.Services.ImpService
                     throw new CrudException(HttpStatusCode.BadRequest, "Information is invalid", "");
 
                 var achievement = _mapper.Map<CreateAchievementRequest, Achievement>(createAchievementRequest);
+
                 var game = _unitOfWork.Repository<Game>().Find(x => x.Id == createAchievementRequest.GameId);
                 if (game == null)
                     throw new CrudException(HttpStatusCode.NotFound, $"This game id {createAchievementRequest.GameId} is not found !!!", "");
@@ -61,6 +61,7 @@ namespace ThinkTank.Service.Services.ImpService
                 if (account.Status == false)
                     throw new CrudException(HttpStatusCode.BadRequest, $"Account Id {account.Id} not available!!!!!", "");
 
+                //Check level có đúng hay không (không lớn hơn level hiện tại +1)
                 var levels = _unitOfWork.Repository<Achievement>().GetAll().Where(x => x.AccountId == createAchievementRequest.AccountId && createAchievementRequest.GameId == x.GameId).OrderBy(x => x.Level).ToList();
                 var level = 0;
                 if (levels.Count() > 0)
@@ -68,13 +69,14 @@ namespace ThinkTank.Service.Services.ImpService
                 else level = 0;
                 if (createAchievementRequest.Level > level + 1 || createAchievementRequest.Level <= 0)
                         throw new CrudException(HttpStatusCode.BadRequest, "Invalid Level", "");
+
                 achievement.Account = account;
                 achievement.Game = game;
                 achievement.CompletedTime = date;
-
+                
                 var gameAchievement = account.Achievements.Where(x => x.GameId == game.Id).ToList();
-               var badge= _unitOfWork.Repository<Badge>().GetAll().Include(x => x.Challenge).SingleOrDefault(x => x.Challenge.Name == "Streak killer" && x.AccountId == account.Id);
-               var number = badge != null && gameAchievement.Count() > 3 ? badge.CompletedLevel * 3 : 0;
+                var badge= _unitOfWork.Repository<Badge>().GetAll().Include(x => x.Challenge).SingleOrDefault(x => x.Challenge.Name == "Streak killer" && x.AccountId == account.Id);
+                var number = badge != null && gameAchievement.Count() > 3 ? badge.CompletedLevel * 3 : 0;
                 var twoLastAchievement = gameAchievement.Skip(Math.Max(number, gameAchievement.Count - 2)).Take(2).ToList();
                 if (twoLastAchievement.Any())
                 {
@@ -98,9 +100,11 @@ namespace ThinkTank.Service.Services.ImpService
                     if (!gameAchievement.Where(x => x.Level == createAchievementRequest.Level).Any())
                             await GetBadge(account, "Fast and Furious");
                 }
+
                 var acc = leaderboard.SingleOrDefault(x => x.AccountId == account.Id);
                 if ( leaderboard.Count() > 10 && (acc != null && acc.Mark + createAchievementRequest.Mark >= top1?.Mark))
                         await GetBadge(account, "Legend");
+
                 var list = new List<Achievement>();
                 foreach (var achievementOfAccount in account.Achievements)
                 {
@@ -129,7 +133,7 @@ namespace ThinkTank.Service.Services.ImpService
                 throw new CrudException(HttpStatusCode.InternalServerError, "Create Achievement Error!!!", ex?.Message);
             }
         }
-           private async Task<List<Badge>> GetBadgeCompleted(Account account)
+           private async Task<List<Badge>> GetListBadgesCompleted(Account account)
         {
             var result = new List<Badge>();
             var badges = _unitOfWork.Repository<Badge>().GetAll().Include(x => x.Challenge).Where(x => x.AccountId == account.Id).ToList();
@@ -146,7 +150,7 @@ namespace ThinkTank.Service.Services.ImpService
         }
         private async Task GetPlowLordBadge(Account account,List<Achievement>list)
         {
-            var result = await GetBadgeCompleted(account);
+            var result = await GetListBadgesCompleted(account);
             if (result.SingleOrDefault(x => x.Challenge.Name.Equals("Plow Lord")) == null)
             {
                 var badge = _unitOfWork.Repository<Badge>().GetAll().Include(x => x.Challenge).SingleOrDefault(x => x.AccountId == account.Id && x.Challenge.Name.Equals("Plow Lord"));
@@ -204,7 +208,7 @@ namespace ThinkTank.Service.Services.ImpService
         }
         private async Task GetBadge(Account account, string name)
         {
-            var result = await GetBadgeCompleted(account);
+            var result = await GetListBadgesCompleted(account);
             if (result.SingleOrDefault(x => x.Challenge.Name.Equals(name)) == null)
             {
                 var badge = _unitOfWork.Repository<Badge>().GetAll().Include(x => x.Challenge).SingleOrDefault(x => x.AccountId == account.Id && x.Challenge.Name.Equals(name));
@@ -274,6 +278,7 @@ namespace ThinkTank.Service.Services.ImpService
                 {
                     throw new CrudException(HttpStatusCode.NotFound, $"Not found achievement with id {id}", "");
                 }
+
                 var rs = _mapper.Map<AchievementResponse>(response);
                 rs.Username=response.Account.UserName;
                 rs.GameName = response.Game.Name;
@@ -323,9 +328,11 @@ namespace ThinkTank.Service.Services.ImpService
             {
                 if (id <= 0 || accountId != null && accountId <=0)
                     throw new CrudException(HttpStatusCode.BadRequest, "Information is invalid", "");
+
                 var game = _unitOfWork.Repository<Game>().Find(x => x.Id == id);
                 if (game == null)
                     throw new CrudException(HttpStatusCode.NotFound, $"Game Id {id} not found", "");
+
                 var achievements = _unitOfWork.Repository<Achievement>().GetAll().Include(c => c.Account).Include(c => c.Game)
                     .Where(x => x.GameId == id).ToList();
                 
@@ -333,22 +340,22 @@ namespace ThinkTank.Service.Services.ImpService
                 List<Achievement> achievementsList = new List<Achievement>();
                 if (achievements.Count() > 0)
                 {
-                    foreach (var achievement in achievements)
-                    {
-                        if (achievementsList.Count(x => x.AccountId == achievement.AccountId) == 0)
-                        {
-                            var rs = GetSumScoreOfAccount(achievement.AccountId, achievements);
-                            if (rs != null)
-                                achievementsList.Add(rs);
-                        }
-                    }
+                    //Tính tổng tất cả điểm của các account
+                      achievementsList = achievements
+                     .GroupBy(achievement => achievement.AccountId)
+                     .Select(group => GetSumScoreOfAccount(group.Key, achievements))
+                     .Where(rs => rs != null)
+                     .ToList();
+
                     var orderedAccounts = achievementsList.Where(x=>x.Mark >0).OrderByDescending(x => x.Mark);
                     var rank = 1;
 
                     foreach (var achievement in orderedAccounts)
                     {
+                        //Nếu bảng xếp hạng chưa có account 
                         if (responses.Count(a => a.AccountId == achievement.AccountId) == 0)
                         {
+                            
                             var leaderboardContestResponse = new LeaderboardResponse
                             {
                                 AccountId = achievement.AccountId,
@@ -357,17 +364,21 @@ namespace ThinkTank.Service.Services.ImpService
                                 FullName = achievement.Account.FullName
                             };
 
+                            //List những ai đang đồng hạng 
                             var mark = achievementsList
                                 .Where(x => x.Mark == achievement.Mark && x.AccountId != achievement.AccountId)
                                 .ToList();
 
                             if (mark.Any())
                             {
+                                //Nếu có lấy người có cùng điểm đầu tiên trong bảng xếp hạng hiện tại
                                 var a = responses.SingleOrDefault(a => a.AccountId == mark.First().AccountId);
+                                //Gán rank người có cùng điểm đầu tiên trong bảng xếp hạng hiện tại bằng rank của account
                                 leaderboardContestResponse.Rank = a?.Rank ?? rank;// a != null: leaderboardContestResponse.Rank = a.Rank va nguoc lai a==null : leaderboardContestResponse.Rank = rank
                             }
                             else
                             {
+                               
                                 leaderboardContestResponse.Rank = rank;
                             }
                             responses.Add(leaderboardContestResponse);
@@ -402,16 +413,13 @@ namespace ThinkTank.Service.Services.ImpService
                 IList<LeaderboardResponse> responses = new List<LeaderboardResponse>();
                 List<Achievement> achievementsList = new List<Achievement>();
                 if (achievements.Count() > 0)
-                {                  
-                    foreach(var achievement in achievements)
-                    {
-                        if(achievementsList.Count(x=>x.AccountId ==achievement.AccountId)==0)
-                        {
-                            var rs = GetSumScoreOfAccount(achievement.AccountId, achievements);
-                            if (rs != null)
-                                achievementsList.Add(rs);
-                        }
-                    }
+                {
+                     achievementsList = achievements
+                    .GroupBy(achievement => achievement.AccountId)
+                    .Select(group => GetSumScoreOfAccount(group.Key, achievements))
+                    .Where(rs => rs != null)
+                     .ToList();
+
                     var orderedAccounts = achievementsList.OrderByDescending(x => x.Mark);
                     var rank = 1;
 
