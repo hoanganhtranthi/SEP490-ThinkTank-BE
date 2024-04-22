@@ -10,10 +10,10 @@ namespace ThinkTank.API.Controllers
     [ApiController]
     public class TypeOfAssetInContestsController : Controller
     {
-        private readonly ITypeOfAssetInContestService _assetService;
-        public TypeOfAssetInContestsController(ITypeOfAssetInContestService assetService)
+        private readonly ITypeOfAssetInContestService _typeOfAssetInContestService;
+        public TypeOfAssetInContestsController(ITypeOfAssetInContestService typeOfAssetInContestService)
         {
-            _assetService = assetService;
+            _typeOfAssetInContestService = typeOfAssetInContestService;
         }
 
         /// <summary>
@@ -26,7 +26,7 @@ namespace ThinkTank.API.Controllers
         [HttpGet]
         public async Task<ActionResult<List<TypeOfAssetInContestResponse>>> GetAssetInContests([FromQuery] PagingRequest pagingRequest, [FromQuery] TypeOfAssetInContestRequest typeAssetInContestRequest)
         {
-            var rs = await _assetService.GetTypeOfAssetInContests(typeAssetInContestRequest, pagingRequest);
+            var rs = await _typeOfAssetInContestService.GetTypeOfAssetInContests(typeAssetInContestRequest, pagingRequest);
             return Ok(rs);
         }
         /// <summary>
@@ -38,7 +38,7 @@ namespace ThinkTank.API.Controllers
         [HttpGet("{id:int}")]
         public async Task<ActionResult<TypeOfAssetInContestResponse>> GetTypeOfAssetsInContestById(int id)
         {
-            var rs = await _assetService.GetTypeOfAssetInContestById(id);
+            var rs = await _typeOfAssetInContestService.GetTypeOfAssetInContestById(id);
             return Ok(rs);
         }
     }

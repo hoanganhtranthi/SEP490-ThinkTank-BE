@@ -1,12 +1,6 @@
-﻿using Microsoft.AspNetCore.Http;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿
 using ThinkTank.Service.DTO.Request;
 using ThinkTank.Service.DTO.Response;
-using static ThinkTank.Service.Helpers.Enum;
 
 namespace ThinkTank.Service.Services.IService
 {
@@ -22,7 +16,6 @@ namespace ThinkTank.Service.Services.IService
         Task<AccountResponse> VerifyAndGenerateToken(TokenRequest request);
         Task<AccountResponse> UpdatePass(ResetPasswordRequest request);
         Task<AccountResponse> UpdateAccount(int accountId, UpdateAccountRequest request);
-        Task<AccountResponse> GetToUpdateStatus(int id);
         Task<AccountResponse> GetToBanAccount(int id);
         Task<AccountResponse> GetIdToLogin(LoginRequest request, string? googleId);
         Task<List<GameLevelOfAccountResponse>> GetGameLevelByAccountId(int accountId);

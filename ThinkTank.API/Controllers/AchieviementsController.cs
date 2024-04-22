@@ -58,7 +58,7 @@ namespace ThinkTank.API.Controllers
         /// </summary>
         /// <param name="gameId"></param>
         /// <returns></returns>
-       [Authorize(Policy = "All")]
+        [Authorize(Policy = "All")]
         [HttpGet("{gameId:int}/leaderboard")]
         public async Task<ActionResult<List<LeaderboardResponse>>> GetLeaderboard(int gameId, [FromQuery] PagingRequest request, [FromQuery] int? accountId)
         {

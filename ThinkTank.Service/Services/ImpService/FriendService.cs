@@ -47,18 +47,22 @@ namespace ThinkTank.Service.Services.ImpService
                     throw new CrudException(HttpStatusCode.BadRequest, "Add friend Invalid !!!", "");
 
                 var friend = _mapper.Map<CreateFriendRequest, Friend>(createFriendRequest);
-                var s = _unitOfWork.Repository<Account>().Find(s => s.Id == createFriendRequest.AccountId1);
-                if (s == null)
+
+                var acc1 = _unitOfWork.Repository<Account>().Find(s => s.Id == createFriendRequest.AccountId1);
+                if (acc1 == null)
                 {
                     throw new CrudException(HttpStatusCode.NotFound, $" Account Id {createFriendRequest.AccountId1} is not found !!!", "");
                 }
-                if (s.Status == false) throw new CrudException(HttpStatusCode.BadRequest, "Your account is block", "");
-                var cus = _unitOfWork.Repository<Account>().Find(s => s.Id == createFriendRequest.AccountId2);
-                if (cus == null)
+
+                if (acc1.Status == false) throw new CrudException(HttpStatusCode.BadRequest, $"Account Id {acc1.Id} is block", "");
+
+                var acc2 = _unitOfWork.Repository<Account>().Find(s => s.Id == createFriendRequest.AccountId2);
+                if (acc2 == null)
                 {
                     throw new CrudException(HttpStatusCode.NotFound, $" Account Id {createFriendRequest.AccountId2} is not found !!!", "");
                 }
-                if (cus.Status == false) throw new CrudException(HttpStatusCode.BadRequest, "Your account is block", "");
+                if (acc2.Status == false) throw new CrudException(HttpStatusCode.BadRequest, $"Account Id {acc2.Id} is block", "");
+
                 var friendOfAccount = _unitOfWork.Repository<Friend>().Find(x => x.AccountId1 == createFriendRequest.AccountId1 && x.AccountId2==createFriendRequest.AccountId2
                 || x.AccountId1==createFriendRequest.AccountId2 && x.AccountId2==createFriendRequest.AccountId1);
                 
@@ -71,10 +75,11 @@ namespace ThinkTank.Service.Services.ImpService
                 
                 friend.Status = false;
                 await _unitOfWork.Repository<Friend>().CreateAsync(friend);
+
                 #region send noti for account
                 List<string> fcmTokens = new List<string>();
-                if(cus.Fcm != null)
-                fcmTokens.Add(cus.Fcm);
+                if(acc2.Fcm != null)
+                fcmTokens.Add(acc2.Fcm);
                 var data = new Dictionary<string, string>()
                 {
                     ["click_action"] = "FLUTTER_NOTIFICATION_CLICK",
@@ -89,25 +94,26 @@ namespace ThinkTank.Service.Services.ImpService
                 };
                 if (fcmTokens.Any())
                     _firebaseMessagingService.SendToDevices(fcmTokens,
-                                                           new FirebaseAdmin.Messaging.Notification() { Title = "ThinkTank Community", Body = $"{s.FullName} sent you a friend request.", ImageUrl = s.Avatar }, data);
+                                                           new FirebaseAdmin.Messaging.Notification() { Title = "ThinkTank Community", Body = $"{acc1.FullName} sent you a friend request.", ImageUrl = acc1.Avatar }, data);
                 #endregion            
                
                 Notification notification = new Notification
                 {
-                    AccountId = cus.Id,
-                    Avatar = s.Avatar,
+                    AccountId = acc2.Id,
+                    Avatar = acc1.Avatar,
                     DateNotification = date,
-                    Description = $"{s.FullName} sent you a friend request.",
+                    Description = $"{acc1.FullName} sent you a friend request.",
                     Status = false,
                     Title= "ThinkTank Community"
                 };
-               await _unitOfWork.Repository<Notification>().CreateAsync(notification);
+                await _unitOfWork.Repository<Notification>().CreateAsync(notification);
                 await _unitOfWork.CommitAsync();
+
                 var rs = _mapper.Map<FriendResponse>(friend);
-                rs.UserName1 = s.UserName;
-                rs.Avatar1 = s.Avatar;
-                rs.UserName2 = cus.UserName;
-                rs.Avatar2 = cus.Avatar;
+                rs.UserName1 = acc1.UserName;
+                rs.Avatar1 = acc1.Avatar;
+                rs.UserName2 = acc2.UserName;
+                rs.Avatar2 = acc2.Avatar;
                 return rs;
             }
             catch (CrudException ex)
@@ -127,7 +133,8 @@ namespace ThinkTank.Service.Services.ImpService
                 if (id <=0 )
                     throw new CrudException(HttpStatusCode.BadRequest, "Information is invalid", "");
 
-                Friend friend = _unitOfWork.Repository<Friend>().GetAll().Include(x => x.AccountId1Navigation).Include(x => x.AccountId2Navigation).FirstOrDefault(u => u.Id == id);
+                Friend friend = _unitOfWork.Repository<Friend>().GetAll()
+                    .Include(x => x.AccountId1Navigation).Include(x => x.AccountId2Navigation).FirstOrDefault(u => u.Id == id);
 
                 if (friend == null)
                 {
@@ -135,6 +142,7 @@ namespace ThinkTank.Service.Services.ImpService
                 }
                 await _unitOfWork.Repository<Friend>().RemoveAsync(friend);
                 await _unitOfWork.CommitAsync();
+
                 var rs = _mapper.Map<FriendResponse>(friend);
                 rs.UserName1 = friend.AccountId1Navigation.UserName;
                 rs.UserName2 = friend.AccountId2Navigation.UserName;
@@ -160,7 +168,8 @@ namespace ThinkTank.Service.Services.ImpService
                 {
                     throw new CrudException(HttpStatusCode.BadRequest, "Id Friendship Invalid", "");
                 }
-                var response =  _unitOfWork.Repository<Friend>().GetAll().AsNoTracking().Include(x=>x.AccountId1Navigation).Include(x=>x.AccountId2Navigation).FirstOrDefault(u => u.Id == id);
+                var response =  _unitOfWork.Repository<Friend>().GetAll()
+                .AsNoTracking().Include(x=>x.AccountId1Navigation).Include(x=>x.AccountId2Navigation).FirstOrDefault(u => u.Id == id);
 
                 if (response == null)
                 {
@@ -197,11 +206,13 @@ namespace ThinkTank.Service.Services.ImpService
                                                || !string.IsNullOrEmpty(a.UserCode2) && a.UserCode2.Contains(request.UserCode))
                                     .ToList();
                 }
+
                 if (!string.IsNullOrEmpty(request.UserName))
                 {
                     var friendResponses = friendOfAccount.Where(a => !string.IsNullOrEmpty(a.UserName1) && a.UserName1.Contains(request.UserName)
                                                || !string.IsNullOrEmpty(a.UserName2) && a.UserName2.Contains(request.UserName))
                                     .ToList();
+
                     if (!string.IsNullOrEmpty(request.UserCode))
                     {
                         // Loại bỏ các tài khoản trùng lặp giữa friends và friendResponses
@@ -212,6 +223,7 @@ namespace ThinkTank.Service.Services.ImpService
                     }
                     else friends = friendResponses;
                 }
+
                 if (request.Status != Helpers.Enum.StatusType.All)
                 {
                     bool? status = null;

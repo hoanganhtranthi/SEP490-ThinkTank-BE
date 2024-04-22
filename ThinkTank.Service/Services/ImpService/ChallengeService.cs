@@ -77,28 +77,40 @@ namespace ThinkTank.Service.Services.ImpService
                 var acc = _unitOfWork.Repository<Account>().GetAll().Include(x => x.Badges).SingleOrDefault(x => x.Id == accountId);
                 if (acc == null)
                     throw new  CrudException(HttpStatusCode.NotFound, $"Account Id {accountId} is not found ","");
+
                 if (acc.Status == false) throw new CrudException(HttpStatusCode.BadRequest, "Your account is block", "");
+
                 if (challengeId != null)
                 {
                     var challenge = _unitOfWork.Repository<Challenge>().Find(x => x.Id == challengeId);
                     if (challenge == null)
                         throw new CrudException(HttpStatusCode.NotFound, $"Challegne Id {challengeId} is not found ", "");
+
                     var badge = acc.Badges.SingleOrDefault(x => x.ChallengeId == challengeId);
-                    if (badge.CompletedLevel != challenge.CompletedMilestone)
+
+                    if (badge == null)
+                        throw new CrudException(HttpStatusCode.BadRequest, $"Account Id {accountId} has not yet taken the challenge {challenge.Name}", "");
+
+                    if ( badge.CompletedLevel != challenge.CompletedMilestone)
                         throw new CrudException(HttpStatusCode.BadRequest, $"Account Id {accountId} haven't completed the correct milestones for this challenge ", "");
+                    
                     badge.Status = true;
                    
                     await _unitOfWork.Repository<Badge>().Update(badge, badge.Id);
                     acc.Coin += 20;
                     
                 }
+
                 if(acc.Badges.Where(x=>x.CompletedLevel==_unitOfWork.Repository<Challenge>().Find(a=>a.Id==x.ChallengeId).CompletedMilestone).Count()==10)
-                    acc.Coin += 100;
+                    acc.Coin += 1000;
+
                 await _unitOfWork.Repository<Account>().Update(acc, accountId);
                 await _unitOfWork.CommitAsync();
+
                 ChallengeRequest request = new ChallengeRequest();
                 request.AccountId = accountId;
                 request.Status = StatusType.All;
+
                 return GetChallenges(request).Result;
 
             }

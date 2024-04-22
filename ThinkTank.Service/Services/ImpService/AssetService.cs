@@ -100,7 +100,7 @@ namespace ThinkTank.Service.Services.ImpService
 
                 AssetResponse rs = new AssetResponse();
                 List<AssetResponse> result = new List<AssetResponse>();
-                List<Asset> gameId = new List<Asset>();
+                List<Asset> assets = new List<Asset>();
                 foreach (var a in request)
                 {
                     if (a.TopicId <= 0 || a.TypeOfAssetId <=0 || a.Value==null || a.Value=="")
@@ -117,24 +117,67 @@ namespace ThinkTank.Service.Services.ImpService
                     var typeOfAsset = _unitOfWork.Repository<TypeOfAsset>().Find(x => x.Id == a.TypeOfAssetId);
                     if (typeOfAsset == null)
                         throw new CrudException(HttpStatusCode.NotFound, $"This type of asset {a.TypeOfAssetId} is not found !!!", "");
-                   
+
+                    if (topic.Game.Name.Equals("Flip Card") || topic.Game.Name.Equals("Images Walkthrough"))
+                    {
+                        if (typeOfAsset.Type.Equals("Description+ImgLink") || typeOfAsset.Type.Equals("AudioLink"))
+                        {
+                            throw new CrudException(HttpStatusCode.NotFound, "Type Of Asset Invalid!!!!!", "");
+                        }
+                        else
+                        {
+                            if (a.Value.Contains(";") || a.Value.Contains(".mp3"))
+                            {
+                                throw new CrudException(HttpStatusCode.NotFound, "Asset  Invalid!!!!!", "");
+                            }
+                        }
+                    }
+                    else if (topic.Game.Name.Equals("Music Password"))
+                    {
+                        if (typeOfAsset.Type.Equals("Description+ImgLink") || typeOfAsset.Type.Equals("ImgLink"))
+                        {
+                            throw new CrudException(HttpStatusCode.NotFound, "Type Of Asset Invalid!!!!!", "");
+                        }
+                        else
+                        {
+                            if (!a.Value.Contains(".mp3"))
+                            {
+                                throw new CrudException(HttpStatusCode.NotFound, "Asset Invalid!!!!!", "");
+                            }
+                        }
+                    }
+                    else
+                    {
+                        if (typeOfAsset.Type.Equals("ImgLink") || typeOfAsset.Type.Equals("AudioLink"))
+                        {
+                            throw new CrudException(HttpStatusCode.NotFound, "Type Of Asset  Invalid!!!!!", "");
+                        }
+                        else
+                        {
+                            if (!a.Value.Contains(";"))
+                            {
+                                throw new CrudException(HttpStatusCode.NotFound, "Asset Invalid!!!!!", "");
+                            }
+                        }
+                    }
+
                     var asset = _mapper.Map<CreateAssetRequest, Asset>(a);
                    
-                    var version = _unitOfWork.Repository<Asset>().GetAll()
+                    var asset1 = _unitOfWork.Repository<Asset>().GetAll()
                         .OrderBy(x => x.Version).LastOrDefault(x => x.Topic.GameId == topic.GameId);
                     
-                    if (gameId != null)
+                    if (assets != null)
                     {
-                        var game = gameId.SingleOrDefault(x => x.Topic.GameId == topic.GameId);
-                        if (game == null)
+                        var assestOfGame = assets.SingleOrDefault(x => x.Topic.GameId == topic.GameId);
+                        if (assestOfGame == null)
                         {
-                            if (version == null) asset.Version = 1;
-                            else asset.Version = version.Version + 1;
-                            gameId.Add(asset);
+                            if (asset1 == null) asset.Version = 1;
+                            else asset.Version = asset1.Version + 1;
+                            assets.Add(asset);
                         }                           
                         else
                         {
-                            asset.Version = game.Version;
+                            asset.Version = assestOfGame.Version;
                         }
                     }
                     asset.TopicId = topic.Id;
@@ -165,7 +208,7 @@ namespace ThinkTank.Service.Services.ImpService
             {
                 AssetResponse rs = new AssetResponse();
                 List<AssetResponse> result = new List<AssetResponse>();
-                List<Asset> gameId = new List<Asset>();
+                List<Asset> assets = new List<Asset>();
                 foreach (var a in request)
                 {
                     if (a <= 0)
@@ -174,19 +217,21 @@ namespace ThinkTank.Service.Services.ImpService
                     var asset = _unitOfWork.Repository<Asset>().GetAll().Include(x => x.Topic).Include(x => x.Topic.Game).SingleOrDefault(x => x.Id == a);
                     if (asset == null)
                         throw new CrudException(HttpStatusCode.NotFound, $"Asset Id {a} is not found","");
+
                     asset.Status = false;
+
                     var version = _unitOfWork.Repository<Asset>().GetAll().OrderBy(x => x.Version).LastOrDefault(x => x.Topic.GameId == asset.Topic.GameId).Version;                    
-                    if (gameId != null)
+                    if (assets != null)
                     {
-                        var game = gameId.SingleOrDefault(x => x.Topic.GameId == asset.Topic.GameId);
-                        if (game == null)
+                        var assetOfGame = assets.SingleOrDefault(x => x.Topic.GameId == asset.Topic.GameId);
+                        if (assetOfGame == null)
                         {
                             asset.Version = version + 1;
-                            gameId.Add(asset);
+                            assets.Add(asset);
                         }
                         else
                         {
-                            asset.Version = game.Version;
+                            asset.Version = assetOfGame.Version;
                         }
                     }
                     rs = _mapper.Map<AssetResponse>(asset);

@@ -32,7 +32,7 @@ namespace ThinkTank.Service.ImpService
             AuthPassword = _config["EmailPassword"];
         }
 
-        public async Task<string> UploadFileProfileAsync(Stream fileStream, string fileName,FileType type)
+        public async Task<string> UploadFileAsync(Stream fileStream, string fileName,FileType type)
         {
             var auth = new FirebaseAuthProvider(new FirebaseConfig(ApiKey));
             var a = await auth.SignInWithEmailAndPasswordAsync(AuthEmail, AuthPassword);

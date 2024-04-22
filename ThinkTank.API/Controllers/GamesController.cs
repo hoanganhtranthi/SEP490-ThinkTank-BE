@@ -42,7 +42,7 @@ namespace ThinkTank.API.Controllers
             return Ok(rs);
         }
         /// <summary>
-        /// Get report games 
+        /// Get report of game
         /// </summary>
         /// <returns></returns>
         [Authorize(Policy ="Admin")]

@@ -17,6 +17,7 @@ using Microsoft.EntityFrameworkCore;
 using ThinkTank.Service.Helpers;
 using ThinkTank.Service.Utilities;
 using System.Security.Principal;
+using Firebase.Auth;
 
 namespace ThinkTank.Service.Services.ImpService
 {
@@ -45,19 +46,21 @@ namespace ThinkTank.Service.Services.ImpService
                     throw new CrudException(HttpStatusCode.BadRequest, "Add report Invalid !!!", "");
 
                 var report = _mapper.Map<CreateReportRequest, Report>(createReportRequest);
-                var s = _unitOfWork.Repository<Account>().Find(s => s.Id == createReportRequest.AccountId1);
-                if (s == null)
+
+                var acc1 = _unitOfWork.Repository<Account>().Find(s => s.Id == createReportRequest.AccountId1);
+                if (acc1 == null)
                 {
                     throw new CrudException(HttpStatusCode.NotFound, $" Account Id {createReportRequest.AccountId1} is not found !!!", "");
                 }
-                if (s.Status == false) throw new CrudException(HttpStatusCode.BadRequest, "Your account is block", "");
-                var cus = _unitOfWork.Repository<Account>().Find(s => s.Id == createReportRequest.AccountId2);
-                if (cus == null)
+                if (acc1.Status == false) throw new CrudException(HttpStatusCode.BadRequest, $"Account Id {acc1.Id} is block", "");
+
+                var acc2 = _unitOfWork.Repository<Account>().Find(s => s.Id == createReportRequest.AccountId2);
+                if (acc2 == null)
                 {
                     throw new CrudException(HttpStatusCode.NotFound, $" Account Id {createReportRequest.AccountId2} is not found !!!", "");
                 }
 
-                if (cus.Status == false) throw new CrudException(HttpStatusCode.BadRequest, "Your account is block", "");
+                if (acc2.Status == false) throw new CrudException(HttpStatusCode.BadRequest, $"Account Id {acc2.Id} is block", "");
 
                 var reportsWithinTimeframe = _unitOfWork.Repository<Report>()
                 .GetAll()
@@ -73,13 +76,13 @@ namespace ThinkTank.Service.Services.ImpService
                 report.DateReport = date;
                 await _unitOfWork.Repository<Report>().CreateAsync(report);
 
-                if (s.Avatar == null)
-                    s.Avatar = "https://firebasestorage.googleapis.com/v0/b/thinktank-79ead.appspot.com/o/System%2Flogo_2_bg%201%20%281%29.png?alt=media&token=437436e4-28ce-4a0c-a7d2-a8763064151f";
+                if (acc1.Avatar == null)
+                    acc1.Avatar = "https://firebasestorage.googleapis.com/v0/b/thinktank-79ead.appspot.com/o/System%2Flogo_2_bg%201%20%281%29.png?alt=media&token=437436e4-28ce-4a0c-a7d2-a8763064151f";
                 
                 #region send noti for account
                 List<string> fcmTokens = new List<string>();
-                if(cus.Fcm != null)
-                    fcmTokens.Add(cus.Fcm);
+                if(acc2.Fcm != null)
+                    fcmTokens.Add(acc2.Fcm);
                 var data = new Dictionary<string, string>()
                 {
                     ["click_action"] = "FLUTTER_NOTIFICATION_CLICK",
@@ -94,12 +97,12 @@ namespace ThinkTank.Service.Services.ImpService
                 };
                 if (fcmTokens.Any())
                     _firebaseMessagingService.SendToDevices(fcmTokens,
-                                                           new FirebaseAdmin.Messaging.Notification() { Title = "ThinkTank Community", Body = $"{s.FullName} sent you a report request.", ImageUrl = s.Avatar }, data);
+                                                           new FirebaseAdmin.Messaging.Notification() { Title = "ThinkTank Community", Body = $"{acc1.FullName} sent you a report request.", ImageUrl = acc1.Avatar }, data);
                 #endregion            
                 Notification notification = new Notification
                 {
-                    AccountId = cus.Id,
-                    Avatar = s.Avatar,
+                    AccountId = acc2.Id,
+                    Avatar = acc1.Avatar,
                     DateNotification = date,
                     Description = $"You have a report for acting {createReportRequest.Title}.",
                     Title = "ThinkTank Report",
@@ -108,8 +111,8 @@ namespace ThinkTank.Service.Services.ImpService
                 await _unitOfWork.Repository<Notification>().CreateAsync(notification);
                 await _unitOfWork.CommitAsync();
                 var rs = _mapper.Map<ReportResponse>(report);
-                rs.UserName1 = s.UserName;
-                rs.UserName2 = cus.UserName;
+                rs.UserName1 = acc1.UserName;
+                rs.UserName2 = acc2.UserName;
                 return rs;
             }
             catch (CrudException ex)
@@ -118,7 +121,7 @@ namespace ThinkTank.Service.Services.ImpService
             }
             catch (Exception ex)
             {
-                throw new CrudException(HttpStatusCode.InternalServerError, "Add Report Error!!!", ex?.Message);
+                throw new CrudException(HttpStatusCode.InternalServerError, "Create Report Error!!!", ex?.Message);
             }
         }
 
@@ -130,7 +133,8 @@ namespace ThinkTank.Service.Services.ImpService
                 {
                     throw new CrudException(HttpStatusCode.BadRequest, "Id Report Invalid", "");
                 }
-                var response = _unitOfWork.Repository<Report>().GetAll().AsNoTracking().Include(x => x.AccountId1Navigation).Include(x => x.AccountId2Navigation).FirstOrDefault(u => u.Id == id);
+                var response = _unitOfWork.Repository<Report>().GetAll()
+                    .AsNoTracking().Include(x => x.AccountId1Navigation).Include(x => x.AccountId2Navigation).FirstOrDefault(u => u.Id == id);
 
                 if (response == null)
                 {

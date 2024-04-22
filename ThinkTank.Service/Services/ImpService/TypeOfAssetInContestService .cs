@@ -35,6 +35,7 @@ namespace ThinkTank.Service.Services.ImpService
             {
 
                 var filter = _mapper.Map<TypeOfAssetInContestResponse>(request);
+
                 var typeOfAssetResponses = _unitOfWork.Repository<TypeOfAssetInContest>().GetAll().AsNoTracking().Include(x => x.AssetOfContests)
                     .Select(x => new TypeOfAssetInContestResponse
                     {
@@ -49,6 +50,7 @@ namespace ThinkTank.Service.Services.ImpService
                             Value = a.Value
                         }))
                     }).DynamicFilter(filter).ToList();
+
                 if (request.ContestId != null)
                 {
                     typeOfAssetResponses = typeOfAssetResponses
@@ -71,7 +73,7 @@ namespace ThinkTank.Service.Services.ImpService
             {
                 if (id <= 0)
                 {
-                    throw new CrudException(HttpStatusCode.BadRequest, "Id Type Of Asset Invalid", "");
+                    throw new CrudException(HttpStatusCode.BadRequest, "Id Type Of Asset In Contest Invalid", "");
                 }
                 var response = _unitOfWork.Repository<TypeOfAssetInContest>().GetAll().AsNoTracking().Include(x => x.AssetOfContests).Select(x => new TypeOfAssetInContestResponse
                 {

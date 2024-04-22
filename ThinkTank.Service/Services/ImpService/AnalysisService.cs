@@ -33,9 +33,11 @@ namespace ThinkTank.Service.Services.ImpService
                 var account = _unitOfWork.Repository<Account>().Find(x => x.Id == accountId);
                 if (account == null)
                     throw new CrudException(HttpStatusCode.NotFound, $"Account Id {accountId} not found ", "");
+
                 var achievements = _unitOfWork.Repository<Achievement>().GetAll().AsNoTracking()
                 .Include(x => x.Game)
                     .Where(x => x.AccountId == accountId).ToList();
+
                 var result = new List<GameLevelOfAccountResponse>();
                 foreach (var achievement in achievements)
                 {
@@ -67,7 +69,7 @@ namespace ThinkTank.Service.Services.ImpService
                 if (account == null)
                     throw new CrudException(HttpStatusCode.NotFound, $"Account Id {accountId} not found ", "");
 
-                if (account.Status == false) throw new CrudException(HttpStatusCode.BadRequest, "Your account is block", "");
+                if (account.Status == false) throw new CrudException(HttpStatusCode.BadRequest, "This account is block", "");
 
                 var totalContest = account.AccountInContests.Count();
                 var listGameLevel = GetGameLevelByAccountId(accountId);
@@ -124,6 +126,7 @@ namespace ThinkTank.Service.Services.ImpService
                 if (account == null)
                     throw new CrudException(HttpStatusCode.NotFound, $"Account Id {request.AccountId} not found ", "");
                 if (account.Status == false) throw new CrudException(HttpStatusCode.BadRequest, "Your account is block", "");
+
                 var result = account.Achievements
                     .Where(achievement => achievement.Duration > 0)
                     .Select(achievement => new
@@ -132,8 +135,10 @@ namespace ThinkTank.Service.Services.ImpService
                         Value = achievement.Duration > 0 ? (double)(achievement.PieceOfInformation / achievement.Duration):0
                     })
                     .ToList();
+
                 if(request.FilterMonth != null && request.FilterYear==null || request.FilterMonth==null && request.FilterYear !=null)
                     throw new CrudException(HttpStatusCode.BadRequest, "Please enter year and month ", "");
+
                 if (request.FilterMonth != null && request.FilterYear != null)
                 {                        
                     result = result.Where(x => x.EndTime.Month == request.FilterMonth && x.EndTime.Year == request.FilterYear).ToList();
@@ -146,7 +151,7 @@ namespace ThinkTank.Service.Services.ImpService
             }
             catch (Exception ex)
             {
-                throw new CrudException(HttpStatusCode.InternalServerError, "Get Analysis of Account error!!!!!", ex.Message);
+                throw new CrudException(HttpStatusCode.InternalServerError, "Get Analysis of Account by Account Id and Game Id error!!!!!", ex.Message);
             }
         }
         public async Task<dynamic> GetAnalysisOfMemoryTypeByAccountId(int accountId)
@@ -164,15 +169,20 @@ namespace ThinkTank.Service.Services.ImpService
                 if (account == null)
                     throw new CrudException(HttpStatusCode.NotFound, $"Account Id {accountId} not found ", "");
                 if (account.Status == false) throw new CrudException(HttpStatusCode.BadRequest, "Your account is block", "");
+
                 var listGameLevel = GetGameLevelByAccountId(accountId);
 
+                //Get level cao nhất của từng game
                 var levelOfFlipcard = listGameLevel.FirstOrDefault(x => x.GameName == "Flip Card")?.Level ?? 0;
                 var levelOfMusicPassword = listGameLevel.FirstOrDefault(x => x.GameName == "Music Password")?.Level ?? 0;
                 var levelOfImagesWalkthrough = listGameLevel.FirstOrDefault(x => x.GameName == "Images Walkthrough")?.Level ?? 0;
                 var levelOfFindTheAnonymous = listGameLevel.FirstOrDefault(x => x.GameName == "Find The Anonymous")?.Level ?? 0;
+
+                //Tính tổng level của các game tương ứng với mỗi loại trí nhớ
                 var percentOfImagesMemory = ((double)(levelOfFlipcard + levelOfImagesWalkthrough + levelOfFindTheAnonymous));
                 var percentOfAudioMemory=levelOfMusicPassword;
                 var percentOfSequentialMemory = ((double)(levelOfMusicPassword + levelOfImagesWalkthrough));
+
                 var totalPercent = percentOfAudioMemory + percentOfImagesMemory + percentOfSequentialMemory;
 
                 return new
@@ -202,17 +212,23 @@ namespace ThinkTank.Service.Services.ImpService
                 var game = _unitOfWork.Repository<Game>().Find(x => x.Id == gameId);
                 if (game == null)
                     throw new CrudException(HttpStatusCode.NotFound, $"Game Id {gameId} is not found", "");
+
                 var acc = _unitOfWork.Repository<Account>().Find(x => x.Id == userId);
                 if (acc == null)
                     throw new CrudException(HttpStatusCode.NotFound, $"Account Id {userId} is not found", "");
                 if(acc.Status==false)
                     throw new CrudException(HttpStatusCode.BadRequest, $"Account Id {gameId} is block", "");
+
+                //Get achievements theo game
                 var achievements = _unitOfWork.Repository<Achievement>()
                     .GetAll()
                     .AsNoTracking()
                     .Where(x => x.GameId == gameId)
                     .ToList();
+
+                //Get level hiện tại cũa account
                 var currentLevel = achievements.Where(x => x.AccountId == userId).OrderByDescending(a => a.Level).Distinct().FirstOrDefault();
+                
                 var analysisAverageScore = new AnalysisAverageScoreResponse
                 {
                     UserId = userId,
@@ -220,6 +236,7 @@ namespace ThinkTank.Service.Services.ImpService
                     AnalysisAverageScoreByGroupLevelResponses = new List<AnalysisAverageScoreByGroupLevelResponse>()
                 };
 
+                //Get list achievemts lần đầu tiên theo level group by theo account Id
                 var achievementsOfLevels = achievements
                     .GroupBy(a => new { a.Level, a.AccountId })
                     .Select(g => new Achievement
@@ -232,10 +249,11 @@ namespace ThinkTank.Service.Services.ImpService
                         Id = g.First().Id
                     })
                     .ToList();
+                // Get level cao nhất của game 
                 var maxLevel = _unitOfWork.Repository<Achievement>().GetAll().Where(x => x.GameId == gameId).ToList().OrderByDescending(a => a.Level).Distinct().First().Level;
                 
-                // Tính toán trung bình của từng cấp độ chơi
-                var averageScoresByLevel = achievements
+                // Tính mảnh thông tin/thời gian theo từng level
+                var averageScoresByLevel = achievementsOfLevels
                     .GroupBy(a => a.Level)
                     .ToDictionary(
                         g => g.Key,
@@ -246,15 +264,17 @@ namespace ThinkTank.Service.Services.ImpService
                 var groupLevels = new List<string> { "Level 1", "Level 2 - Level 5", "Level 6 - Level 10", "Level 11 - Level 20", "Level 21 - Level 30", "Level 31 - Level 40" };
 
                 groupLevels.Add(maxLevel > 41 ? $"Level 41 - Level {maxLevel}" : "Level above 41");
+
                 foreach (var groupLevel in groupLevels)
                 {
                     var range = GetLevelRange(groupLevel, gameId);
-                    var averageOfPlayer = range.Item2 >= range.Item1? Enumerable.Range(range.Item1, range.Item2 - range.Item1 + 1)
+
+                    var averageOfPlayer = range[1] >= range[0] ? Enumerable.Range(range[0], range[1] - range[0] + 1)
                         .Select(level => averageScoresByLevel.ContainsKey(level) ? averageScoresByLevel[level] : 0)
                         .Average():0;
 
-                    var averageOfGroup = range.Item2 >= range.Item1 ? achievementsOfLevels
-                        .Where(a => range.Item1 <= a.Level && a.Level <= range.Item2)
+                    var averageOfGroup = range[1] >= range[0] ? achievementsOfLevels
+                        .Where(a => range[0] <= a.Level && a.Level <= range[1])
                         .GroupBy(a => a.AccountId)
                         .Select(group => group.Average(a => a.Duration > 0 ? (double)(a.PieceOfInformation / a.Duration) : 0))
                         .DefaultIfEmpty(0)
@@ -281,27 +301,27 @@ namespace ThinkTank.Service.Services.ImpService
             }
 
         }
-        private Tuple<int, int> GetLevelRange(string groupLevel, int gameId)
+        private List<int> GetLevelRange(string groupLevel, int gameId)
         {
              var maxLevelOfGame=_unitOfWork.Repository<Achievement>().GetAll().AsNoTracking().Where(x => x.GameId == gameId).ToList().OrderByDescending(a => a.Level).Distinct().First().Level;
 
             switch (groupLevel)
             {
                 case "Level 1":
-                    return Tuple.Create(1, 1);
+                    return new List<int> { 1, 1 };
                 case "Level 2 - Level 5":
-                    return Tuple.Create(2, 5);
+                    return new List<int> { 2, 5 };
                 case "Level 6 - Level 10":
-                    return Tuple.Create(6, 10);
+                    return new List<int> { 6, 10 };
                 case "Level 11 - Level 20":
-                    return Tuple.Create(11, 20);
+                    return new List<int> { 11, 20 };
                 case "Level 21 - Level 30":
-                    return Tuple.Create(21, 30);
+                    return new List<int> { 21, 30 };
                 case "Level 31 - Level 40":
-                    return Tuple.Create(31, 40);
+                    return new List<int> { 31, 40 };
                 default:
-                    return Tuple.Create(41, maxLevelOfGame);
-                    
+                    return new List<int> { 41, maxLevelOfGame };
+
             }
         }
     }

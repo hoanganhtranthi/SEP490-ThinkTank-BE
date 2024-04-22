@@ -34,16 +34,15 @@ namespace ThinkTank.API.Controllers
             return Ok(rs);
         }
         /// <summary>
-        /// Minus coin of account
+        /// Create Account In Contest
         /// </summary>
-        /// <param name="id"></param>
-        /// <param name="contestId"></param>
+        /// <param name="request"></param>
         /// <returns></returns>
         [Authorize(Policy = "Player")]
-        [HttpPut("{id:int},{contestId:int}/coin-of-account")]
-        public async Task<ActionResult<List<AccountInContestResponse>>> MinusCoinOfContest( int id,  int contestId)
+        [HttpPost()]
+        public async Task<ActionResult<AccountInContestResponse>> CreateAccountInContest([FromBody] CreateAndUpdateAccountInContestRequest request)
         {
-            var rs = await _accountInContestService.MinusCoinOfAccount(id,contestId);
+            var rs = await _accountInContestService.CreateAccountInContest(request);
             return Ok(rs);
         }
         /// <summary>
@@ -60,15 +59,15 @@ namespace ThinkTank.API.Controllers
         }
 
         /// <summary>
-        /// Create Account In Contest
+        /// Update Account In Contest
         /// </summary>
         /// <param name="request"></param>
         /// <returns></returns>
        [Authorize(Policy = "Player")]
-        [HttpPost]
-        public async Task<ActionResult<AccountInContestResponse>> CreateAccountInContest([FromBody] CreateAccountInContestRequest request)
+        [HttpPut]
+        public async Task<ActionResult<AccountInContestResponse>> UpdateAccountInContest([FromBody] CreateAndUpdateAccountInContestRequest request)
         {
-            var rs = await _accountInContestService.CreateAccountInContest(request);
+            var rs = await _accountInContestService.UpdateAccountInContest(request);
             return Ok(rs);
         }
     }

@@ -90,6 +90,7 @@ namespace ThinkTank.Service.Services.ImpService
                             Version=a.Version
                         }))
                     }).DynamicFilter(filter).ToList();
+
                 var sort = PageHelper<TypeOfAssetResponse>.Sorting(paging.SortType, typeOfAssetResponses, paging.ColName);
                 var result = PageHelper<TypeOfAssetResponse>.Paging(sort, paging.Page, paging.PageSize);
                 return result;

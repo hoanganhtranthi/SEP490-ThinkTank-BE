@@ -10,10 +10,10 @@ namespace ThinkTank.API.Controllers
     [ApiController]
     public class AccountInRoomsController : Controller
     {
-        private readonly IAccountInRoomService accountIn1Vs1Service;
-        public AccountInRoomsController(IAccountInRoomService accountIn1Vs1Service)
+        private readonly IAccountInRoomService _accountInRoomService;
+        public AccountInRoomsController(IAccountInRoomService accountInRoomService)
         {
-            this.accountIn1Vs1Service = accountIn1Vs1Service;
+            _accountInRoomService = accountInRoomService;   
         }
         /// <summary>
         /// Get list of account in room
@@ -25,7 +25,7 @@ namespace ThinkTank.API.Controllers
         [HttpGet]
         public async Task<ActionResult<List<AccountInRoomResponse>>> GetAccountInRooms([FromQuery] PagingRequest pagingRequest, [FromQuery] AccountInRoomRequest accountInRoomRequest)
         {
-            var rs = await accountIn1Vs1Service.GetAccountInRooms(accountInRoomRequest, pagingRequest);
+            var rs = await _accountInRoomService.GetAccountInRooms(accountInRoomRequest, pagingRequest);
             return Ok(rs);
         }
 
@@ -38,12 +38,12 @@ namespace ThinkTank.API.Controllers
         [HttpGet("{id:int}")]
         public async Task<ActionResult<AccountInRoomResponse>> GetAccountInRoomById(int id)
         {
-            var rs = await accountIn1Vs1Service.GetAccountInRoomById(id);
+            var rs = await _accountInRoomService.GetAccountInRoomById(id);
             return Ok(rs);
         }
 
         /// <summary>
-        /// Create Account In Room
+        /// Update result of account In Room
         /// </summary>
         /// <param name="request"></param>
         /// <param name="roomCode"></param>
@@ -52,7 +52,7 @@ namespace ThinkTank.API.Controllers
         [HttpPut("{roomCode}")]
         public async Task<ActionResult<AccountInRoomResponse>> UpdateAccountInRoom(string roomCode,[FromBody] CreateAndUpdateAccountInRoomRequest request)
         {
-            var rs = await accountIn1Vs1Service.UpdateAccountInRoom(roomCode,request);
+            var rs = await _accountInRoomService.UpdateAccountInRoom(roomCode,request);
             return Ok(rs);
         }
     }

@@ -34,7 +34,7 @@ namespace ThinkTank.API.Controllers
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
-      [Authorize(Policy = "Player")]
+        [Authorize(Policy = "Player")]
         [HttpGet("{id:int}")]
         public async Task<ActionResult<IconOfAccountResponse>> GetIconOfAccountById(int id)
         {
@@ -47,7 +47,7 @@ namespace ThinkTank.API.Controllers
         /// </summary>
         /// <param name="request"></param>
         /// <returns></returns>
-     [Authorize(Policy = "Player")]
+        [Authorize(Policy = "Player")]
         [HttpPost]
         public async Task<ActionResult<IconOfAccountResponse>> CreateIconOfAccount([FromBody] CreateIconOfAccountRequest request)
         {

@@ -12,7 +12,7 @@ namespace ThinkTank.Service.Services.IService
     {
         Task<PagedResults<AccountInContestResponse>> GetAccountInContests(AccountInContestRequest request, PagingRequest paging);
         Task<AccountInContestResponse> GetAccountInContestById(int id);
-        Task<AccountInContestResponse> CreateAccountInContest(CreateAccountInContestRequest request);
-        Task<AccountResponse> MinusCoinOfAccount(int id, int contestId);
+        Task<AccountInContestResponse> UpdateAccountInContest(CreateAndUpdateAccountInContestRequest request);
+        Task<AccountInContestResponse> CreateAccountInContest(CreateAndUpdateAccountInContestRequest request);
     }
 }

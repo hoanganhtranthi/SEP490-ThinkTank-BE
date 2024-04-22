@@ -12,7 +12,6 @@ namespace ThinkTank.Data.Repository
 {
    public interface IGenericRepository<T> where T : class
     {
-        Task<List<T>> GetWhere(Expression<Func<T, bool>>? filter = null);
         Task<T> GetAsync(Expression<Func<T, bool>>? filter = null);
         DbSet<T> GetAll();
         Task CreateAsync(T entity);

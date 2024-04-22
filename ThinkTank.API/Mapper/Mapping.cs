@@ -83,7 +83,7 @@ namespace MuTote.API.Mapper
             CreateMap<AccountInContestRequest, AccountInContest>();
             CreateMap<AccountInContest, AccountInContestResponse>();
             CreateMap<AccountInContestRequest, AccountInContestResponse>();
-            CreateMap<CreateAccountInContestRequest, AccountInContest>();
+            CreateMap<CreateAndUpdateAccountInContestRequest, AccountInContest>();
 
             CreateMap<AccountIn1vs1Request, AccountIn1vs1>();
             CreateMap<AccountIn1vs1, AccountIn1vs1Response>();

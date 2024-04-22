@@ -18,22 +18,21 @@ namespace ThinkTank.Service.Services.ImpService
 {
     public class FirebaseRealtimeDatabaseService:IFirebaseRealtimeDatabaseService
     {
-        private readonly IFirebaseConfig config; 
         private readonly IFirebaseClient client;
-        private readonly IFirebaseClient clientOfRoom;
+        private readonly IFirebaseClient clientOfFlutterRealtimeDatabase;
         private readonly IConfiguration configuration;
         public FirebaseRealtimeDatabaseService(IConfiguration configuration)
         {
             this.configuration = configuration;
-            config = new FirebaseConfig
+            client = new FirebaseClient(new FirebaseConfig
             {
                 AuthSecret = configuration["Firebase:AuthSecret"],
                 BasePath = configuration["Firebase:BasePath"]
-            };
-            client = new FirebaseClient(config);
-            clientOfRoom = new FirebaseClient(new FirebaseConfig
+            });
+
+            clientOfFlutterRealtimeDatabase = new FirebaseClient(new FirebaseConfig
             {
-                BasePath = configuration["Firebase:BasePathRoom"]
+                BasePath = configuration["Firebase:BasePathOfFlutterRealtimeDatabase"]
             });
         }
         public async Task SetAsync<T>(string key,T value)
@@ -52,9 +51,9 @@ namespace ThinkTank.Service.Services.ImpService
                 return default(T);
             }
         }
-        public async Task<T> GetAsyncOfRoom<T>(string key)
+        public async Task<T> GetAsyncOfFlutterRealtimeDatabase<T>(string key)
         {
-            FirebaseResponse response = await clientOfRoom.GetAsync(key);
+            FirebaseResponse response = await clientOfFlutterRealtimeDatabase.GetAsync(key);
             if (response.Body != "null")
             {
                 return response.ResultAs<T>();
@@ -78,9 +77,9 @@ namespace ThinkTank.Service.Services.ImpService
                 return false;
             }
         }
-        public async Task SetAsyncOfRoom<T>(string key, T value)
+        public async Task SetAsyncOfFlutterRealtimeDatabase<T>(string key, T value)
         {
-            await clientOfRoom.SetAsync<T>(key, value);
+            await clientOfFlutterRealtimeDatabase.SetAsync<T>(key, value);
         }
     }
 }
