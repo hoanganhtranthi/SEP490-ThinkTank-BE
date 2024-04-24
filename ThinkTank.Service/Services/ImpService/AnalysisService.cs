@@ -1,12 +1,6 @@
 ﻿using AutoMapper;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Net;
-using System.Security.Cryptography.Xml;
-using System.Text;
-using System.Threading.Tasks;
 using ThinkTank.Data.Entities;
 using ThinkTank.Data.UnitOfWork;
 using ThinkTank.Service.DTO.Request;
@@ -108,7 +102,7 @@ namespace ThinkTank.Service.Services.ImpService
             }
             catch (Exception ex)
             {
-                throw new CrudException(HttpStatusCode.InternalServerError, "Get Analysis of Account error!!!!!", ex.Message);
+                throw new CrudException(HttpStatusCode.InternalServerError, "Get analysis of account by account Id error!!!!!", ex.Message);
             }
         }
         public async Task<dynamic> GetAnalysisOfAccountIdAndGameId(AnalysisRequest request)
@@ -125,7 +119,8 @@ namespace ThinkTank.Service.Services.ImpService
 
                 if (account == null)
                     throw new CrudException(HttpStatusCode.NotFound, $"Account Id {request.AccountId} not found ", "");
-                if (account.Status == false) throw new CrudException(HttpStatusCode.BadRequest, "Your account is block", "");
+                if (account.Status == false)
+                    throw new CrudException(HttpStatusCode.BadRequest, "Your account is block", "");
 
                 var result = account.Achievements
                     .Where(achievement => achievement.Duration > 0)
@@ -226,7 +221,7 @@ namespace ThinkTank.Service.Services.ImpService
                     .Where(x => x.GameId == gameId)
                     .ToList();
 
-                //Get level hiện tại cũa account
+                //Get level hiện tại cua account
                 var currentLevel = achievements.Where(x => x.AccountId == userId).OrderByDescending(a => a.Level).Distinct().FirstOrDefault();
                 
                 var analysisAverageScore = new AnalysisAverageScoreResponse
@@ -249,6 +244,7 @@ namespace ThinkTank.Service.Services.ImpService
                         Id = g.First().Id
                     })
                     .ToList();
+
                 // Get level cao nhất của game 
                 var maxLevel = _unitOfWork.Repository<Achievement>().GetAll().Where(x => x.GameId == gameId).ToList().OrderByDescending(a => a.Level).Distinct().First().Level;
                 
@@ -303,7 +299,8 @@ namespace ThinkTank.Service.Services.ImpService
         }
         private List<int> GetLevelRange(string groupLevel, int gameId)
         {
-             var maxLevelOfGame=_unitOfWork.Repository<Achievement>().GetAll().AsNoTracking().Where(x => x.GameId == gameId).ToList().OrderByDescending(a => a.Level).Distinct().First().Level;
+             var maxLevelOfGame=_unitOfWork.Repository<Achievement>()
+                .GetAll().AsNoTracking().Where(x => x.GameId == gameId).ToList().OrderByDescending(a => a.Level).Distinct().First().Level;
 
             switch (groupLevel)
             {

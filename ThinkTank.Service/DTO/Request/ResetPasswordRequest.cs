@@ -1,18 +1,16 @@
-﻿using System;
-using System.Collections.Generic;
+﻿
 using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace ThinkTank.Service.DTO.Request
 {
     public class ResetPasswordRequest
     {
-        [Required(ErrorMessage = "Email is required !")]
-        public string Email { get; set; }
-        [Required(ErrorMessage = " New Password is required !")]
-        [StringLength(int.MaxValue, MinimumLength = 1, ErrorMessage = "Username is invalid")]
-        public string Username { get; set; }
+        [RegularExpression(@"^([a-zA-Z0-9_\-\.]+)@((\[[0-9]{1,3}" +
+         @"\.[0-9]{1,3}\.[0-9]{1,3}\.)|(([a-zA-Z0-9\-]+\" +
+         @".)+))([a-zA-Z]{2,4}|[0-9]{1,3})(\]?)$", ErrorMessage = "Invalid Email.")]
+        public string Email { get; set; } = null!;
+        [StringLength(20, ErrorMessage = "Username is invalid.")]
+        [RegularExpression(@"^\S+$", ErrorMessage = "Username cannot have spaces")]
+        public string Username { get; set; }=null!;
     }
 }

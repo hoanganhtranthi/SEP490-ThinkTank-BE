@@ -1,12 +1,7 @@
 ﻿using AutoMapper;
 using Newtonsoft.Json.Serialization;
 using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Net;
-using System.Text;
-using System.Threading.Tasks;
 using ThinkTank.Data.Entities;
 using ThinkTank.Data.UnitOfWork;
 using ThinkTank.Service.DTO.Request;
@@ -16,8 +11,6 @@ using ThinkTank.Service.Services.IService;
 using Microsoft.EntityFrameworkCore;
 using ThinkTank.Service.Helpers;
 using ThinkTank.Service.Utilities;
-using System.Security.Principal;
-using Firebase.Auth;
 
 namespace ThinkTank.Service.Services.ImpService
 {
@@ -68,7 +61,7 @@ namespace ThinkTank.Service.Services.ImpService
                 .Where(x => x.AccountId1 == createReportRequest.AccountId1 && EF.Functions.DateDiffMinute(x.DateReport.Value, date) <= 10)
                 .ToList();
 
-                if (reportsWithinTimeframe.Count() > 3)
+                if (reportsWithinTimeframe.Count() >=3)
                 {
                     throw new CrudException(HttpStatusCode.BadRequest, "During 10 minutes, you can only send a maximum of 3 reports", "");
                 }
@@ -97,7 +90,7 @@ namespace ThinkTank.Service.Services.ImpService
                 };
                 if (fcmTokens.Any())
                     _firebaseMessagingService.SendToDevices(fcmTokens,
-                                                           new FirebaseAdmin.Messaging.Notification() { Title = "ThinkTank Community", Body = $"{acc1.FullName} sent you a report request.", ImageUrl = acc1.Avatar }, data);
+                                                           new FirebaseAdmin.Messaging.Notification() { Title = "ThinkTank Report", Body = $"{acc1.FullName} sent you a report request.", ImageUrl = acc1.Avatar }, data);
                 #endregion            
                 Notification notification = new Notification
                 {
@@ -109,6 +102,7 @@ namespace ThinkTank.Service.Services.ImpService
                     Status=false,
                 };
                 await _unitOfWork.Repository<Notification>().CreateAsync(notification);
+
                 await _unitOfWork.CommitAsync();
                 var rs = _mapper.Map<ReportResponse>(report);
                 rs.UserName1 = acc1.UserName;

@@ -1,27 +1,19 @@
 ﻿using AutoMapper;
-using FirebaseAdmin.Messaging;
 using Newtonsoft.Json.Serialization;
 using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Net;
-using System.Text;
-using System.Threading.Tasks;
 using ThinkTank.Data.Entities;
 using ThinkTank.Data.UnitOfWork;
 using ThinkTank.Service.DTO.Request;
 using ThinkTank.Service.DTO.Response;
 using ThinkTank.Service.Exceptions;
-using ThinkTank.Service.Services.ImpService;
 using ThinkTank.Service.Services.IService;
 using Microsoft.EntityFrameworkCore;
 using Notification = ThinkTank.Data.Entities.Notification;
 using ThinkTank.Service.Helpers;
 using ThinkTank.Service.Utilities;
 using Repository.Extensions;
-using System.Security.Principal;
-using Firebase.Auth;
+
 
 namespace ThinkTank.Service.Services.ImpService
 {
@@ -44,32 +36,31 @@ namespace ThinkTank.Service.Services.ImpService
             _firebaseRealtimeDatabaseService = firebaseRealtimeDatabaseService;
         }
 
-        public async Task<AccountIn1vs1Response> CreateAccount1vs1(CreateAccountIn1vs1Request createAccount1vs1Request)
+        public async Task<AccountIn1vs1Response> CreateAccount1vs1(CreateAndUpdateAccountIn1vs1Request createAccount1vs1Request)
         {
             try
             {
                 if (createAccount1vs1Request.AccountId1 <= 0 || createAccount1vs1Request.AccountId2 <= 0 || createAccount1vs1Request.Coin <= 0
-                    || createAccount1vs1Request.RoomOfAccountIn1vs1Id == null || createAccount1vs1Request.RoomOfAccountIn1vs1Id == "" || createAccount1vs1Request.WinnerId <= 0
-                    || createAccount1vs1Request.StartTime == null)
+                    || createAccount1vs1Request.RoomOfAccountIn1vs1Id == null || createAccount1vs1Request.RoomOfAccountIn1vs1Id == "" || createAccount1vs1Request.WinnerId < 0)
                     throw new CrudException(HttpStatusCode.BadRequest, "Information is invalid","");
 
-                var accIn1vs1 = _mapper.Map<CreateAccountIn1vs1Request, AccountIn1vs1>(createAccount1vs1Request);
+                var accIn1vs1 = _mapper.Map<CreateAndUpdateAccountIn1vs1Request, AccountIn1vs1>(createAccount1vs1Request);
 
-                var a = _unitOfWork.Repository<Account>().Find(a => a.Id == createAccount1vs1Request.AccountId1);
-                if (a == null)
+                var account1 = _unitOfWork.Repository<Account>().Find(a => a.Id == createAccount1vs1Request.AccountId1);
+                if (account1 == null)
                 {
                     throw new CrudException(HttpStatusCode.NotFound, $"Account Id {createAccount1vs1Request.AccountId1} Not Found!!!!!", "");
                 }
-                if (a.Status.Equals(false))
+                if (account1.Status.Equals(false))
                 {
                     throw new CrudException(HttpStatusCode.BadRequest, $"Account Id {createAccount1vs1Request.AccountId1} Not Available!!!!!", "");
                 }
-                var a2 = _unitOfWork.Repository<Account>().Find(a => a.Id == createAccount1vs1Request.AccountId2);
-                if (a2 == null)
+                var account2 = _unitOfWork.Repository<Account>().Find(a => a.Id == createAccount1vs1Request.AccountId2);
+                if (account2 == null)
                 {
                     throw new CrudException(HttpStatusCode.NotFound, $"Account Id {createAccount1vs1Request.AccountId2} Not Found!!!!!", "");
                 }
-                if (a.Status.Equals(false))
+                if (account2.Status.Equals(false))
                 {
                     throw new CrudException(HttpStatusCode.BadRequest, $"Account Id {createAccount1vs1Request.AccountId2}  Not Available!!!!!", "");
                 }
@@ -78,53 +69,34 @@ namespace ThinkTank.Service.Services.ImpService
                 {
                     throw new CrudException(HttpStatusCode.NotFound, "Game Not Found!!!!!", "");
                 }
-  
-                if (createAccount1vs1Request.WinnerId != 0 && createAccount1vs1Request.WinnerId != createAccount1vs1Request.AccountId1  && createAccount1vs1Request.WinnerId != createAccount1vs1Request.AccountId2)
-                    throw new CrudException(HttpStatusCode.BadRequest, $"Winner Id {createAccount1vs1Request.WinnerId} is invalid !!!!!", "");
+           
                 var accountIn1vs1 = _unitOfWork.Repository<AccountIn1vs1>().Find(x => x.AccountId1 == createAccount1vs1Request.AccountId1 && x.AccountId2 == createAccount1vs1Request.AccountId2 && x.RoomOfAccountIn1vs1Id == createAccount1vs1Request.RoomOfAccountIn1vs1Id);
                 if (accountIn1vs1 != null)
                     throw new CrudException(HttpStatusCode.BadRequest, $"These two accounts have already played against this room id {createAccount1vs1Request.RoomOfAccountIn1vs1Id} together", "");
-                
-                accIn1vs1.EndTime = date;
+
+                accIn1vs1.StartTime = date;
                 accIn1vs1.Game = c;
-                accIn1vs1.AccountId1Navigation = a;
-                accIn1vs1.AccountId2Navigation = a2;
+                accIn1vs1.AccountId1Navigation = account1;
+                accIn1vs1.AccountId2Navigation = account2;
 
-                if (a.Coin < createAccount1vs1Request.Coin)
-                    throw new CrudException(HttpStatusCode.BadRequest, $"Not enough coin for this 1vs1 of account Id {a.Id}", "");
-                a.Coin -= createAccount1vs1Request.Coin;
-                if (a2.Coin < createAccount1vs1Request.Coin)
-                    throw new CrudException(HttpStatusCode.BadRequest, $"Not enough coin for this 1vs1 of account Id {a2.Id}", "");
-                a2.Coin -= createAccount1vs1Request.Coin;
-                
-                if (createAccount1vs1Request.WinnerId == a.Id) 
-                {
-                    a.Coin += (createAccount1vs1Request.Coin * 2);
-                     await GetBadge(a, "Athlete");
-                }
-
-                if (createAccount1vs1Request.WinnerId == a2.Id)
-                {
-                    a2.Coin += createAccount1vs1Request.Coin * 2;
-                     await GetBadge(a, "Athlete");
-                }
-                   
-                if(createAccount1vs1Request.WinnerId==0 ||createAccount1vs1Request.WinnerId ==null)
-                {
-                    a.Coin +=createAccount1vs1Request.Coin;
-                    a2.Coin += createAccount1vs1Request.Coin;
-                }
-                
+                if (account1.Coin < createAccount1vs1Request.Coin)
+                    throw new CrudException(HttpStatusCode.BadRequest, $"Not enough coin for this 1vs1 of account Id {account1.Id}", "");
+                account1.Coin -= createAccount1vs1Request.Coin;
+                if (account2.Coin < createAccount1vs1Request.Coin)
+                    throw new CrudException(HttpStatusCode.BadRequest, $"Not enough coin for this 1vs1 of account Id {account2.Id}", "");
+                account2.Coin -= createAccount1vs1Request.Coin;
+                               
                 await _unitOfWork.Repository<AccountIn1vs1>().CreateAsync(accIn1vs1);
-                await _unitOfWork.Repository<Account>().Update(a, a.Id);
-                await _unitOfWork.Repository<Account>().Update(a2, a2.Id);
-                await GetBadge(a, "The Tycoon");
-                await GetBadge(a2, "The Tycoon");
+                await _unitOfWork.Repository<Account>().Update(account1, account1.Id);
+                await _unitOfWork.Repository<Account>().Update(account2, account2.Id);
+                await GetBadge(account1, "The Tycoon");
+                await GetBadge(account2, "The Tycoon");
                 await _unitOfWork.CommitAsync();
+
                 var rs = _mapper.Map<AccountIn1vs1Response>(accIn1vs1);
                 rs.GameName = c.Name;
-                rs.Username1 = a.UserName;
-                rs.Username2 = a2.UserName;
+                rs.Username1 = account1.UserName;
+                rs.Username2 = account2.UserName;
                 return rs;
             }
             catch (CrudException ex)
@@ -134,6 +106,88 @@ namespace ThinkTank.Service.Services.ImpService
             catch (Exception ex)
             {
                 throw new CrudException(HttpStatusCode.InternalServerError, "Create Account In 1vs1 Error!!!", ex?.Message);
+            }
+        }
+
+        public async Task<AccountIn1vs1Response> UpdateAccount1vs1(CreateAndUpdateAccountIn1vs1Request updateAccount1vs1Request)
+        {
+            try
+            {
+                if (updateAccount1vs1Request.AccountId1 <= 0 || updateAccount1vs1Request.AccountId2 <= 0 || updateAccount1vs1Request.Coin <= 0
+                    || updateAccount1vs1Request.RoomOfAccountIn1vs1Id == null || updateAccount1vs1Request.RoomOfAccountIn1vs1Id == "" || updateAccount1vs1Request.WinnerId <= 0)                    
+                    throw new CrudException(HttpStatusCode.BadRequest, "Information is invalid", "");
+
+                var accIn1vs1 = _unitOfWork.Repository<AccountIn1vs1>().Find(x => x.AccountId1 == updateAccount1vs1Request.AccountId1 && x.AccountId2 == updateAccount1vs1Request.AccountId2
+                && x.RoomOfAccountIn1vs1Id == updateAccount1vs1Request.RoomOfAccountIn1vs1Id);
+
+                if (accIn1vs1 == null)
+                    throw new CrudException(HttpStatusCode.NotFound, $"Account Id {updateAccount1vs1Request.AccountId1} and account Id {updateAccount1vs1Request.AccountId2} in 1vs1 in room {updateAccount1vs1Request.RoomOfAccountIn1vs1Id} is not found", "");
+
+                if (accIn1vs1.WinnerId != 0)
+                    throw new CrudException(HttpStatusCode.BadRequest, $"Account 1vs1 has already winner, you can not update", "");
+
+                _mapper.Map<CreateAndUpdateAccountIn1vs1Request, AccountIn1vs1>(updateAccount1vs1Request, accIn1vs1);
+               
+                if (updateAccount1vs1Request.WinnerId != 0 && updateAccount1vs1Request.WinnerId != updateAccount1vs1Request.AccountId1 && updateAccount1vs1Request.WinnerId != updateAccount1vs1Request.AccountId2)
+                    throw new CrudException(HttpStatusCode.BadRequest, $"Winner Id {updateAccount1vs1Request.WinnerId} is invalid !!!!!", "");
+                  
+                accIn1vs1.EndTime = date;
+
+                var account1 = _unitOfWork.Repository<Account>().Find(a => a.Id == updateAccount1vs1Request.AccountId1);
+                if (account1 == null)
+                {
+                    throw new CrudException(HttpStatusCode.NotFound, $"Account Id {updateAccount1vs1Request.AccountId1} Not Found!!!!!", "");
+                }
+                if (account1.Status.Equals(false))
+                {
+                    throw new CrudException(HttpStatusCode.BadRequest, $"Account Id {updateAccount1vs1Request.AccountId1} Not Available!!!!!", "");
+                }
+                var account2 = _unitOfWork.Repository<Account>().Find(a => a.Id == updateAccount1vs1Request.AccountId2);
+                if (account2 == null)
+                {
+                    throw new CrudException(HttpStatusCode.NotFound, $"Account Id {updateAccount1vs1Request.AccountId2} Not Found!!!!!", "");
+                }
+                if (account2.Status.Equals(false))
+                {
+                    throw new CrudException(HttpStatusCode.BadRequest, $"Account Id {updateAccount1vs1Request.AccountId2}  Not Available!!!!!", "");
+                }
+
+                if (updateAccount1vs1Request.WinnerId == account1.Id)
+                {
+                    account1.Coin += (updateAccount1vs1Request.Coin * 2);
+                    await GetBadge(account1, "Athlete");
+                }
+
+                if (updateAccount1vs1Request.WinnerId == account2.Id)
+                {
+                    account2.Coin += updateAccount1vs1Request.Coin * 2;
+                    await GetBadge(account2, "Athlete");
+                }
+
+                if (updateAccount1vs1Request.WinnerId == 0 || updateAccount1vs1Request.WinnerId == null)
+                {
+                    account1.Coin += updateAccount1vs1Request.Coin;
+                    account2.Coin += updateAccount1vs1Request.Coin;
+                }
+
+                await _unitOfWork.Repository<AccountIn1vs1>().Update(accIn1vs1,accIn1vs1.Id);
+                await _unitOfWork.Repository<Account>().Update(account1, account1.Id);
+                await _unitOfWork.Repository<Account>().Update(account2, account2.Id);
+
+                await GetBadge(account1, "The Tycoon");
+                await GetBadge(account2, "The Tycoon");
+                await _unitOfWork.CommitAsync();
+
+                var rs = _mapper.Map<AccountIn1vs1Response>(accIn1vs1);
+                return rs;
+            }
+            catch (CrudException ex)
+            {
+                throw ex;
+            }
+            catch (Exception ex)
+            {
+                throw new CrudException(HttpStatusCode.InternalServerError, "Update Account In 1vs1 Error!!!", ex?.Message);
             }
         }
         private async Task<List<Badge>> GetListBadgesCompleted(Account account)
@@ -267,24 +321,27 @@ namespace ThinkTank.Service.Services.ImpService
                     throw new CrudException(HttpStatusCode.NotFound, $"Not found game with id{gameId}", "");
                 }
 
-                var a = _unitOfWork.Repository<Account>().Find (a => a.Id == accountId1);
-                if (a == null)
+                var account1 = _unitOfWork.Repository<Account>().Find (a => a.Id == accountId1);
+                if (account1 == null)
                 {
                     throw new CrudException(HttpStatusCode.NotFound, $"Account Id {accountId1} Not Found!!!!!", "");
                 }
-                if (a.Status.Equals(false))
+                if (account1.Status.Equals(false))
                 {
                     throw new CrudException(HttpStatusCode.BadRequest, $"Account Id {accountId1} Not Available!!!!!", "");
                 }
-                var a2 = _unitOfWork.Repository<Account>().Find(a => a.Id == accountId2);
-                if (a2 == null)
+
+                var account2 = _unitOfWork.Repository<Account>().Find(a => a.Id == accountId2);
+                if (account2 == null)
                 {
                     throw new CrudException(HttpStatusCode.NotFound, $"Account Id {accountId2} Not Found!!!!!", "");
                 }
-                if (a.Status.Equals(false))
+                if (account2.Status.Equals(false))
                 {
                     throw new CrudException(HttpStatusCode.BadRequest, $"Account Id {accountId2}  Not Available!!!!!", "");
                 }
+
+
                 var friend=_unitOfWork.Repository<Friend>().Find(x=>x.AccountId2 == accountId2 && x.AccountId1==accountId1&& x.Status==true 
                 || x.AccountId1==accountId2 && x.AccountId2==accountId1 && x.Status==true);
                 if (friend == null)
@@ -294,8 +351,8 @@ namespace ThinkTank.Service.Services.ImpService
 
                 #region send noti for account
                 List<string> fcmTokens = new List<string>();
-                if (a2.Fcm != null)
-                    fcmTokens.Add(a2.Fcm);
+                if (account2.Fcm != null)
+                    fcmTokens.Add(account2.Fcm);
                 var data = new Dictionary<string, string>()
                 {
                     ["click_action"] = "FLUTTER_NOTIFICATION_CLICK",
@@ -310,15 +367,15 @@ namespace ThinkTank.Service.Services.ImpService
                 };
                 if (fcmTokens.Any())
                      _firebaseMessagingService.SendToDevices(fcmTokens,
-                                                           new FirebaseAdmin.Messaging.Notification() { Title = $"ThinkTank Countervailing With Friend {uniqueId}/{gameId} ", Body = $"You receive an invitation to play countervailing mode from your friend {a.FullName}", ImageUrl = a.Avatar }, data);
+                                                           new FirebaseAdmin.Messaging.Notification() { Title = $"ThinkTank Countervailing With Friend {uniqueId}/{gameId} ", Body = $"You receive an invitation to play countervailing mode from your friend {account1.FullName}", ImageUrl = account1.Avatar }, data);
                 #endregion
                 Notification notification = new Notification
                 {
-                    AccountId = a2.Id,
-                    Avatar = a.Avatar,
-                    Account=a2,
+                    AccountId = account2.Id,
+                    Avatar = account1.Avatar,
+                    Account=account2,
                     DateNotification = date,
-                    Description = $"You receive an invitation to play countervailing mode from your friend {a.FullName}",
+                    Description = $"You receive an invitation to play countervailing mode from your friend {account1.FullName}",
                     Status = false,
                     Title = $"ThinkTank Countervailing With Friend {uniqueId}/{gameId}"
                 };
@@ -326,11 +383,11 @@ namespace ThinkTank.Service.Services.ImpService
                 await _unitOfWork.CommitAsync();
                 return new
                 {
-                    AccountId = a2.Id,
-                    Avatar = a2.Avatar,
-                    Coin = a2.Coin,
+                    AccountId = account2.Id,
+                    Avatar = account2.Avatar,
+                    Coin = account2.Coin,
                     RoomId = uniqueId,
-                    Username = a2.UserName
+                    Username = account2.UserName
                 };
             }
             catch (CrudException ex)
@@ -342,11 +399,11 @@ namespace ThinkTank.Service.Services.ImpService
                 throw new CrudException(HttpStatusCode.InternalServerError, "Match play countervailing mode with friend error !!!!!", ex.Message);
             }
         }
-        private async Task RemoveFromCacheAsync(string accountInfo)
+        private async Task RemoveFromQueueAsync(string accountInfo)
         {
             await CacheService.Instance.DeleteJobAsync("account1vs1",accountInfo);
         }
-        public async Task<bool> RemoveAccountFromCache(int id, int coin, int gameId,string uniqueId, int delay)
+        public async Task<bool> RemoveAccountFromQueue(int id, int coin, int gameId,string uniqueId, int delay)
         {
             try
             {
@@ -370,13 +427,15 @@ namespace ThinkTank.Service.Services.ImpService
 
                 if (game == null)
                     throw new CrudException(HttpStatusCode.BadRequest, $"Game Id {gameId} not found", "");
+
                 var list = await CacheService.Instance.GetJobsAsync("account1vs1");
                 string acc =  list.SingleOrDefault(x => x == $"{id}+{coin}+{gameId}+{uniqueId}");
                 if (acc == null)
                     throw new CrudException(HttpStatusCode.BadRequest, $"Account Id {id} Not Found In Cache!!!!!", "");
 
                 Thread.Sleep(delay * 1000);
-                 await RemoveFromCacheAsync( acc);
+                await RemoveFromQueueAsync( acc);
+
                 return true;
             }
             catch (CrudException ex)
@@ -385,10 +444,41 @@ namespace ThinkTank.Service.Services.ImpService
             }
             catch (Exception ex)
             {
-                throw new CrudException(HttpStatusCode.InternalServerError, "Remove account from cache Error!!!", ex.InnerException?.Message);
+                throw new CrudException(HttpStatusCode.InternalServerError, "Remove account from queue error!!!", ex.InnerException?.Message);
             }
         }
-            public async Task<dynamic> FindAccountTo1vs1(int id, int coin, int gameId)
+
+        public async Task<bool> RemoveRoom1vs1InRealtimeDatabase( string room1vs1Id, int delayTime)
+        {
+            try
+            {
+                if (room1vs1Id==""|| room1vs1Id==null || delayTime <=0)
+                {
+                    throw new CrudException(HttpStatusCode.BadRequest, "Information Invalid", "");
+                }
+
+                var room1vs1 = _unitOfWork.Repository<AccountIn1vs1>().Find(x => x.RoomOfAccountIn1vs1Id == room1vs1Id);
+                if (room1vs1 == null)
+                    throw new CrudException(HttpStatusCode.NotFound, $"Room Id {room1vs1Id} is not found", "");
+
+                var roomRealtimeDatabase = await _firebaseRealtimeDatabaseService.GetAsyncOfFlutterRealtimeDatabase<dynamic>($"battle/{room1vs1Id}");
+                Thread.Sleep(delayTime * 1000);
+
+                if (roomRealtimeDatabase == null)
+                    throw new CrudException(HttpStatusCode.BadRequest, $"Room Id {room1vs1Id} has already deleted", "");
+
+                 return await _firebaseRealtimeDatabaseService.RemoveDataFlutterRealtimeDatabase($"battle/{room1vs1Id}") ;
+            }
+            catch (CrudException ex)
+            {
+                throw;
+            }
+            catch (Exception ex)
+            {
+                throw new CrudException(HttpStatusCode.InternalServerError, "Remove room 1vs1 in realtime database error!!!", ex.InnerException?.Message);
+            }
+        }
+        public async Task<dynamic> FindAccountTo1vs1(int id, int coin, int gameId)
             {
                 try
                 {
@@ -439,7 +529,7 @@ namespace ThinkTank.Service.Services.ImpService
                                     {
                                         accountId = accountIdFromCache;
                                         accountFind = _unitOfWork.Repository<Account>().Find(x => x.Id == accountId);
-                                        await RemoveFromCacheAsync(accountInfo); // Xóa dữ liệu khỏi cache sau khi tìm thấy tài khoản
+                                        await RemoveFromQueueAsync(accountInfo); // Xóa dữ liệu khỏi cache sau khi tìm thấy tài khoản
                                         uniqueId = accountValues[3];
                                         break;
                                     }
@@ -483,7 +573,7 @@ namespace ThinkTank.Service.Services.ImpService
             }
             catch (Exception ex)
             {
-                throw new CrudException(HttpStatusCode.InternalServerError, "Find account 1vs1 Error!!!", ex.InnerException?.Message);
+                throw new CrudException(HttpStatusCode.InternalServerError, "Find account to play 1vs1 Error!!!", ex.InnerException?.Message);
             }
        }
 
@@ -523,14 +613,13 @@ namespace ThinkTank.Service.Services.ImpService
         {
             try
             {
-                if (room1vs1Id == null || room1vs1Id =="" || isUser1==null || time<0 || progressTime <0 )
+                if (room1vs1Id == null || room1vs1Id =="" || isUser1==null || time<0 )
                 {
                     throw new CrudException(HttpStatusCode.BadRequest, "Information Invalid", "");
                 }
 
                 var roomRealtimeDatabase = await _firebaseRealtimeDatabaseService.GetAsyncOfFlutterRealtimeDatabase<dynamic>($"battle/{room1vs1Id}");
                 Thread.Sleep(time * 1000 + 15000);
-
 
                 if (roomRealtimeDatabase != null)
                 {

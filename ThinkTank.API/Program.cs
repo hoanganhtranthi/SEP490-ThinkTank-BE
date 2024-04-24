@@ -1,15 +1,12 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using MuTote.API.Mapper;
 using MuTote.API.Utility;
-using StackExchange.Redis;
 using Repository.Extensions;
 using System.Reflection;
-using System.Security.Claims;
 using System.Text;
 using ThinkTank.Data.Entities;
 using ThinkTank.Data.Repository;
@@ -17,15 +14,10 @@ using ThinkTank.Data.UnitOfWork;
 using ThinkTank.Service.ImpService;
 using ThinkTank.Service.Services.ImpService;
 using ThinkTank.Service.Services.IService;
-using Microsoft.AspNetCore.Builder.Extensions;
 using FirebaseAdmin;
 using Google.Apis.Auth.OAuth2;
 using Hangfire;
 using ThinkTank.API.AppStart;
-using FireSharp.Config;
-using RedLockNet.SERedis;
-using RedLockNet;
-using RedLockNet.SERedis.Configuration;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -63,7 +55,7 @@ builder.Services.AddScoped<IAccountIn1vs1Service, AccountIn1vs1Service>();
 builder.Services.AddScoped<IAccountInRoomService, AccountInRoomService>();
 builder.Services.AddScoped<IFirebaseRealtimeDatabaseService, FirebaseRealtimeDatabaseService>();
 builder.Services.AddScoped<IAnalysisService, AnalysisService>();
-builder.Services.AddTransient<IAuthorizationHandler, CustomAuthorizationHandler>();
+builder.Services.AddScoped<IAuthorizationHandler, CustomAuthorizationHandler>();
 
 //FCM
 System.Environment.SetEnvironmentVariable("GOOGLE_APPLICATION_CREDENTIALS", "thinktank-ad0b3-45e7681d45c6.json");

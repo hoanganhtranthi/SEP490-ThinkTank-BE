@@ -1,14 +1,8 @@
 ﻿using AutoMapper;
-using AutoMapper.QueryableExtensions;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json.Serialization;
 using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Net;
-using System.Text;
-using System.Threading.Tasks;
 using ThinkTank.Data.Entities;
 using ThinkTank.Data.UnitOfWork;
 using ThinkTank.Service.DTO.Request;
@@ -16,9 +10,6 @@ using ThinkTank.Service.DTO.Response;
 using ThinkTank.Service.Exceptions;
 using ThinkTank.Service.Helpers;
 using ThinkTank.Service.Services.IService;
-using ThinkTank.Service.Utilities;
-using static Google.Apis.Requests.BatchRequest;
-using System.Security.Principal;
 
 namespace ThinkTank.Service.Services.ImpService
 {
@@ -291,7 +282,7 @@ namespace ThinkTank.Service.Services.ImpService
             }
             catch (CrudException ex)
             {
-                throw new CrudException(HttpStatusCode.InternalServerError, "Get friendship list error!!!!!", ex.Message);
+                throw new CrudException(HttpStatusCode.InternalServerError, "Get friendship list of account error!!!!!", ex.Message);
             }
         }
 
@@ -303,7 +294,8 @@ namespace ThinkTank.Service.Services.ImpService
                 {
                     throw new CrudException(HttpStatusCode.BadRequest, "Id Friendship Invalid", "");
                 }
-                Friend friend = _unitOfWork.Repository<Friend>().GetAll().Include(x => x.AccountId1Navigation).Include(x => x.AccountId2Navigation).FirstOrDefault(u => u.Id == id);
+                Friend friend = _unitOfWork.Repository<Friend>().GetAll()
+                    .Include(x => x.AccountId1Navigation).Include(x => x.AccountId2Navigation).FirstOrDefault(u => u.Id == id);
 
                 if (friend == null)
                 {
@@ -311,11 +303,16 @@ namespace ThinkTank.Service.Services.ImpService
                 }
                 var acc1 = _unitOfWork.Repository<Account>().Find(x => x.Id == friend.AccountId1);
                 var acc2 = _unitOfWork.Repository<Account>().Find(x => x.Id == friend.AccountId2);
+
                 friend.Status = true;
+
                 await _unitOfWork.Repository<Friend>().Update(friend, id);
+
                 if (friend.AccountId2Navigation.Avatar == null)
                     friend.AccountId2Navigation.Avatar = "https://firebasestorage.googleapis.com/v0/b/thinktank-79ead.appspot.com/o/System%2Favatar-trang-4.jpg?alt=media&token=2ab24327-c484-485a-938a-ed30dc3b1688";
+                
                 if (friend.AccountId1Navigation.Status == false) throw new CrudException(HttpStatusCode.BadRequest, "Your account is block", "");
+                
                 #region send noti for account
                 List<string> fcmTokens = new List<string>();
                 if(friend.AccountId1Navigation.Fcm != null)
@@ -345,14 +342,19 @@ namespace ThinkTank.Service.Services.ImpService
                     Description = $"{friend.AccountId2Navigation.FullName}  has agreed to be friends. ",
                     Title = "ThinkTank Community"
                 };
+
                 await _unitOfWork.Repository<Notification>().CreateAsync(notification);
-                await GetBadge(new List<Account> { acc1,acc2},"The friendliest");               
+
+                await GetBadge(new List<Account> { acc1,acc2},"The friendliest");  
+                
                 await _unitOfWork.CommitAsync();
+
                 var rs = _mapper.Map<FriendResponse>(friend);
                 rs.UserName1 = friend.AccountId1Navigation.UserName;
                 rs.UserName2 = friend.AccountId2Navigation.UserName;
                 rs.Avatar1 = friend.AccountId1Navigation.Avatar;
                 rs.Avatar2 = friend.AccountId2Navigation.Avatar;
+
                 return rs;
             }
             catch (CrudException ex)

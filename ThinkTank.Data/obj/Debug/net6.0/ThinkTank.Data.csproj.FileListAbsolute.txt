@@ -40,17 +40,3 @@ C:\Users\ADMIN\Documents\GitHub\SEP490-ThinkTank-BE\ThinkTank.Data\obj\Debug\net
 C:\Users\ADMIN\Documents\GitHub\SEP490-ThinkTank-BE\ThinkTank.Data\obj\Debug\net6.0\ThinkTank.Data.pdb
 C:\Users\ADMIN\Documents\GitHub\SEP490-ThinkTank-BE\ThinkTank.Data\obj\Debug\net6.0\ThinkTank.Data.genruntimeconfig.cache
 C:\Users\ADMIN\Documents\GitHub\SEP490-ThinkTank-BE\ThinkTank.Data\obj\Debug\net6.0\ref\ThinkTank.Data.dll
-D:\SEP490-ThinkTank-BE\ThinkTank.Data\bin\Debug\net6.0\ThinkTank.Data.deps.json
-D:\SEP490-ThinkTank-BE\ThinkTank.Data\bin\Debug\net6.0\ThinkTank.Data.runtimeconfig.json
-D:\SEP490-ThinkTank-BE\ThinkTank.Data\bin\Debug\net6.0\ThinkTank.Data.dll
-D:\SEP490-ThinkTank-BE\ThinkTank.Data\bin\Debug\net6.0\ThinkTank.Data.pdb
-D:\SEP490-ThinkTank-BE\ThinkTank.Data\obj\Debug\net6.0\ThinkTank.Data.csproj.AssemblyReference.cache
-D:\SEP490-ThinkTank-BE\ThinkTank.Data\obj\Debug\net6.0\ThinkTank.Data.GeneratedMSBuildEditorConfig.editorconfig
-D:\SEP490-ThinkTank-BE\ThinkTank.Data\obj\Debug\net6.0\ThinkTank.Data.AssemblyInfoInputs.cache
-D:\SEP490-ThinkTank-BE\ThinkTank.Data\obj\Debug\net6.0\ThinkTank.Data.AssemblyInfo.cs
-D:\SEP490-ThinkTank-BE\ThinkTank.Data\obj\Debug\net6.0\ThinkTank.Data.csproj.CoreCompileInputs.cache
-D:\SEP490-ThinkTank-BE\ThinkTank.Data\obj\Debug\net6.0\ThinkTank.Data.dll
-D:\SEP490-ThinkTank-BE\ThinkTank.Data\obj\Debug\net6.0\refint\ThinkTank.Data.dll
-D:\SEP490-ThinkTank-BE\ThinkTank.Data\obj\Debug\net6.0\ThinkTank.Data.pdb
-D:\SEP490-ThinkTank-BE\ThinkTank.Data\obj\Debug\net6.0\ThinkTank.Data.genruntimeconfig.cache
-D:\SEP490-ThinkTank-BE\ThinkTank.Data\obj\Debug\net6.0\ref\ThinkTank.Data.dll

@@ -19,9 +19,16 @@
             <param name="id"></param>
             <returns></returns>
         </member>
-        <member name="M:ThinkTank.API.Controllers.AccountIn1vs1sController.CreateAccountIn1vs1(ThinkTank.Service.DTO.Request.CreateAccountIn1vs1Request)">
+        <member name="M:ThinkTank.API.Controllers.AccountIn1vs1sController.CreateAccountIn1vs1(ThinkTank.Service.DTO.Request.CreateAndUpdateAccountIn1vs1Request)">
             <summary>
             Create Account In 1vs1
+            </summary>
+            <param name="request"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ThinkTank.API.Controllers.AccountIn1vs1sController.UpdateAccountIn1vs1(ThinkTank.Service.DTO.Request.CreateAndUpdateAccountIn1vs1Request)">
+            <summary>
+            Update Account In 1vs1
             </summary>
             <param name="request"></param>
             <returns></returns>
@@ -44,9 +51,9 @@
               <param name="accountId2"></param>
             <returns></returns>
         </member>
-        <member name="M:ThinkTank.API.Controllers.AccountIn1vs1sController.RemoveAccountFromCache(System.Int32,System.Int32,System.Int32,System.String,System.Int32)">
+        <member name="M:ThinkTank.API.Controllers.AccountIn1vs1sController.RemoveAccountFromQueue(System.Int32,System.Int32,System.Int32,System.String,System.Int32)">
             <summary>
-            Remove Account From Cache
+            Remove Account From Queue
             </summary>
             <param name="accountId"></param>
             <param name="gameId"></param>
@@ -64,6 +71,14 @@
             <param name="progressTime"></param>
             <returns></returns>
         </member>
+        <member name="M:ThinkTank.API.Controllers.AccountIn1vs1sController.RemoveRoom1vs1InRealtimeDatabase(System.String,System.Int32)">
+            <summary>
+            Remove Room In 1vs1 In Real-time Database
+            </summary>
+            <param name="delayTime"></param>
+            <param name="roomOfAccount1vs1Id"></param>
+            <returns></returns>
+        </member>
         <member name="M:ThinkTank.API.Controllers.AccountInContestsController.GetAccountInContests(ThinkTank.Service.DTO.Request.PagingRequest,ThinkTank.Service.DTO.Request.AccountInContestRequest)">
             <summary>
             Get list of account in contest 
@@ -72,7 +87,7 @@
             <param name="accountInContestRequest"></param>
             <returns></returns>
         </member>
-        <member name="M:ThinkTank.API.Controllers.AccountInContestsController.CreateAccountInContest(ThinkTank.Service.DTO.Request.CreateAndUpdateAccountInContestRequest)">
+        <member name="M:ThinkTank.API.Controllers.AccountInContestsController.CreateAccountInContest(ThinkTank.Service.DTO.Request.CreateAccountInContestRequest)">
             <summary>
             Create Account In Contest
             </summary>
@@ -86,7 +101,7 @@
             <param name="id"></param>
             <returns></returns>
         </member>
-        <member name="M:ThinkTank.API.Controllers.AccountInContestsController.UpdateAccountInContest(ThinkTank.Service.DTO.Request.CreateAndUpdateAccountInContestRequest)">
+        <member name="M:ThinkTank.API.Controllers.AccountInContestsController.UpdateAccountInContest(ThinkTank.Service.DTO.Request.UpdateAccountInContestRequest)">
             <summary>
             Update Account In Contest
             </summary>
@@ -160,11 +175,13 @@
             <param name="model"></param>
             <returns></returns>
         </member>
-        <member name="M:ThinkTank.API.Controllers.AccountsController.GetIdToLogin(ThinkTank.Service.DTO.Request.LoginRequest,System.String)">
+        <member name="M:ThinkTank.API.Controllers.AccountsController.GetAccountToLogin(System.String,System.String,System.String)">
             <summary>
-            Check Login of user
+            Get account to login
             </summary>
-            <param name="model"></param>
+            <param name="username"></param>
+            <param name="password"></param>
+            <param name="googleId"></param>
             <returns></returns>
         </member>
         <member name="M:ThinkTank.API.Controllers.AccountsController.LoginAdmin(ThinkTank.Service.DTO.Request.LoginRequest)">
@@ -582,6 +599,14 @@
             <param name="accountId"></param>
             <param name="roomCode"></param>
             <param name="time"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ThinkTank.API.Controllers.RoomsController.RemoveRoomPartyInRealtimeDatabase(System.String,System.Int32)">
+            <summary>
+            Remove Room Party In Real-time Database
+            </summary>
+            <param name="delayTime"></param>
+            <param name="roomCode"></param>
             <returns></returns>
         </member>
         <member name="M:ThinkTank.API.Controllers.TopicsController.GetTopics(ThinkTank.Service.DTO.Request.PagingRequest,ThinkTank.Service.DTO.Request.TopicRequest)">

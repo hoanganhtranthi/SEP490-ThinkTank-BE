@@ -7,7 +7,7 @@ namespace ThinkTank.Data.Entities
     {
         public int Id { get; set; }
         public DateTime StartTime { get; set; }
-        public DateTime EndTime { get; set; }
+        public DateTime? EndTime { get; set; }
         public int Coin { get; set; }
         public int WinnerId { get; set; }
         public int AccountId1 { get; set; }

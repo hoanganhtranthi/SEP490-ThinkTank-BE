@@ -1,13 +1,6 @@
 ﻿using AutoMapper;
 using Microsoft.EntityFrameworkCore;
-using Newtonsoft.Json.Serialization;
-using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Net;
-using System.Text;
-using System.Threading.Tasks;
 using ThinkTank.Data.Entities;
 using ThinkTank.Data.UnitOfWork;
 using ThinkTank.Service.DTO.Request;
@@ -45,10 +38,12 @@ namespace ThinkTank.Service.Services.ImpService
                 
                 var topic = _unitOfWork.Repository<Topic>().GetAll().AsNoTracking()
                     .Include(a=>a.Game).SingleOrDefault(a => a.Id == createRoomRequest.TopicId);
+
                 if (topic == null)
                 {
                     throw new CrudException(HttpStatusCode.NotFound, $"Topic Id {createRoomRequest.TopicId} Not Found!!!!!", "");
                 }
+                
                 
                 if (room.AmountPlayer < 2 || room.AmountPlayer > 8)
                     throw new CrudException(HttpStatusCode.BadRequest, "Amout Player Is Invalid", "");
@@ -82,9 +77,9 @@ namespace ThinkTank.Service.Services.ImpService
 
                 var accountInRoomResponse = _mapper.Map<AccountInRoomResponse>(accountInRoom);
                 accountInRoomResponse.Avatar = account.Avatar;
+                accountInRoomResponse.Username = account.UserName;
                 rs.AccountInRoomResponses = new List<AccountInRoomResponse>();
                 rs.AccountInRoomResponses.Add(accountInRoomResponse);
-                accountInRoomResponse.Username = account.UserName;
                
                 return rs;
             }
@@ -114,6 +109,7 @@ namespace ThinkTank.Service.Services.ImpService
                 
                 List<AccountInRoom> list = new List<AccountInRoom>();
                 list = room.AccountInRooms.ToList();
+
                 foreach (var accountInRoom in createAccountInRoomRequests)
                 {
                     if (accountInRoom.AccountId <= 0 || accountInRoom.Duration < 0 || accountInRoom.Mark < 0 || accountInRoom.PieceOfInformation < 0)
@@ -186,7 +182,7 @@ namespace ThinkTank.Service.Services.ImpService
                 IList<LeaderboardResponse> responses = new List<LeaderboardResponse>();
                 if (room.AccountInRooms.Count() > 0)
                 {
-                    var orderedAccounts = room.AccountInRooms.Where(x=>x.Mark>0).OrderByDescending(x => x.Mark);
+                    var orderedAccounts = room.AccountInRooms.OrderByDescending(x => x.Mark);
                     var rank = 1;
 
                     foreach (var account in orderedAccounts)
@@ -492,6 +488,7 @@ namespace ThinkTank.Service.Services.ImpService
                 rs.TopicName = room.Topic.Name;
                 rs.GameName = room.Topic.Game.Name;
                 rs.AccountInRoomResponses = _mapper.Map<List<AccountInRoomResponse>>(room.AccountInRooms);
+
                 foreach (var acc in rs.AccountInRoomResponses)
                 {
                     acc.Avatar = _unitOfWork.Repository<Account>().Find(x => x.Id == acc.AccountId).Avatar;
@@ -506,6 +503,41 @@ namespace ThinkTank.Service.Services.ImpService
             catch (Exception ex)
             {
                 throw new CrudException(HttpStatusCode.InternalServerError, "Start Room To Play error!!!!!", ex.Message);
+            }
+        }
+
+        public async Task<bool> RemoveRoomPartyInRealtimeDatabase(string roomCode, int delayTime)
+        {
+            try
+            {
+                if (roomCode == null || roomCode == "" ||delayTime <= 0)
+                {
+                    throw new CrudException(HttpStatusCode.BadRequest, "Information Invalid", "");
+                }
+
+                var room = _unitOfWork.Repository<Room>().GetAll().Include(x => x.Topic).Include(x => x.AccountInRooms)
+                   .Include(x => x.Topic.Game).FirstOrDefault(u => u.Code == roomCode);
+
+                if (room == null)
+                {
+                    throw new CrudException(HttpStatusCode.NotFound, $"Not found room with code {roomCode}", "");
+                }
+
+                var roomRealtimeDatabase = await _firebaseRealtimeDatabaseService.GetAsyncOfFlutterRealtimeDatabase<RoomRealtimeDatabaseResponse>($"room/{roomCode}");
+                Thread.Sleep(delayTime * 1000);
+
+                if (roomRealtimeDatabase == null)
+                    throw new CrudException(HttpStatusCode.BadRequest, $"Room Id {roomCode} has already deleted", "");
+
+                return await _firebaseRealtimeDatabaseService.RemoveDataFlutterRealtimeDatabase($"room/{roomCode}");
+            }
+            catch (CrudException ex)
+            {
+                throw ex;
+            }
+            catch (Exception ex)
+            {
+                throw new CrudException(HttpStatusCode.InternalServerError, "Remove Room To Play error!!!!!", ex.Message);
             }
         }
     }

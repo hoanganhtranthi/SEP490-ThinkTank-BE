@@ -14,5 +14,6 @@ namespace ThinkTank.Service.Services.IService
 
         Task<T> GetAsyncOfFlutterRealtimeDatabase<T>(string key);
         Task SetAsyncOfFlutterRealtimeDatabase<T>(string key, T value);
+        Task<bool> RemoveDataFlutterRealtimeDatabase(string key);
     }
 }

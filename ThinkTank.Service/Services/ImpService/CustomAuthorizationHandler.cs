@@ -42,15 +42,15 @@ namespace ThinkTank.Service.Services.ImpService
 
             try
             {
-
                 var utcExpiredDate = long.Parse(context.User.FindFirst(x => x.Type == JwtRegisteredClaimNames.Exp).Value);
 
                 var expiredDate = DateTimeOffset.FromUnixTimeSeconds(utcExpiredDate).DateTime;
                 if (expiredDate < DateTime.UtcNow)
                 {
 
-                    throw new CrudException(HttpStatusCode.Unauthorized, $"{HttpStatusCode.Unauthorized}",$"{HttpStatusCode.Unauthorized}");
+                    throw new CrudException(HttpStatusCode.Unauthorized, $"{HttpStatusCode.Unauthorized}", $"{HttpStatusCode.Unauthorized}");
                 }
+
                 var role = context.User.FindFirst(ClaimTypes.Role).Value;
                 var versionClaimValue = context.User.FindFirst("version")?.Value;
                 if (string.IsNullOrEmpty(versionClaimValue))

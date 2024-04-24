@@ -1,12 +1,5 @@
 ﻿using AutoMapper;
-using Newtonsoft.Json.Serialization;
-using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Net;
-using System.Text;
-using System.Threading.Tasks;
 using ThinkTank.Data.Entities;
 using ThinkTank.Data.UnitOfWork;
 using ThinkTank.Service.DTO.Request;
@@ -37,7 +30,7 @@ namespace ThinkTank.Service.Services.ImpService
         {
             try
             {
-                if (createAccountInRoomRequest.AccountId <= 0 || createAccountInRoomRequest.Duration < 0 || createAccountInRoomRequest.Mark < 0 || createAccountInRoomRequest.PieceOfInformation < 0)
+                if (createAccountInRoomRequest.AccountId <= 0 || createAccountInRoomRequest.Duration < 0 || createAccountInRoomRequest.Mark < 0 || createAccountInRoomRequest.PieceOfInformation <= 0)
                     throw new CrudException(HttpStatusCode.BadRequest, "Information is invalid", "");
 
                 var a = _unitOfWork.Repository<Account>().Find(a => a.Id == createAccountInRoomRequest.AccountId);
@@ -51,17 +44,19 @@ namespace ThinkTank.Service.Services.ImpService
                 }                
 
                 var room = _unitOfWork.Repository<Room>().Find(x => x.Code == roomCode);
-
                 if (room == null)
                     throw new CrudException(HttpStatusCode.NotFound, $"This room Id {createAccountInRoomRequest.AccountId} is not found !!!", "");
+                
                 var accountInRoom = _unitOfWork.Repository<AccountInRoom>().GetAll().SingleOrDefault(x => x.AccountId == createAccountInRoomRequest.AccountId && x.RoomId == room.Id);
                 if(accountInRoom == null)
                     throw new CrudException(HttpStatusCode.NotFound, $"This account in room Id {createAccountInRoomRequest.AccountId} is not found in room {roomCode}!!!", "");
                 
                 _mapper.Map<CreateAndUpdateAccountInRoomRequest, AccountInRoom>(createAccountInRoomRequest,accountInRoom);
                 accountInRoom.CompletedTime = date;
+
                 await _unitOfWork.Repository<AccountInRoom>().Update(accountInRoom,accountInRoom.Id);
                 await _unitOfWork.CommitAsync();
+
                 var rs = _mapper.Map<AccountInRoomResponse>(accountInRoom);
                 rs.Username = a.UserName;
                 rs.Avatar = a.Avatar;

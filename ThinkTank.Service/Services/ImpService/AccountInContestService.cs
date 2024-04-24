@@ -1,15 +1,8 @@
 ﻿using AutoMapper;
-using AutoMapper.QueryableExtensions;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json.Serialization;
 using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Net;
-using System.Text;
-using System.Threading.Tasks;
 using ThinkTank.Data.Entities;
 using ThinkTank.Data.UnitOfWork;
 using ThinkTank.Service.DTO.Request;
@@ -18,8 +11,6 @@ using ThinkTank.Service.Exceptions;
 using ThinkTank.Service.Helpers;
 using ThinkTank.Service.Services.IService;
 using ThinkTank.Service.Utilities;
-using System.Security.Principal;
-using Firebase.Auth;
 
 namespace ThinkTank.Service.Services.ImpService
 {
@@ -38,11 +29,11 @@ namespace ThinkTank.Service.Services.ImpService
             _mapper = mapper;
             _firebaseMessagingService = firebaseMessagingService;
         }
-        public async Task<AccountInContestResponse> CreateAccountInContest(CreateAndUpdateAccountInContestRequest request)
+        public async Task<AccountInContestResponse> CreateAccountInContest(CreateAccountInContestRequest request)
         {
             try
             {
-                if (request.ContestId <= 0 || request.AccountId <= 0 || request.Duration < 0 || request.Mark < 0)
+                if (request.ContestId <= 0 || request.AccountId <= 0 )
                     throw new CrudException(HttpStatusCode.BadRequest, "Information is invalid", "");
 
                 var acc = _unitOfWork.Repository<Account>().Find(a => a.Id == request.AccountId);
@@ -54,7 +45,8 @@ namespace ThinkTank.Service.Services.ImpService
                 {
                     throw new CrudException(HttpStatusCode.BadRequest, $"Account Id {request.AccountId} Not Available!!!!!", "");
                 }
-                var contest=_unitOfWork.Repository<Contest>().Find(x=>x.Id==request.ContestId);
+
+                var contest=_unitOfWork.Repository<Contest>().Find(x=>x.Id== request.ContestId);
                 if(contest == null)
                     throw new CrudException(HttpStatusCode.NotFound, $"Contest Id {request.ContestId} Not Found!!!!!", "");
 
@@ -63,7 +55,7 @@ namespace ThinkTank.Service.Services.ImpService
 
                 acc.Coin -= contest.CoinBetting;
 
-                var accountInContest = _mapper.Map<AccountInContest>(request);
+                var accountInContest = new AccountInContest();
                 accountInContest.AccountId = acc.Id;
                 accountInContest.ContestId = request.ContestId;
                 accountInContest.Contest = contest;
@@ -87,7 +79,7 @@ namespace ThinkTank.Service.Services.ImpService
             }
             catch (Exception ex)
             {
-                throw new CrudException(HttpStatusCode.InternalServerError, "Minus coin of account error!!!", ex?.Message);
+                throw new CrudException(HttpStatusCode.InternalServerError, "Create account in contest error!!!", ex?.Message);
             }
         }
         private async Task<List<Badge>> GetListBadgesCompleted(Account account)
@@ -104,7 +96,7 @@ namespace ThinkTank.Service.Services.ImpService
             }
             return result;
         }
-        public async Task<AccountInContestResponse> UpdateAccountInContest(CreateAndUpdateAccountInContestRequest request)
+        public async Task<AccountInContestResponse> UpdateAccountInContest(UpdateAccountInContestRequest request)
         {
             try
             {
@@ -138,7 +130,7 @@ namespace ThinkTank.Service.Services.ImpService
                     throw new CrudException(HttpStatusCode.BadRequest, "Contest Not Available!!!!!", "");
                 }
 
-                 _mapper.Map<CreateAndUpdateAccountInContestRequest, AccountInContest>(request,accountInContest);
+                 _mapper.Map<UpdateAccountInContestRequest, AccountInContest>(request,accountInContest);
                 accountInContest.Prize = request.Mark / 10;
                 accountInContest.CompletedTime = date;
                 a.Coin += accountInContest.Prize;
@@ -163,7 +155,7 @@ namespace ThinkTank.Service.Services.ImpService
             }
             catch (Exception ex)
             {
-                throw new CrudException(HttpStatusCode.InternalServerError, "Create Account In Contest Error!!!", ex?.Message);
+                throw new CrudException(HttpStatusCode.InternalServerError, "Update Account In Contest Error!!!", ex?.Message);
             }
         }
         private async Task GetBadge(Account account, string name)
@@ -288,7 +280,7 @@ namespace ThinkTank.Service.Services.ImpService
             }
             catch (CrudException ex)
             {
-                throw new CrudException(HttpStatusCode.InternalServerError, "Get Contest's result list error!!!!!", ex.Message);
+                throw new CrudException(HttpStatusCode.InternalServerError, "Get Account In Contest list error!!!!!", ex.Message);
             }
         }
     }
