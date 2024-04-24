@@ -1,14 +1,8 @@
 ﻿using AutoMapper;
-using Firebase.Auth;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json.Serialization;
 using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Net;
-using System.Text;
-using System.Threading.Tasks;
 using ThinkTank.Data.Entities;
 using ThinkTank.Data.UnitOfWork;
 using ThinkTank.Service.DTO.Request;
@@ -17,9 +11,7 @@ using ThinkTank.Service.Exceptions;
 using ThinkTank.Service.Helpers;
 using ThinkTank.Service.Services.IService;
 using ThinkTank.Service.Utilities;
-using System.Security.Principal;
-using Hangfire;
-using System.Xml.Linq;
+
 
 namespace ThinkTank.Service.Services.ImpService
 {
@@ -44,7 +36,7 @@ namespace ThinkTank.Service.Services.ImpService
         {
             try
             {
-                if (createAchievementRequest.AccountId <= 0 || createAchievementRequest.Duration <= 0 || createAchievementRequest.Level <= 0 || createAchievementRequest.Mark <= 0
+                if (createAchievementRequest.AccountId <= 0 || createAchievementRequest.Duration < 0 || createAchievementRequest.Level <= 0 || createAchievementRequest.Mark < 0
                     || createAchievementRequest.PieceOfInformation <= 0 || createAchievementRequest.GameId <= 0)
                     throw new CrudException(HttpStatusCode.BadRequest, "Information is invalid", "");
 
@@ -73,7 +65,8 @@ namespace ThinkTank.Service.Services.ImpService
                 achievement.Account = account;
                 achievement.Game = game;
                 achievement.CompletedTime = date;
-                
+
+                #region Streak killer badge
                 var gameAchievement = account.Achievements.Where(x => x.GameId == game.Id).ToList();
                 var badge= _unitOfWork.Repository<Badge>().GetAll().Include(x => x.Challenge).SingleOrDefault(x => x.Challenge.Name == "Streak killer" && x.AccountId == account.Id);
                 var number = badge != null && gameAchievement.Count() > 3 ? badge.CompletedLevel * 3 : 0;
@@ -84,27 +77,34 @@ namespace ThinkTank.Service.Services.ImpService
                     if (createAchievementRequest.Level != twoLastAchievement.LastOrDefault().Level && createAchievementRequest.Mark > 0 && areConsecutive && twoLastAchievement.Last().Level + 1 == createAchievementRequest.Level)
                             await GetBadge(account, "Streak killer");
                 }
+                #endregion
 
+                #region The Breaker badge
                 var highScore = account.Achievements.Where(x => x.AccountId == account.Id && x.Level == achievement.Level && x.GameId == game.Id).OrderByDescending(x => x.Mark).FirstOrDefault();
                 if (highScore != null && createAchievementRequest.Mark > highScore.Mark)
                        await GetBadge(account, "The Breaker");
+                #endregion
 
-                await _unitOfWork.Repository<Achievement>().CreateAsync(achievement);
+                await _unitOfWork.Repository<Achievement>().CreateAsync(achievement);              
 
-                
-                var leaderboard = GetLeaderboard(createAchievementRequest.GameId).Result;
-                var top1 = leaderboard.FirstOrDefault();
-
+                #region Fast and Furious badge
                 if (createAchievementRequest.Duration < 20)
                 {
                     if (!gameAchievement.Where(x => x.Level == createAchievementRequest.Level).Any())
                             await GetBadge(account, "Fast and Furious");
                 }
+                #endregion
 
+                #region Legend badge
+                var leaderboard = GetLeaderboard(createAchievementRequest.GameId).Result;
+                var top1 = leaderboard.FirstOrDefault();
                 var acc = leaderboard.SingleOrDefault(x => x.AccountId == account.Id);
                 if ( leaderboard.Count() > 10 && (acc != null && acc.Mark + createAchievementRequest.Mark >= top1?.Mark))
                         await GetBadge(account, "Legend");
+                #endregion
 
+
+                #region Plow Lord Badge
                 var list = new List<Achievement>();
                 foreach (var achievementOfAccount in account.Achievements)
                 {
@@ -117,6 +117,7 @@ namespace ThinkTank.Service.Services.ImpService
                 }
                 if (account.Achievements.Count(x => x.GameId == createAchievementRequest.GameId && x.Level == 10) == 1)
                         await  GetPlowLordBadge(account, list);
+                #endregion
 
                 await _unitOfWork.CommitAsync();
                 var rs = _mapper.Map<AchievementResponse>(achievement);
@@ -290,7 +291,7 @@ namespace ThinkTank.Service.Services.ImpService
             }
             catch (Exception ex)
             {
-                throw new CrudException(HttpStatusCode.InternalServerError, "Get Achievement By ID Error!!!", ex.InnerException?.Message);
+                throw new CrudException(HttpStatusCode.InternalServerError, "Get achievement by ID error!!!", ex.InnerException?.Message);
             }
         }
 
@@ -412,6 +413,7 @@ namespace ThinkTank.Service.Services.ImpService
 
                 IList<LeaderboardResponse> responses = new List<LeaderboardResponse>();
                 List<Achievement> achievementsList = new List<Achievement>();
+
                 if (achievements.Count() > 0)
                 {
                      achievementsList = achievements

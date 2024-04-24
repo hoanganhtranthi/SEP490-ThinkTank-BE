@@ -1,17 +1,18 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using ThinkTank.Data.Entities;
+﻿
+
+using System.ComponentModel.DataAnnotations;
 
 namespace ThinkTank.Service.DTO.Request
 {
     public class CreateRoomRequest
     {
+        [Required]
         public string Name { get; set; }
+        [Required]
         public int AmountPlayer { get; set; }
+        [Required]
         public int TopicId { get; set; }
+        [Required]
         public int AccountId { get; set; }
     }
 }

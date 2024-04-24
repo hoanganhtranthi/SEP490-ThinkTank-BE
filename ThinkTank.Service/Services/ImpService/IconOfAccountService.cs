@@ -33,7 +33,7 @@ namespace ThinkTank.Service.Services.ImpService
         {
             try
             {
-                if(createIconRequest.AccountId <=0 || createIconRequest.IconId <=0)
+                if(createIconRequest.AccountId <=0 || createIconRequest.IconId <=0 || createIconRequest.AccountId ==null || createIconRequest.IconId==null)
                     throw new CrudException(HttpStatusCode.BadRequest, "Information is invalid", "");
 
                 IconOfAccount iconOfAccount = _unitOfWork.Repository<IconOfAccount>()

@@ -1,9 +1,5 @@
 ﻿
-using StackExchange.Redis;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
+
 using ThinkTank.Service.DTO.Response;
 using static ThinkTank.Service.Helpers.Enum;
 

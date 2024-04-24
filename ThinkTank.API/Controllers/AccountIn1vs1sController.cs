@@ -2,7 +2,6 @@
 using Microsoft.AspNetCore.Mvc;
 using ThinkTank.Service.DTO.Request;
 using ThinkTank.Service.DTO.Response;
-using ThinkTank.Service.Services.ImpService;
 using ThinkTank.Service.Services.IService;
 
 namespace ThinkTank.API.Controllers
@@ -50,9 +49,21 @@ namespace ThinkTank.API.Controllers
         /// <returns></returns>
         [Authorize(Policy = "Player")]
         [HttpPost]
-        public async Task<ActionResult<AccountIn1vs1Response>> CreateAccountIn1vs1([FromBody] CreateAccountIn1vs1Request request)
+        public async Task<ActionResult<AccountIn1vs1Response>> CreateAccountIn1vs1([FromBody] CreateAndUpdateAccountIn1vs1Request request)
         {
             var rs = await _accountIn1Vs1Service.CreateAccount1vs1(request);
+            return Ok(rs);
+        }
+        /// <summary>
+        /// Update Account In 1vs1
+        /// </summary>
+        /// <param name="request"></param>
+        /// <returns></returns>
+        [Authorize(Policy = "Player")]
+        [HttpPut]
+        public async Task<ActionResult<AccountIn1vs1Response>> UpdateAccountIn1vs1([FromBody] CreateAndUpdateAccountIn1vs1Request request)
+        {
+            var rs = await _accountIn1Vs1Service.UpdateAccount1vs1(request);
             return Ok(rs);
         }
         /// <summary>
@@ -62,7 +73,7 @@ namespace ThinkTank.API.Controllers
         /// <param name="gameId"></param>
         /// <param name="coin"></param>
         ///<returns></returns>
-       [Authorize(Policy = "Player")]
+        [Authorize(Policy = "Player")]
         [HttpGet("{accountId:int},{gameId:int},{coin:int}/opponent-of-account")]
         public async Task<ActionResult<dynamic>> FindAccountIn1vs1( int accountId,  int gameId,  int coin)
         {
@@ -84,7 +95,7 @@ namespace ThinkTank.API.Controllers
             return Ok(rs);
         }
         /// <summary>
-        /// Remove Account From Cache
+        /// Remove Account From Queue
         /// </summary>
         /// <param name="accountId"></param>
         /// <param name="gameId"></param>
@@ -93,9 +104,9 @@ namespace ThinkTank.API.Controllers
         /// <returns></returns>
         [Authorize(Policy = "Player")]
         [HttpGet("{accountId:int},{gameId:int},{coin:int},{roomOfAccount1vs1Id},{delay:int}/account-removed")]
-        public async Task<ActionResult<bool>> RemoveAccountFromCache(int accountId,  int gameId,  int coin, string roomOfAccount1vs1Id, int delay)
+        public async Task<ActionResult<bool>> RemoveAccountFromQueue(int accountId,  int gameId,  int coin, string roomOfAccount1vs1Id, int delay)
         {
-            var rs = await _accountIn1Vs1Service.RemoveAccountFromCache(accountId, coin, gameId,roomOfAccount1vs1Id,delay);
+            var rs = await _accountIn1Vs1Service.RemoveAccountFromQueue(accountId, coin, gameId,roomOfAccount1vs1Id,delay);
             return Ok(rs);
         }
         /// <summary>
@@ -111,6 +122,19 @@ namespace ThinkTank.API.Controllers
         public async Task<ActionResult<bool>> GetToStartRoom(string room1vs1Id, bool isUser1, int time, int progressTime)
         {
             var rs = await _accountIn1Vs1Service.GetToStartRoom(room1vs1Id, isUser1, time, progressTime);
+            return Ok(rs);
+        }
+        /// <summary>
+        /// Remove Room In 1vs1 In Real-time Database
+        /// </summary>
+        /// <param name="delayTime"></param>
+        /// <param name="roomOfAccount1vs1Id"></param>
+        /// <returns></returns>
+        [Authorize(Policy = "Player")]
+        [HttpGet("{delayTime:int},{roomOfAccount1vs1Id}/room-1vs1-removed")]
+        public async Task<ActionResult<bool>> RemoveRoom1vs1InRealtimeDatabase(string roomOfAccount1vs1Id, int delayTime)
+        {
+            var rs = await _accountIn1Vs1Service.RemoveRoom1vs1InRealtimeDatabase(roomOfAccount1vs1Id, delayTime);
             return Ok(rs);
         }
     }

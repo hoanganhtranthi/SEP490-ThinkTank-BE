@@ -17,6 +17,7 @@ namespace ThinkTank.Service.Services.IService
         Task<RoomResponse> DeleteRoom(int roomId, int accountId);      
         Task<RoomResponse> LeaveRoom(int roomId, int accountId);
         Task<RoomResponse> GetToStartRoom(string roomCode, int accountId, int time);
+        Task<bool> RemoveRoomPartyInRealtimeDatabase(string roomCode, int delayTime);
         Task<RoomResponse> UpdateRoom(string roomCode, List<CreateAndUpdateAccountInRoomRequest> createAccountInRoomRequests);
     }
 }

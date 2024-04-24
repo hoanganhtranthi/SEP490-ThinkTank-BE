@@ -19,17 +19,8 @@ using ThinkTank.Service.Exceptions;
 using ThinkTank.Service.Helpers;
 using ThinkTank.Service.Services.IService;
 using ThinkTank.Service.Utilities;
-using Hangfire.Storage;
 using Microsoft.EntityFrameworkCore;
-using static System.Net.Mime.MediaTypeNames;
-using System.Threading;
-using Repository.Extensions;
-using OpenAI_API.Moderation;
-using System.Runtime.ConstrainedExecution;
-using static Google.Apis.Requests.BatchRequest;
-using FirebaseAdmin.Messaging;
 using Notification = ThinkTank.Data.Entities.Notification;
-using System.Net.NetworkInformation;
 
 namespace ThinkTank.Service.Services.ImpService
 {
@@ -69,11 +60,13 @@ namespace ThinkTank.Service.Services.ImpService
                 {
                     throw new CrudException(HttpStatusCode.BadRequest, "Contest has already !!!", "");
                 }
+
                 var game = _unitOfWork.Repository<Game>().Find(s => s.Id == createContestRequest.GameId);
                 if (game == null)
                 {
                     throw new CrudException(HttpStatusCode.NotFound, $"Game {createContestRequest.GameId} not found !!!", "");
                 }
+
                 if (contest.StartTime > contest.EndTime || createContestRequest.StartTime < date || createContestRequest.EndTime < date)
                 {
                     throw new CrudException(HttpStatusCode.BadRequest, "Start Time or End Time is invalid", "");
@@ -105,6 +98,7 @@ namespace ThinkTank.Service.Services.ImpService
                             throw new CrudException(HttpStatusCode.BadRequest, "Information is invalid", "");
 
                     var asset = _mapper.Map<CreateAssetOfContestRequest, AssetOfContest>(type);
+
                     var t = _unitOfWork.Repository<TypeOfAssetInContest>().Find(t => t.Id == type.TypeOfAssetId);
                     if (t == null)
                     {
@@ -172,6 +166,7 @@ namespace ThinkTank.Service.Services.ImpService
                 await _unitOfWork.Repository<Contest>().CreateAsync(contest);
                 await _unitOfWork.CommitAsync();
 
+                #region set background service 
                 var startId = BackgroundJob.Schedule(() =>
                   SendNotification(contest.Id),
                  contest.StartTime.Subtract(date));
@@ -180,8 +175,9 @@ namespace ThinkTank.Service.Services.ImpService
 
                 var endId = BackgroundJob.Schedule(() =>
                   UpdateStateContest(contest.Id),
-                          contest.EndTime.Subtract(date));
+                         contest.EndTime.Subtract(date));
                await firebaseRealtimeDatabaseService.SetAsync<string>($"Contest{contest.Id}JobIdEndTime", endId);
+                #endregion
 
                 return _mapper.Map<ContestResponse>(contest);
             }
@@ -278,7 +274,8 @@ namespace ThinkTank.Service.Services.ImpService
                 }
 
                 await _unitOfWork.Repository<Contest>().Update(contest, id);
-                #region send noti for account
+
+                #region send noti for all accounts take part in contest
                 var accounts = _unitOfWork.Repository<AccountInContest>().GetAll().Include(a => a.Account).Where(a => a.ContestId == contest.Id && a.Account.Status==true).ToList();
                 var data = new Dictionary<string, string>()
                 {
@@ -338,9 +335,11 @@ namespace ThinkTank.Service.Services.ImpService
 
                     account.Coin =account.Coin+reward;
                     await _unitOfWork.Repository<Account>().Update(account, account.Id);
+
                     fcmTokens.Clear();
                     if (account.Status == true)
                     {
+                        #region send notification top 3
                         if (account.Fcm != null)
                             fcmTokens.Add(account.Fcm);
                         if (fcmTokens.Any())
@@ -364,6 +363,8 @@ namespace ThinkTank.Service.Services.ImpService
                         };
 
                         await _unitOfWork.Repository<Notification>().CreateAsync(notification);
+                        #endregion
+
                         await GetBadge(account, "The Tycoon");
                     }
                 }
@@ -680,7 +681,7 @@ namespace ThinkTank.Service.Services.ImpService
                 if (request.StartTime > request.EndTime)
                     throw new CrudException(HttpStatusCode.BadRequest, "Start Time or End Time is invalid", "");
 
-                if (contest.StartTime <= date)
+                if (contest.StartTime <= date || request.StartTime < date || request.EndTime < date)
                     throw new CrudException(HttpStatusCode.BadRequest, "The contest has already started and you cannot update it", "");
 
                 var startJob = firebaseRealtimeDatabaseService.GetAsync<string>($"Contest{contest.Id}JobIdStartTime").Result;
@@ -709,7 +710,7 @@ namespace ThinkTank.Service.Services.ImpService
 
                 await  _unitOfWork.Repository<AssetOfContest>().DeleteRange(contest.AssetOfContests.ToArray());
 
-                List<AssetOfContestResponse> result = new List<AssetOfContestResponse>();
+
                 List<AssetOfContest> list = new List<AssetOfContest>();
 
                 foreach (var assetOfContestRequest in request.Assets)
@@ -768,7 +769,7 @@ namespace ThinkTank.Service.Services.ImpService
                         }
                     }
 
-                    var existingAsset = _unitOfWork.Repository<AssetOfContest>().Find(s => s.Value.Equals(assetOfContestRequest.Value));
+                    var existingAsset = _unitOfWork.Repository<AssetOfContest>().Find(s => s.Value.Equals(assetOfContestRequest.Value) && s.ContestId!=contestId);
                     if (existingAsset != null)
                     {
                         throw new CrudException(HttpStatusCode.BadRequest, "This resource has already !!!", "");
@@ -779,7 +780,6 @@ namespace ThinkTank.Service.Services.ImpService
                     assetOfContest.Value = assetOfContestRequest.Value;
                     assetOfContest.TypeOfAssetId = assetOfContestRequest.TypeOfAssetId;
                     assetOfContest.ContestId = contest.Id;
-                    await _unitOfWork.Repository<AssetOfContest>().CreateAsync(assetOfContest);
                     AssetOfContestResponse response = new AssetOfContestResponse();
                     response.Id = assetOfContest.Id;
                     response.Value = assetOfContest.Value;
@@ -787,7 +787,6 @@ namespace ThinkTank.Service.Services.ImpService
                     response.Type = typeOfAsset.Type;
                     list.Add(assetOfContest);
                     contest.AssetOfContests = list;
-                    result.Add(response);
                 }
 
                 contest.Thumbnail = request.Thumbnail != null && request.Thumbnail != "" ? request.Thumbnail : contest.Thumbnail;
@@ -797,7 +796,7 @@ namespace ThinkTank.Service.Services.ImpService
                 await _unitOfWork.Repository<Contest>().Update(contest, contestId);
                 await _unitOfWork.CommitAsync();
 
-                var startId = BackgroundJob.Schedule(() =>
+                 var startId = BackgroundJob.Schedule(() =>
                   SendNotification(contest.Id),
                  contest.StartTime.Subtract(date));
 

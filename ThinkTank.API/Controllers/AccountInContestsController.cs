@@ -40,7 +40,7 @@ namespace ThinkTank.API.Controllers
         /// <returns></returns>
         [Authorize(Policy = "Player")]
         [HttpPost()]
-        public async Task<ActionResult<AccountInContestResponse>> CreateAccountInContest([FromBody] CreateAndUpdateAccountInContestRequest request)
+        public async Task<ActionResult<AccountInContestResponse>> CreateAccountInContest([FromBody] CreateAccountInContestRequest request)
         {
             var rs = await _accountInContestService.CreateAccountInContest(request);
             return Ok(rs);
@@ -65,7 +65,7 @@ namespace ThinkTank.API.Controllers
         /// <returns></returns>
        [Authorize(Policy = "Player")]
         [HttpPut]
-        public async Task<ActionResult<AccountInContestResponse>> UpdateAccountInContest([FromBody] CreateAndUpdateAccountInContestRequest request)
+        public async Task<ActionResult<AccountInContestResponse>> UpdateAccountInContest([FromBody] UpdateAccountInContestRequest request)
         {
             var rs = await _accountInContestService.UpdateAccountInContest(request);
             return Ok(rs);

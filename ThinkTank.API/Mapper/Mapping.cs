@@ -1,10 +1,6 @@
 ﻿
 using AutoMapper;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+
 using ThinkTank.Data.Entities;
 using ThinkTank.Service.DTO.Request;
 using ThinkTank.Service.DTO.Response;
@@ -83,12 +79,12 @@ namespace MuTote.API.Mapper
             CreateMap<AccountInContestRequest, AccountInContest>();
             CreateMap<AccountInContest, AccountInContestResponse>();
             CreateMap<AccountInContestRequest, AccountInContestResponse>();
-            CreateMap<CreateAndUpdateAccountInContestRequest, AccountInContest>();
+            CreateMap<UpdateAccountInContestRequest, AccountInContest>();
 
             CreateMap<AccountIn1vs1Request, AccountIn1vs1>();
             CreateMap<AccountIn1vs1, AccountIn1vs1Response>();
             CreateMap<AccountIn1vs1Request, AccountIn1vs1Response>();
-            CreateMap<CreateAccountIn1vs1Request, AccountIn1vs1>();
+            CreateMap<CreateAndUpdateAccountIn1vs1Request, AccountIn1vs1>();
 
             CreateMap<CreateAssetOfContestRequest, AssetOfContest>();
             CreateMap<AssetOfContest, AssetOfContestResponse>().ReverseMap();

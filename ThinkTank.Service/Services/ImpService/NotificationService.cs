@@ -1,12 +1,6 @@
 ﻿using AutoMapper;
-using AutoMapper.QueryableExtensions;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Net;
-using System.Text;
-using System.Threading.Tasks;
 using ThinkTank.Data.Entities;
 using ThinkTank.Data.UnitOfWork;
 using ThinkTank.Service.DTO.Request;
@@ -90,7 +84,7 @@ namespace ThinkTank.Service.Services.ImpService
             {
                 if (id <= 0)
                 {
-                    throw new CrudException(HttpStatusCode.BadRequest, "Id Notificationship Invalid", "");
+                    throw new CrudException(HttpStatusCode.BadRequest, "Id Notification Invalid", "");
                 }
 
                 var notification = _unitOfWork.Repository<Notification>().GetAll()
@@ -98,7 +92,7 @@ namespace ThinkTank.Service.Services.ImpService
 
                 if (notification == null)
                 {
-                    throw new CrudException(HttpStatusCode.NotFound, $"Not found notificationship with id{id.ToString()}", "");
+                    throw new CrudException(HttpStatusCode.NotFound, $"Not found notification with id{id}", "");
                 }
 
                 notification.Status = true;
@@ -127,14 +121,14 @@ namespace ThinkTank.Service.Services.ImpService
                 {
                     if (id <= 0)
                     {
-                        throw new CrudException(HttpStatusCode.BadRequest, "Id Notificationship Invalid", "");
+                        throw new CrudException(HttpStatusCode.BadRequest, "Id Notification Invalid", "");
                     }
                     var notification = _unitOfWork.Repository<Notification>().GetAll()
                         .Include(x => x.Account).FirstOrDefault(u => u.Id == id);
 
                     if (notification == null)
                     {
-                        throw new CrudException(HttpStatusCode.NotFound, $"Not found notificationship with id{id}", "");
+                        throw new CrudException(HttpStatusCode.NotFound, $"Not found notification with id{id}", "");
                     }
 
                     _unitOfWork.Repository<Notification>().Delete(notification);

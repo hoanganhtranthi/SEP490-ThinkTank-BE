@@ -3,16 +3,7 @@ using FireSharp.Config;
 using FireSharp.Interfaces;
 using FireSharp.Response;
 using Microsoft.Extensions.Configuration;
-using StackExchange.Redis;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Text.Json;
-using System.Threading.Tasks;
-using ThinkTank.Data.Entities;
 using ThinkTank.Service.Services.IService;
-using static Google.Apis.Requests.BatchRequest;
 
 namespace ThinkTank.Service.Services.ImpService
 {
@@ -80,6 +71,21 @@ namespace ThinkTank.Service.Services.ImpService
         public async Task SetAsyncOfFlutterRealtimeDatabase<T>(string key, T value)
         {
             await clientOfFlutterRealtimeDatabase.SetAsync<T>(key, value);
+        }
+
+        public async Task<bool> RemoveDataFlutterRealtimeDatabase(string key)
+        {
+            var _exist = await clientOfFlutterRealtimeDatabase.GetAsync(key);
+            Console.WriteLine(_exist.ToString());
+            if (_exist.Body != "null")
+            {
+                await clientOfFlutterRealtimeDatabase.DeleteAsync(key);
+                return true;
+            }
+            else
+            {
+                return false;
+            }
         }
     }
 }

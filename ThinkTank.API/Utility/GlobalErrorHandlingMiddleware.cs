@@ -1,6 +1,4 @@
 ﻿
-
-using System.Net;
 using System.Text.Json;
 using ThinkTank.Service.Exceptions;
 
@@ -25,6 +23,7 @@ namespace MuTote.API.Utility
                 error = message,
                 stackTrace
             });
+
             context.Response.ContentType = "application/json";
             context.Response.StatusCode = (int)status;
             return context.Response.WriteAsync(exceptionResult);

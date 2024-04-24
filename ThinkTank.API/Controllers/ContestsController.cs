@@ -2,7 +2,6 @@
 using Microsoft.AspNetCore.Mvc;
 using ThinkTank.Service.DTO.Request;
 using ThinkTank.Service.DTO.Response;
-using ThinkTank.Service.Services.ImpService;
 using ThinkTank.Service.Services.IService;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860

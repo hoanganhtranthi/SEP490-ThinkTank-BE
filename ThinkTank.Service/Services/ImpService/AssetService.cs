@@ -1,11 +1,6 @@
 ﻿using AutoMapper;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Net;
-using System.Text;
-using System.Threading.Tasks;
 using ThinkTank.Data.Entities;
 using ThinkTank.Data.UnitOfWork;
 using ThinkTank.Service.DTO.Request;
@@ -60,7 +55,7 @@ namespace ThinkTank.Service.Services.ImpService
             }
             catch (Exception ex)
             {
-                throw new CrudException(HttpStatusCode.InternalServerError, "Get asset by id Error!!!", ex.InnerException?.Message);
+                throw new CrudException(HttpStatusCode.InternalServerError, "Get asset by id error!!!", ex.InnerException?.Message);
             }
         }
 
@@ -188,6 +183,7 @@ namespace ThinkTank.Service.Services.ImpService
                     rs.GameId = topic.Game.Id;
                     rs.GameName = topic.Game.Name;
                     result.Add(rs);
+
                     await _unitOfWork.Repository<Asset>().CreateAsync(asset);
                     await _unitOfWork.CommitAsync();
                 }
@@ -209,14 +205,14 @@ namespace ThinkTank.Service.Services.ImpService
                 AssetResponse rs = new AssetResponse();
                 List<AssetResponse> result = new List<AssetResponse>();
                 List<Asset> assets = new List<Asset>();
-                foreach (var a in request)
+                foreach (var id in request)
                 {
-                    if (a <= 0)
+                    if (id <= 0)
                         throw new CrudException(HttpStatusCode.BadRequest, "Information is invalid", "");
 
-                    var asset = _unitOfWork.Repository<Asset>().GetAll().Include(x => x.Topic).Include(x => x.Topic.Game).SingleOrDefault(x => x.Id == a);
+                    var asset = _unitOfWork.Repository<Asset>().GetAll().Include(x => x.Topic).Include(x => x.Topic.Game).SingleOrDefault(x => x.Id == id);
                     if (asset == null)
-                        throw new CrudException(HttpStatusCode.NotFound, $"Asset Id {a} is not found","");
+                        throw new CrudException(HttpStatusCode.NotFound, $"Asset Id {id} is not found","");
 
                     asset.Status = false;
 
@@ -239,7 +235,8 @@ namespace ThinkTank.Service.Services.ImpService
                     rs.GameId = asset.Topic.GameId;
                     rs.GameName = asset.Topic.Game.Name;
                     result.Add(rs);
-                    await _unitOfWork.Repository<Asset>().Update(asset,a);
+
+                    await _unitOfWork.Repository<Asset>().Update(asset,id);
                     await _unitOfWork.CommitAsync();
                 }
                 return result;

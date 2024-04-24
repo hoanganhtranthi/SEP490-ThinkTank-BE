@@ -120,5 +120,18 @@ namespace ThinkTank.API.Controllers
             if (rs == null) return NotFound();
             return Ok(rs);
         }
+        /// <summary>
+        /// Remove Room Party In Real-time Database
+        /// </summary>
+        /// <param name="delayTime"></param>
+        /// <param name="roomCode"></param>
+        /// <returns></returns>
+        [Authorize(Policy = "Player")]
+        [HttpGet("{delayTime:int},{roomCode}/room-removed")]
+        public async Task<ActionResult<bool>> RemoveRoomPartyInRealtimeDatabase(string roomCode, int delayTime)
+        {
+            var rs = await _roomService.RemoveRoomPartyInRealtimeDatabase(roomCode,delayTime);
+            return Ok(rs);
+        }
     }
 }

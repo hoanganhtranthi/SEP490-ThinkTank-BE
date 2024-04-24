@@ -1,6 +1,4 @@
 ﻿
-
-
 using System.ComponentModel.DataAnnotations;
 using static ThinkTank.Service.Helpers.Enum;
 

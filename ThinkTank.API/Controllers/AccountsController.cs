@@ -2,9 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using ThinkTank.Service.DTO.Request;
 using ThinkTank.Service.DTO.Response;
-using ThinkTank.Service.Services.ImpService;
 using ThinkTank.Service.Services.IService;
-using static ThinkTank.Service.Helpers.Enum;
 
 namespace ThinkTank.API.Controllers
 {
@@ -94,15 +92,17 @@ namespace ThinkTank.API.Controllers
             return Ok(rs);
         }
         /// <summary>
-        /// Check Login of user
+        /// Get account to login
         /// </summary>
-        /// <param name="model"></param>
+        /// <param name="username"></param>
+        /// <param name="password"></param>
+        /// <param name="googleId"></param>
         /// <returns></returns>
         [AllowAnonymous]
-        [HttpPost("authentication-checking")]
-        public async Task<ActionResult<AccountResponse>> GetIdToLogin([FromBody] LoginRequest model, [FromQuery] string? googleId)
+        [HttpGet("authentication-checking")]
+        public async Task<ActionResult<AccountResponse>> GetAccountToLogin([FromQuery] string? username,[FromQuery] string? password, [FromQuery] string? googleId)
         {
-            var rs = await _accountService.GetIdToLogin(model,googleId);
+            var rs = await _accountService.GetAccountToLogin(username,password,googleId);
             return Ok(rs);
         }
         /// <summary>
