@@ -1,0 +1,665 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>ThinkTank.API</name>
+    </assembly>
+    <members>
+        <member name="M:ThinkTank.API.Controllers.AccountIn1vs1sController.GetAccountIn1vs1s(ThinkTank.Service.DTO.Request.PagingRequest,ThinkTank.Service.DTO.Request.AccountIn1vs1Request)">
+            <summary>
+            Get list of account in 1vs1 
+            </summary>
+            <param name="pagingRequest"></param>
+            <param name="accountIn1Vs1Request"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ThinkTank.API.Controllers.AccountIn1vs1sController.GetAccountIn1vs1ById(System.Int32)">
+            <summary>
+            Get account in 1vs1 by Id
+            </summary>
+            <param name="id"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ThinkTank.API.Controllers.AccountIn1vs1sController.CreateAccountIn1vs1(ThinkTank.Service.DTO.Request.CreateAndUpdateAccountIn1vs1Request)">
+            <summary>
+            Create Account In 1vs1
+            </summary>
+            <param name="request"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ThinkTank.API.Controllers.AccountIn1vs1sController.UpdateAccountIn1vs1(ThinkTank.Service.DTO.Request.CreateAndUpdateAccountIn1vs1Request)">
+            <summary>
+            Update Account In 1vs1
+            </summary>
+            <param name="request"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ThinkTank.API.Controllers.AccountIn1vs1sController.FindAccountIn1vs1(System.Int32,System.Int32,System.Int32)">
+             <summary>
+             Find Opponent of Account In 1vs1
+             </summary>
+             <param name="accountId"></param>
+             <param name="gameId"></param>
+             <param name="coin"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ThinkTank.API.Controllers.AccountIn1vs1sController.CreateRoomPlayCountervailingWithFriend(System.Int32,System.Int32,System.Int32)">
+            <summary>
+            Match play countervailing mode with friend
+            </summary>
+            <param name="accountId1"></param>
+             <param name="gameId"></param>
+              <param name="accountId2"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ThinkTank.API.Controllers.AccountIn1vs1sController.RemoveAccountFromQueue(System.Int32,System.Int32,System.Int32,System.String,System.Int32)">
+            <summary>
+            Remove Account From Queue
+            </summary>
+            <param name="accountId"></param>
+            <param name="gameId"></param>
+            <param name="coin"></param>
+            <param name="roomOfAccount1vs1Id"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ThinkTank.API.Controllers.AccountIn1vs1sController.GetToStartRoom(System.String,System.Boolean,System.Int32,System.Int32)">
+            <summary>
+            Start Room To Play Game
+            </summary>
+            <param name="room1vs1Id"></param>
+            <param name="isUser1"></param>
+            <param name="time"></param>
+            <param name="progressTime"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ThinkTank.API.Controllers.AccountIn1vs1sController.RemoveRoom1vs1InRealtimeDatabase(System.String,System.Int32)">
+            <summary>
+            Remove Room In 1vs1 In Real-time Database
+            </summary>
+            <param name="delayTime"></param>
+            <param name="roomOfAccount1vs1Id"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ThinkTank.API.Controllers.AccountInContestsController.GetAccountInContests(ThinkTank.Service.DTO.Request.PagingRequest,ThinkTank.Service.DTO.Request.AccountInContestRequest)">
+            <summary>
+            Get list of account in contest 
+            </summary>
+            <param name="pagingRequest"></param>
+            <param name="accountInContestRequest"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ThinkTank.API.Controllers.AccountInContestsController.CreateAccountInContest(ThinkTank.Service.DTO.Request.CreateAccountInContestRequest)">
+            <summary>
+            Create Account In Contest
+            </summary>
+            <param name="request"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ThinkTank.API.Controllers.AccountInContestsController.GetAccountInContestById(System.Int32)">
+            <summary>
+            Get account in contest by Id
+            </summary>
+            <param name="id"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ThinkTank.API.Controllers.AccountInContestsController.UpdateAccountInContest(ThinkTank.Service.DTO.Request.UpdateAccountInContestRequest)">
+            <summary>
+            Update Account In Contest
+            </summary>
+            <param name="request"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ThinkTank.API.Controllers.AccountInRoomsController.GetAccountInRooms(ThinkTank.Service.DTO.Request.PagingRequest,ThinkTank.Service.DTO.Request.AccountInRoomRequest)">
+            <summary>
+            Get list of account in room
+            </summary>
+            <param name="pagingRequest"></param>
+            <param name="accountInRoomRequest"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ThinkTank.API.Controllers.AccountInRoomsController.GetAccountInRoomById(System.Int32)">
+            <summary>
+            Get account in room by Id
+            </summary>
+            <param name="id"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ThinkTank.API.Controllers.AccountInRoomsController.UpdateAccountInRoom(System.String,ThinkTank.Service.DTO.Request.CreateAndUpdateAccountInRoomRequest)">
+            <summary>
+            Update result of account In Room
+            </summary>
+            <param name="request"></param>
+            <param name="roomCode"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ThinkTank.API.Controllers.AccountsController.GetAccounts(ThinkTank.Service.DTO.Request.PagingRequest,ThinkTank.Service.DTO.Request.AccountRequest)">
+            <summary>
+            Get list of accounts
+            </summary>
+            <param name="pagingRequest"></param>
+            <param name="accountRequest"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ThinkTank.API.Controllers.AccountsController.GetAccount(System.Int32)">
+            <summary>
+            Get account by Id
+            </summary>
+            <param name="id"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ThinkTank.API.Controllers.AccountsController.UpdateAccount(ThinkTank.Service.DTO.Request.UpdateAccountRequest,System.Int32)">
+            <summary>
+            Update profile of account
+            </summary>
+            <param name="userRequest"></param>
+            <param name="id"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ThinkTank.API.Controllers.AccountsController.GetToBanAccount(System.Int32)">
+            <summary>
+            Ban Account
+            </summary>
+            <param name="accId"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ThinkTank.API.Controllers.AccountsController.CreateCustomer(ThinkTank.Service.DTO.Request.CreateAccountRequest)">
+            <summary>
+            Sign Up account
+            </summary>
+            <param name="account"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ThinkTank.API.Controllers.AccountsController.LoginPlayer(ThinkTank.Service.DTO.Request.LoginRequest)">
+            <summary>
+            Login for role player (Username and Password)
+            </summary>
+            <param name="model"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ThinkTank.API.Controllers.AccountsController.GetAccountToLogin(System.String,System.String,System.String)">
+            <summary>
+            Get account to login
+            </summary>
+            <param name="username"></param>
+            <param name="password"></param>
+            <param name="googleId"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ThinkTank.API.Controllers.AccountsController.LoginAdmin(ThinkTank.Service.DTO.Request.LoginRequest)">
+            <summary>
+            Login for role admin (Username and Password)
+            </summary>
+            <param name="model"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ThinkTank.API.Controllers.AccountsController.ResetPassword(ThinkTank.Service.DTO.Request.ResetPasswordRequest)">
+            <summary>
+            Reset password when forgot password
+            </summary>
+            <param name="resetPassword"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ThinkTank.API.Controllers.AccountsController.VerifyAndGenerateToken(ThinkTank.Service.DTO.Request.TokenRequest)">
+            <summary>
+            Generate new access token and refresh token when they are expired
+            </summary>
+            <param name="request"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ThinkTank.API.Controllers.AccountsController.RevokeRefreshToken(System.Int32)">
+            <summary>
+            Revoke refresh token when logout 
+            </summary>
+            <param name="userId"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ThinkTank.API.Controllers.AccountsController.LoginGoogle(ThinkTank.Service.DTO.Request.LoginGoogleRequest)">
+            <summary>
+            Login Google 
+            </summary>
+            <param name="request"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ThinkTank.API.Controllers.AccountsController.GetGameLevelByAccountId(System.Int32)">
+            <summary>
+            Get current game level of account
+            </summary>
+            <param name="accountId"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ThinkTank.API.Controllers.AchieviementsController.GetAchievements(ThinkTank.Service.DTO.Request.PagingRequest,ThinkTank.Service.DTO.Request.AchievementRequest)">
+            <summary>
+            Get list of achievements
+            </summary>
+            <param name="pagingRequest"></param>
+            <param name="request"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ThinkTank.API.Controllers.AchieviementsController.GetAchievement(System.Int32)">
+            <summary>
+            Get achievement  by Id
+            </summary>
+            <param name="id"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ThinkTank.API.Controllers.AchieviementsController.CreateAchievement(ThinkTank.Service.DTO.Request.CreateAchievementRequest)">
+            <summary>
+            Add achievement
+            </summary>
+            <param name="request"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ThinkTank.API.Controllers.AchieviementsController.GetLeaderboard(System.Int32,ThinkTank.Service.DTO.Request.PagingRequest,System.Nullable{System.Int32})">
+            <summary>
+            Get lederboard of a level of the game
+            </summary>
+            <param name="gameId"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ThinkTank.API.Controllers.AnalysesController.GetAnalysisOfAccount(System.Int32)">
+            <summary>
+            Get analysis of account by account Id
+            </summary>
+            <param name="accountId"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ThinkTank.API.Controllers.AnalysesController.GetAnalysisOfAccount(ThinkTank.Service.DTO.Request.AnalysisRequest)">
+            <summary>
+            Get analysis of account by account Id and game Id
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:ThinkTank.API.Controllers.AnalysesController.GetAnalysisOfEachTypeOfMemoryOfAccount(System.Int32)">
+            <summary>
+            Get analysis of each type of account's memory by account Id 
+            </summary>
+            <param name="accountId"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ThinkTank.API.Controllers.AnalysesController.GetAverageScoreAnalysis(System.Int32,System.Int32)">
+            <summary>
+            Get analysis average score by account Id 
+            </summary>
+            <param name="gameId"></param>
+            <param name="userId"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ThinkTank.API.Controllers.AssetsController.GetAssets(ThinkTank.Service.DTO.Request.PagingRequest,ThinkTank.Service.DTO.Request.AssetRequest)">
+            <summary>
+            Get list of assets
+            </summary>
+            <param name="pagingRequest"></param>
+            <param name="assetRequest"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ThinkTank.API.Controllers.AssetsController.GetAssetsById(System.Int32)">
+            <summary>
+            Get type of asset  by Id
+            </summary>
+            <param name="id"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ThinkTank.API.Controllers.AssetsController.CreateAsset(System.Collections.Generic.List{ThinkTank.Service.DTO.Request.CreateAssetRequest})">
+            <summary>
+            Create asset  
+            </summary>
+            <param name="resource"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ThinkTank.API.Controllers.AssetsController.DeleteAsset(System.Collections.Generic.List{System.Int32})">
+            <summary>
+            Delete asset
+            </summary>
+            <param name="assetId"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ThinkTank.API.Controllers.ChallengesController.GetChallenges(ThinkTank.Service.DTO.Request.ChallengeRequest)">
+            <summary>
+            Get challenges of account(1: All, 2 : True, 3:False, 4: Null)
+            </summary>
+            <param name="challengeRequest"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ThinkTank.API.Controllers.ChallengesController.GetToRewardCoin(System.Int32,System.Nullable{System.Int32})">
+            <summary>
+            Get Coin Reward Of Account
+            </summary>
+            <param name="accountId"></param>
+            <param name="challengeId"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ThinkTank.API.Controllers.ContestsController.GetContests(ThinkTank.Service.DTO.Request.PagingRequest,ThinkTank.Service.DTO.Request.ContestRequest)">
+            <summary>
+            Get list of contest (1: All, 2 : True, 3:False, 4: Null)
+            </summary>
+            <param name="pagingRequest"></param>
+            <param name="contestRequest"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ThinkTank.API.Controllers.ContestsController.GetLeaderboardOfContest(System.Int32,ThinkTank.Service.DTO.Request.PagingRequest)">
+            <summary>
+            Get lederboard of contest
+            </summary>
+            <param name="id"></param>
+            <param name="request"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ThinkTank.API.Controllers.ContestsController.GetContest(System.Int32)">
+            <summary>
+            Get contest by id
+            </summary>
+            <param name="id"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ThinkTank.API.Controllers.ContestsController.CreateContest(ThinkTank.Service.DTO.Request.CreateAndUpdateContestRequest)">
+            <summary>
+            Create Contest
+            </summary>
+            <param name="contestRequest"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ThinkTank.API.Controllers.ContestsController.UpdateContest(ThinkTank.Service.DTO.Request.CreateAndUpdateContestRequest,System.Int32)">
+            <summary>
+            Update contest
+            </summary>
+            <param name="contestRequest"></param>
+            <param name="id"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ThinkTank.API.Controllers.ContestsController.DeleteContest(System.Int32)">
+            <summary>
+            Delete contest
+            </summary>
+            <param name="id"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ThinkTank.API.Controllers.ContestsController.GetReportOfContest">
+            <summary>
+            Get Report Of Contest
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:ThinkTank.API.Controllers.FilesController.UploadFile(Microsoft.AspNetCore.Http.IFormFile,ThinkTank.Service.Helpers.Enum.FileType)">
+            <summary>
+            Upload file (FileType: System=1, Player=2)
+            </summary>
+            <param name="type"></param>
+        </member>
+        <member name="M:ThinkTank.API.Controllers.FilesController.UploadFileResource(System.Collections.Generic.List{Microsoft.AspNetCore.Http.IFormFile},ThinkTank.Service.Helpers.Enum.ResourceType)">
+            <summary>
+            Upload file for resources game ( ResourceType: Anonymous=1,MusicPassword=2,FlipCard=3,ImagesWalkthrough=4)
+            </summary>
+        </member>
+        <member name="M:ThinkTank.API.Controllers.FilesController.UploadFileContestResource(System.Collections.Generic.List{Microsoft.AspNetCore.Http.IFormFile},ThinkTank.Service.Helpers.Enum.ResourceType)">
+            <summary>
+            Upload file for contest resources game ( ResourceType: Anonymous=1,MusicPassword=2,FlipCard=3,ImagesWalkthrough=4)
+            </summary>
+        </member>
+        <member name="M:ThinkTank.API.Controllers.FriendsController.GetFriends(ThinkTank.Service.DTO.Request.PagingRequest,ThinkTank.Service.DTO.Request.FriendRequest)">
+            <summary>
+            Get list of friendships of account Id (1: All, 2 : True, 3:False, 4: Null)
+            </summary>
+            <param name="pagingRequest"></param>
+            <param name="friendRequest"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ThinkTank.API.Controllers.FriendsController.GetFriend(System.Int32)">
+            <summary>
+            Get friendship by Id
+            </summary>
+            <param name="id"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ThinkTank.API.Controllers.FriendsController.GetToUpdateStatus(System.Int32)">
+            <summary>
+            Accept friend
+            </summary>
+            <param name="friendId"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ThinkTank.API.Controllers.FriendsController.AddFriend(ThinkTank.Service.DTO.Request.CreateFriendRequest)">
+            <summary>
+            Add friend
+            </summary>
+            <param name="friend"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ThinkTank.API.Controllers.FriendsController.DeleteFriendship(System.Int32)">
+            <summary>
+            Unaccept friend
+            </summary>
+            <param name="id"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ThinkTank.API.Controllers.GamesController.GetGames(ThinkTank.Service.DTO.Request.PagingRequest,ThinkTank.Service.DTO.Request.GameRequest)">
+            <summary>
+            Get list of games
+            </summary>
+            <param name="pagingRequest"></param>
+            <param name="gameRequest"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ThinkTank.API.Controllers.GamesController.GetGame(System.Int32)">
+            <summary>
+            Get game by Id
+            </summary>
+            <param name="id"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ThinkTank.API.Controllers.GamesController.GetReportgame">
+            <summary>
+            Get report of game
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:ThinkTank.API.Controllers.IconOfAccountsController.GetIconOfAccounts(ThinkTank.Service.DTO.Request.PagingRequest,ThinkTank.Service.DTO.Request.IconOfAccountRequest)">
+            <summary>
+            Get list of icon of account by account Id 
+            </summary>
+            <param name="pagingRequest"></param>
+            <param name="iconOfAccountRequest"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ThinkTank.API.Controllers.IconOfAccountsController.GetIconOfAccountById(System.Int32)">
+            <summary>
+            Get icon of account by id
+            </summary>
+            <param name="id"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ThinkTank.API.Controllers.IconOfAccountsController.CreateIconOfAccount(ThinkTank.Service.DTO.Request.CreateIconOfAccountRequest)">
+            <summary>
+            Buy Icon
+            </summary>
+            <param name="request"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ThinkTank.API.Controllers.IconsController.GetIcons(ThinkTank.Service.DTO.Request.PagingRequest,ThinkTank.Service.DTO.Request.IconRequest)">
+            <summary>
+            Get list of icons (StatusIconType: 1:All, 2:Icon the account has purchased, 3:icon that the account has not purchased)
+            </summary>
+            <param name="pagingRequest"></param>
+            <param name="iconRequest"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ThinkTank.API.Controllers.IconsController.GetIcon(System.Int32)">
+            <summary>
+            Get icon by Id
+            </summary>
+            <param name="id"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ThinkTank.API.Controllers.NotificationsController.GetNotifications(ThinkTank.Service.DTO.Request.PagingRequest,ThinkTank.Service.DTO.Request.NotificationRequest)">
+            <summary>
+            Get list of notification
+            </summary>
+            <param name="pagingRequest"></param>
+            <param name="notificationRequest"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ThinkTank.API.Controllers.NotificationsController.GetNotification(System.Int32)">
+            <summary>
+            Get notification by Id
+            </summary>
+            <param name="id"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ThinkTank.API.Controllers.NotificationsController.GetToUpdateStatus(System.Int32)">
+            <summary>
+            Update status notification
+            </summary>
+            <param name="notificationId"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ThinkTank.API.Controllers.NotificationsController.DeleteNotification(System.Collections.Generic.List{System.Int32})">
+            <summary>
+            Delete list of notification
+            </summary>
+            <param name="notificationId"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ThinkTank.API.Controllers.ReportsController.GetReports(ThinkTank.Service.DTO.Request.PagingRequest,ThinkTank.Service.DTO.Request.ReportRequest)">
+            <summary>
+            Get list of reports
+            </summary>
+            <param name="pagingRequest"></param>
+            <param name="reportRequest"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ThinkTank.API.Controllers.ReportsController.GetReport(System.Int32)">
+            <summary>
+            Get report by Id
+            </summary>
+            <param name="id"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ThinkTank.API.Controllers.ReportsController.AddReport(ThinkTank.Service.DTO.Request.CreateReportRequest)">
+            <summary>
+            Create report
+            </summary>
+            <param name="report"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ThinkTank.API.Controllers.RoomsController.GetRooms(ThinkTank.Service.DTO.Request.PagingRequest,ThinkTank.Service.DTO.Request.RoomRequest)">
+            <summary>
+            Get list of rooms
+            </summary>
+            <param name="pagingRequest"></param>
+            <param name="roomRequest"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ThinkTank.API.Controllers.RoomsController.GetRoomsById(System.Int32)">
+            <summary>
+            Get room  by Id
+            </summary>
+            <param name="id"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ThinkTank.API.Controllers.RoomsController.CreateRoom(ThinkTank.Service.DTO.Request.CreateRoomRequest)">
+            <summary>
+            Create room  
+            </summary>
+            <param name="room"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ThinkTank.API.Controllers.RoomsController.DeleteRoom(System.Int32,System.Int32)">
+            <summary>
+            Cancel Room Party
+            </summary>
+            <param name="id"></param>
+             <param name="accountId"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ThinkTank.API.Controllers.RoomsController.GetLeaderboard(System.String)">
+            <summary>
+            Get lederboard of party room of the game
+            </summary>
+            <param name="roomCode"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ThinkTank.API.Controllers.RoomsController.UpdateRoom(System.String,System.Collections.Generic.List{ThinkTank.Service.DTO.Request.CreateAndUpdateAccountInRoomRequest})">
+            <summary>
+            Add Member To Room
+            </summary>
+            <param name="roomCode"></param>
+            <param name="createAccountInRoomRequests"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ThinkTank.API.Controllers.RoomsController.LeaveRoom(System.Int32,System.Int32)">
+            <summary>
+            Member leave room
+            </summary>
+            <param name="roomId"></param>
+            <param name="accountId"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ThinkTank.API.Controllers.RoomsController.GetToStartRoom(System.Int32,System.String,System.Int32)">
+            <summary>
+            Start Room To Play Game
+            </summary>
+            <param name="accountId"></param>
+            <param name="roomCode"></param>
+            <param name="time"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ThinkTank.API.Controllers.RoomsController.RemoveRoomPartyInRealtimeDatabase(System.String,System.Int32)">
+            <summary>
+            Remove Room Party In Real-time Database
+            </summary>
+            <param name="delayTime"></param>
+            <param name="roomCode"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ThinkTank.API.Controllers.TopicsController.GetTopics(ThinkTank.Service.DTO.Request.PagingRequest,ThinkTank.Service.DTO.Request.TopicRequest)">
+            <summary>
+            Get list of topic (StatusTopicType: 1: All, 2: Has Asset, 3: No Asset)
+            </summary>
+            <param name="pagingRequest"></param>
+            <param name="request"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ThinkTank.API.Controllers.TopicsController.GetTopic(System.Int32)">
+            <summary>
+            Get topic by Id
+            </summary>
+            <param name="id"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ThinkTank.API.Controllers.TopicsController.CreatTopic(ThinkTank.Service.DTO.Request.CreateTopicRequest)">
+            <summary>
+            Create Topic
+            </summary>
+            <param name="request"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ThinkTank.API.Controllers.TypeOfAssetInContestsController.GetAssetInContests(ThinkTank.Service.DTO.Request.PagingRequest,ThinkTank.Service.DTO.Request.TypeOfAssetInContestRequest)">
+            <summary>
+            Get list of type assets in contest
+            </summary>
+            <param name="pagingRequest"></param>
+            <param name="typeAssetInContestRequest"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ThinkTank.API.Controllers.TypeOfAssetInContestsController.GetTypeOfAssetsInContestById(System.Int32)">
+            <summary>
+            Get type of asset in contest  by Id
+            </summary>
+            <param name="id"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ThinkTank.API.Controllers.TypeOfAssetsController.GetTypeOfAssets(ThinkTank.Service.DTO.Request.PagingRequest,ThinkTank.Service.DTO.Request.TypeOfAssetRequest)">
+            <summary>
+            Get list type of assets
+            </summary>
+            <param name="pagingRequest"></param>
+            <param name="typeOfAssetRequest"></param>
+            <returns></returns>
+        </member>
+        <member name="M:ThinkTank.API.Controllers.TypeOfAssetsController.GetTypeOfAssetsById(System.Int32)">
+            <summary>
+            Get type of asset  by Id
+            </summary>
+            <param name="id"></param>
+            <returns></returns>
+        </member>
+    </members>
+</doc>

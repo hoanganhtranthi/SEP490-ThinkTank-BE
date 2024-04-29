@@ -54,7 +54,7 @@ namespace ThinkTank.Data.UnitOfWork
         }
 
 
-        public Task<int> CommitAsync() => _context.SaveChangesAsync();
+        public async Task<int> CommitAsync() => await _context.SaveChangesAsync();
     }
    
 }

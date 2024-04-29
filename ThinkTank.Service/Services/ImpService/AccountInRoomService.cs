@@ -30,7 +30,7 @@ namespace ThinkTank.Service.Services.ImpService
         {
             try
             {
-                if (createAccountInRoomRequest.AccountId <= 0 || createAccountInRoomRequest.Duration < 0 || createAccountInRoomRequest.Mark < 0 || createAccountInRoomRequest.PieceOfInformation <= 0)
+                if (createAccountInRoomRequest.AccountId <= 0 || createAccountInRoomRequest.Duration < 0 || createAccountInRoomRequest.Mark < 0 || createAccountInRoomRequest.PieceOfInformation < 0)
                     throw new CrudException(HttpStatusCode.BadRequest, "Information is invalid", "");
 
                 var a = _unitOfWork.Repository<Account>().Find(a => a.Id == createAccountInRoomRequest.AccountId);
