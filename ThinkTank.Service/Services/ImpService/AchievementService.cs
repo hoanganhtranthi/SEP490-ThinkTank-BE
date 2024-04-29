@@ -73,9 +73,13 @@ namespace ThinkTank.Service.Services.ImpService
                 var twoLastAchievement = gameAchievement.Skip(Math.Max(number, gameAchievement.Count - 2)).Take(2).ToList();
                 if (twoLastAchievement.Any())
                 {
-                    bool areConsecutive = twoLastAchievement.Count() == 2 && twoLastAchievement.ToArray()[0].Level == twoLastAchievement.ToArray()[1].Level - 1 && twoLastAchievement.ToArray()[0].Mark > 0 && twoLastAchievement.ToArray()[1].Mark > 0;
-                    if (createAchievementRequest.Level != twoLastAchievement.LastOrDefault().Level && createAchievementRequest.Mark > 0 && areConsecutive && twoLastAchievement.Last().Level + 1 == createAchievementRequest.Level)
+                    if (!gameAchievement.Where(x => x.Level == twoLastAchievement.ToArray()[0].Level && x.Id != twoLastAchievement.ToArray()[0].Id).Any() &&
+                        !gameAchievement.Where(x => x.Level == twoLastAchievement.ToArray()[1].Level && x.Id != twoLastAchievement.ToArray()[1].Id).Any())
+                    {
+                        bool areConsecutive = twoLastAchievement.Count() == 2 && twoLastAchievement.ToArray()[0].Level == twoLastAchievement.ToArray()[1].Level - 1 && twoLastAchievement.ToArray()[0].Mark > 0 && twoLastAchievement.ToArray()[1].Mark > 0;
+                        if (createAchievementRequest.Level != twoLastAchievement.LastOrDefault().Level && createAchievementRequest.Mark > 0 && areConsecutive && twoLastAchievement.Last().Level + 1 == createAchievementRequest.Level)
                             await GetBadge(account, "Streak killer");
+                    }
                 }
                 #endregion
 

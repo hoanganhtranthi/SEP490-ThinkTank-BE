@@ -7,7 +7,6 @@ using ThinkTank.Service.DTO.Request;
 using ThinkTank.Service.DTO.Response;
 using ThinkTank.Service.Exceptions;
 using ThinkTank.Service.Services.IService;
-using static ThinkTank.Service.Helpers.Enum;
 
 namespace ThinkTank.Service.Services.ImpService
 {
@@ -246,7 +245,7 @@ namespace ThinkTank.Service.Services.ImpService
                     .ToList();
 
                 // Get level cao nhất của game 
-                var maxLevel = _unitOfWork.Repository<Achievement>().GetAll().Where(x => x.GameId == gameId).ToList().OrderByDescending(a => a.Level).Distinct().First().Level;
+                var maxLevel = _unitOfWork.Repository<Achievement>().GetAll().Where(x => x.GameId == gameId).ToList().OrderByDescending(a => a.Level).Distinct().FirstOrDefault();
                 
                 // Tính mảnh thông tin/thời gian theo từng level
                 var averageScoresByLevel = achievementsOfLevels
@@ -259,7 +258,8 @@ namespace ThinkTank.Service.Services.ImpService
                 // Tính toán trung bình của từng nhóm cấp độ chơi
                 var groupLevels = new List<string> { "Level 1", "Level 2 - Level 5", "Level 6 - Level 10", "Level 11 - Level 20", "Level 21 - Level 30", "Level 31 - Level 40" };
 
-                groupLevels.Add(maxLevel > 41 ? $"Level 41 - Level {maxLevel}" : "Level above 41");
+                var maxLevelOfGame = maxLevel != null ? maxLevel.Level : 0;
+                groupLevels.Add(maxLevelOfGame > 41 ? $"Level 41 - Level {maxLevelOfGame}" : "Level above 41");
 
                 foreach (var groupLevel in groupLevels)
                 {
@@ -300,7 +300,7 @@ namespace ThinkTank.Service.Services.ImpService
         private List<int> GetLevelRange(string groupLevel, int gameId)
         {
              var maxLevelOfGame=_unitOfWork.Repository<Achievement>()
-                .GetAll().AsNoTracking().Where(x => x.GameId == gameId).ToList().OrderByDescending(a => a.Level).Distinct().First().Level;
+                .GetAll().AsNoTracking().Where(x => x.GameId == gameId).ToList().OrderByDescending(a => a.Level).Distinct().FirstOrDefault() ;
 
             switch (groupLevel)
             {
@@ -317,7 +317,7 @@ namespace ThinkTank.Service.Services.ImpService
                 case "Level 31 - Level 40":
                     return new List<int> { 31, 40 };
                 default:
-                    return new List<int> { 41, maxLevelOfGame };
+                    return new List<int> { 41, maxLevelOfGame!=null?maxLevelOfGame.Level:0 };
 
             }
         }

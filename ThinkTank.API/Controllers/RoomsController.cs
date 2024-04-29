@@ -2,7 +2,6 @@
 using Microsoft.AspNetCore.Mvc;
 using ThinkTank.Service.DTO.Request;
 using ThinkTank.Service.DTO.Response;
-using ThinkTank.Service.Services.ImpService;
 using ThinkTank.Service.Services.IService;
 
 namespace ThinkTank.API.Controllers
@@ -85,7 +84,7 @@ namespace ThinkTank.API.Controllers
         /// <param name="roomCode"></param>
         /// <param name="createAccountInRoomRequests"></param>
         /// <returns></returns>
-        [Authorize(Policy = "Player")]
+       [Authorize(Policy = "Player")]
         [HttpPut("{roomCode}")]
         public async Task<ActionResult<RoomResponse>> UpdateRoom(string roomCode, [FromBody] List<CreateAndUpdateAccountInRoomRequest> createAccountInRoomRequests)
         {

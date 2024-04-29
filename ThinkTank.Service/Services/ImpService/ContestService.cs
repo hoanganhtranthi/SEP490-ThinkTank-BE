@@ -191,7 +191,7 @@ namespace ThinkTank.Service.Services.ImpService
             }
         }
 
-        private async Task SendNotification(int id)
+        public async Task SendNotification(int id)
         {
             try
             {
@@ -252,7 +252,7 @@ namespace ThinkTank.Service.Services.ImpService
             }
             return result;
         }
-        private async Task<ContestResponse> UpdateStateContest(int id)
+        public async Task<ContestResponse> UpdateStateContest(int id)
         {
             try
             {
@@ -833,7 +833,7 @@ namespace ThinkTank.Service.Services.ImpService
                     throw new CrudException(HttpStatusCode.NotFound, $"Not found contest with id{id.ToString()}", "");
                 }
 
-                if (contest.StartTime <= DateTime.Now)
+                if (contest.StartTime <= date)
                     throw new CrudException(HttpStatusCode.BadRequest, "The contest has already started and you cannot delete it", "");
 
                await _unitOfWork.Repository<AssetOfContest>().DeleteRange(contest.AssetOfContests.ToArray());
@@ -884,17 +884,9 @@ namespace ThinkTank.Service.Services.ImpService
                 {
                     if (contest != null)
                     {
-
-                        var highScoreOfContest = contest.AccountInContests.Any() ? contest.AccountInContests.Max(x => x.Mark) : 0;
-                        var lowestScoreOfContest = contest.AccountInContests.Any() ? contest.AccountInContests.Min(x => x.Mark) : 0;
-                        var averageScore = (highScoreOfContest + lowestScoreOfContest) / 2;
-
-                        var usersInAverageScore = contest.AccountInContests.Any() ? contest.AccountInContests
-                            .Count(x => x.Mark > averageScore - 100 && x.Mark < averageScore + 100) : 0;
-
-                        var totalUserInContest = contest.AccountInContests.Count();
-                        var  percentAverageScore = totalUserInContest > 0 ? (double)usersInAverageScore / totalUserInContest * 100 : 0;
-
+                        var totalScore = _unitOfWork.Repository<AccountInContest>().GetAll().Where(x => x.ContestId == contest.Id).Sum(x => x.Mark);
+                        var totalAccountInContest = _unitOfWork.Repository<AccountInContest>().GetAll().Where(x => x.ContestId == contest.Id).Count();
+                        var percentAverageScore = totalScore > 0 && totalAccountInContest > 0 ? (double)(totalScore / totalAccountInContest) : 0;
                         resultPercentAverageScore.Add(contest.Id,percentAverageScore);
                     }
                 }

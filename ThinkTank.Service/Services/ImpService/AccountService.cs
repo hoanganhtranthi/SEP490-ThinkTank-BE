@@ -208,7 +208,7 @@ namespace ThinkTank.Service.Services.ImpService
 
                    await _unitOfWork.Repository<Account>().Update(user, user.Id);
 
-                    DateTime newDateTime = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day, 21, 0, 0);
+                    DateTime newDateTime = new DateTime(date.Year, date.Month, date.Day, 21, 0, 0);
                     if (date > newDateTime)
                         await GetBadge(user, "Nocturnal");
 
@@ -418,7 +418,7 @@ namespace ThinkTank.Service.Services.ImpService
                     user.Fcm = (request.FCM == null || request.FCM == "") ? null : request.FCM;
                     await _unitOfWork.Repository<Account>().Update(user, user.Id);
 
-                    DateTime newDateTime = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day, 21, 0, 0);
+                    DateTime newDateTime = new DateTime(date.Year, date.Month, date.Day, 21, 0, 0);
                     if (date > newDateTime)
                      await GetBadge(user, "Nocturnal");
                 }
@@ -469,7 +469,7 @@ namespace ThinkTank.Service.Services.ImpService
                         {
                             AccountId = account.Id,
                             Avatar = challage.Avatar,
-                            DateNotification = DateTime.Now,
+                            DateNotification = date,
                             Description = $"You have received {challage.Name} badge.",
                             Status = false,
                             Title = "ThinkTank"
@@ -491,7 +491,7 @@ namespace ThinkTank.Service.Services.ImpService
         {
             try
             {
-                if (userId <= 0)
+                if (userId < 0)
                 {
                     throw new CrudException(HttpStatusCode.BadRequest, "Id Account Invalid", "");
                 }

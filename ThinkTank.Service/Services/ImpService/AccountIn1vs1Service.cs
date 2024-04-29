@@ -89,6 +89,7 @@ namespace ThinkTank.Service.Services.ImpService
                 await _unitOfWork.Repository<AccountIn1vs1>().CreateAsync(accIn1vs1);
                 await _unitOfWork.Repository<Account>().Update(account1, account1.Id);
                 await _unitOfWork.Repository<Account>().Update(account2, account2.Id);
+
                 await GetBadge(account1, "The Tycoon");
                 await GetBadge(account2, "The Tycoon");
                 await _unitOfWork.CommitAsync();

@@ -18,6 +18,7 @@ using FirebaseAdmin;
 using Google.Apis.Auth.OAuth2;
 using Hangfire;
 using ThinkTank.API.AppStart;
+using Microsoft.Extensions.Configuration;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -71,6 +72,7 @@ builder.Services.AddStackExchangeRedisCache(options =>
     options.Configuration = builder.Configuration.GetConnectionString("RedisConnectionString");
     options.InstanceName = "SampleInstance";
 });
+
 
 //Database Connection
 builder.Services.AddDbContext<ThinkTankContext>(options =>
