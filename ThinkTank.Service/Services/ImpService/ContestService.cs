@@ -225,7 +225,7 @@ namespace ThinkTank.Service.Services.ImpService
                         Avatar = contest.Thumbnail,
                         DateNotification = date,
                         Status=false,
-                        Description = $"\"{contest.Name}\"” is opened. Join now.",
+                        Description = $"\"{contest.Name}\"” is opened. Join now. Please exit the app and re-enter to participate in the contest.",
                         Title = "ThinkTank Contest"
                     };
 
@@ -347,7 +347,7 @@ namespace ThinkTank.Service.Services.ImpService
                           new FirebaseAdmin.Messaging.Notification()
                           {
                               Title = "ThinkTank Contest",
-                              Body = $"Congratulations! You won top 1 in the contest \"{contest.Name}\" and received {reward} ThinkTank coins”",
+                              Body = $"Congratulations! You won top {contestant.Rank} in the contest \"{contest.Name}\" and received {reward} ThinkTank coins”",
                               ImageUrl = $"{contest.Thumbnail}"
                           }, data);
 
@@ -357,7 +357,7 @@ namespace ThinkTank.Service.Services.ImpService
                             AccountId = account.Id,
                             Avatar = contest.Thumbnail,
                             DateNotification = date,
-                            Description = $"Congratulations! You won top 1 in the contest \"{contest.Name}\" and received {reward} ThinkTank coins”",
+                            Description = $"Congratulations! You won top {contestant.Rank} in the contest \"{contest.Name}\" and received {reward} ThinkTank coins”",
                             Status = false,
                             Title = "ThinkTank Contest"
                         };
@@ -873,11 +873,10 @@ namespace ThinkTank.Service.Services.ImpService
                 var contests = _unitOfWork.Repository<Contest>()
                 .GetAll()
                 .Include(x => x.AccountInContests).Include(x=>x.Game).AsNoTracking()
-                .Where(x => x.StartTime.Month == date.Month)
                 .OrderByDescending(x => x.AccountInContests.Count())
                 .ToList();
 
-                var listBestContest=contests.Where(x => x.AccountInContests.Count() == contests.FirstOrDefault().AccountInContests.Count()).ToList();
+                var listBestContest=contests.Where(x => x.StartTime.Month == date.Month&& x.AccountInContests.Count() == contests.FirstOrDefault().AccountInContests.Count()).ToList();
 
                 var resultPercentAverageScore = new Dictionary<int,double>();
                 foreach (var contest in listBestContest)

@@ -1,6 +1,0 @@
-D:\SEP490-ThinkTank-BE\ThinkTank.Test\bin\Debug\net6.0\CoverletSourceRootsMapping
-D:\SEP490-ThinkTank-BE\ThinkTank.Test\obj\Debug\net6.0\ThinkTank.Test.csproj.AssemblyReference.cache
-D:\SEP490-ThinkTank-BE\ThinkTank.Test\obj\Debug\net6.0\ThinkTank.Test.GeneratedMSBuildEditorConfig.editorconfig
-D:\SEP490-ThinkTank-BE\ThinkTank.Test\obj\Debug\net6.0\ThinkTank.Test.AssemblyInfoInputs.cache
-D:\SEP490-ThinkTank-BE\ThinkTank.Test\obj\Debug\net6.0\ThinkTank.Test.AssemblyInfo.cs
-D:\SEP490-ThinkTank-BE\ThinkTank.Test\obj\Debug\net6.0\ThinkTank.Test.csproj.CoreCompileInputs.cache

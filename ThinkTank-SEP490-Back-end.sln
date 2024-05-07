@@ -9,6 +9,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ThinkTank.Data", "ThinkTank
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ThinkTank.Service", "ThinkTank.Service\ThinkTank.Service.csproj", "{536119F7-5010-4458-80AD-DB8450E93FBD}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ThinkTankTest", "ThinkTankTest\ThinkTankTest.csproj", "{03B2EB9C-3F7A-4A78-A067-719F49B8AF98}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +29,10 @@ Global
 		{536119F7-5010-4458-80AD-DB8450E93FBD}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{536119F7-5010-4458-80AD-DB8450E93FBD}.Release|Any CPU.ActiveCfg = Debug|Any CPU
 		{536119F7-5010-4458-80AD-DB8450E93FBD}.Release|Any CPU.Build.0 = Debug|Any CPU
+		{03B2EB9C-3F7A-4A78-A067-719F49B8AF98}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{03B2EB9C-3F7A-4A78-A067-719F49B8AF98}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{03B2EB9C-3F7A-4A78-A067-719F49B8AF98}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{03B2EB9C-3F7A-4A78-A067-719F49B8AF98}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

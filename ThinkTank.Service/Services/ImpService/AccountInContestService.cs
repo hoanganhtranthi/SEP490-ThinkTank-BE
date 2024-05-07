@@ -49,6 +49,8 @@ namespace ThinkTank.Service.Services.ImpService
                 var contest=_unitOfWork.Repository<Contest>().Find(x=>x.Id== request.ContestId);
                 if(contest == null)
                     throw new CrudException(HttpStatusCode.NotFound, $"Contest Id {request.ContestId} Not Found!!!!!", "");
+                if(contest.Status==false)
+                    throw new CrudException(HttpStatusCode.BadRequest, "Contest has already ended", "");
 
                 if (acc.Coin < contest.CoinBetting)
                     throw new CrudException(HttpStatusCode.BadRequest, "Not enough coin for this contest", "");
