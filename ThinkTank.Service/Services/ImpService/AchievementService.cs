@@ -71,7 +71,7 @@ namespace ThinkTank.Service.Services.ImpService
                 var badge= _unitOfWork.Repository<Badge>().GetAll().Include(x => x.Challenge).SingleOrDefault(x => x.Challenge.Name == "Streak killer" && x.AccountId == account.Id);
                 var number = badge != null && gameAchievement.Count() > 3 ? badge.CompletedLevel * 3 : 0;
                 var twoLastAchievement = gameAchievement.Skip(Math.Max(number, gameAchievement.Count - 2)).Take(2).ToList();
-                if (twoLastAchievement.Any())
+                if (twoLastAchievement.Any() && twoLastAchievement.Count() == 2)
                 {
                     if (!gameAchievement.Where(x => x.Level == twoLastAchievement.ToArray()[0].Level && x.Id != twoLastAchievement.ToArray()[0].Id).Any() &&
                         !gameAchievement.Where(x => x.Level == twoLastAchievement.ToArray()[1].Level && x.Id != twoLastAchievement.ToArray()[1].Id).Any())

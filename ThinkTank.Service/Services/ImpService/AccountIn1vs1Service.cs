@@ -115,7 +115,7 @@ namespace ThinkTank.Service.Services.ImpService
             try
             {
                 if (updateAccount1vs1Request.AccountId1 <= 0 || updateAccount1vs1Request.AccountId2 <= 0 || updateAccount1vs1Request.Coin <= 0
-                    || updateAccount1vs1Request.RoomOfAccountIn1vs1Id == null || updateAccount1vs1Request.RoomOfAccountIn1vs1Id == "" || updateAccount1vs1Request.WinnerId <= 0)                    
+                    || updateAccount1vs1Request.RoomOfAccountIn1vs1Id == null || updateAccount1vs1Request.RoomOfAccountIn1vs1Id == "" || updateAccount1vs1Request.WinnerId < 0)                    
                     throw new CrudException(HttpStatusCode.BadRequest, "Information is invalid", "");
 
                 var accIn1vs1 = _unitOfWork.Repository<AccountIn1vs1>().Find(x => x.AccountId1 == updateAccount1vs1Request.AccountId1 && x.AccountId2 == updateAccount1vs1Request.AccountId2
@@ -124,7 +124,7 @@ namespace ThinkTank.Service.Services.ImpService
                 if (accIn1vs1 == null)
                     throw new CrudException(HttpStatusCode.NotFound, $"Account Id {updateAccount1vs1Request.AccountId1} and account Id {updateAccount1vs1Request.AccountId2} in 1vs1 in room {updateAccount1vs1Request.RoomOfAccountIn1vs1Id} is not found", "");
 
-                if (accIn1vs1.WinnerId != 0)
+                if (accIn1vs1.EndTime != null)
                     throw new CrudException(HttpStatusCode.BadRequest, $"Account 1vs1 has already winner, you can not update", "");
 
                 _mapper.Map<CreateAndUpdateAccountIn1vs1Request, AccountIn1vs1>(updateAccount1vs1Request, accIn1vs1);
@@ -159,13 +159,13 @@ namespace ThinkTank.Service.Services.ImpService
                     await GetBadge(account1, "Athlete");
                 }
 
-                if (updateAccount1vs1Request.WinnerId == account2.Id)
+               else if (updateAccount1vs1Request.WinnerId == account2.Id)
                 {
                     account2.Coin += updateAccount1vs1Request.Coin * 2;
                     await GetBadge(account2, "Athlete");
                 }
 
-                if (updateAccount1vs1Request.WinnerId == 0 || updateAccount1vs1Request.WinnerId == null)
+               else if (updateAccount1vs1Request.WinnerId == 0 || updateAccount1vs1Request.WinnerId == null)
                 {
                     account1.Coin += updateAccount1vs1Request.Coin;
                     account2.Coin += updateAccount1vs1Request.Coin;
