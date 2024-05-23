@@ -1,9 +1,10 @@
 ﻿
 
-using ThinkTank.Service.DTO.Response;
-using static ThinkTank.Service.Helpers.Enum;
 
-namespace ThinkTank.Service.Helpers
+using ThinkTank.Application.DTO.Response;
+using static ThinkTank.Domain.Enums.Enum;
+
+namespace ThinkTank.Application.Helpers
 {
     public static class PageHelper<T> where T : class
     {

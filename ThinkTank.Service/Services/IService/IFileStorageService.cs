@@ -1,11 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using static ThinkTank.Service.Helpers.Enum;
+﻿
 
-namespace ThinkTank.Service.Services.IService
+using static ThinkTank.Domain.Enums.Enum;
+
+namespace ThinkTank.Application.Services.IService
 {
     public interface IFileStorageService
     {

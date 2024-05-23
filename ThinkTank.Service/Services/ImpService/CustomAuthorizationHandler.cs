@@ -1,22 +1,12 @@
 ﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Server.IIS.Core;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging;
-using Repository.Extensions;
-using System;
-using System.Collections;
-using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
-using System.Linq;
 using System.Net;
 using System.Security.Claims;
-using System.Text;
-using System.Threading.Tasks;
-using ThinkTank.Service.DTO.Response;
-using ThinkTank.Service.Exceptions;
-using ThinkTank.Service.Services.IService;
+using ThinkTank.Application.DTO.Response;
+using ThinkTank.Application.GlobalExceptionHandling.Exceptions;
+using ThinkTank.Application.Services.IService;
 
-namespace ThinkTank.Service.Services.ImpService
+namespace ThinkTank.Application.Services.ImpService
 {
     public class CustomAuthorizationHandler : AuthorizationHandler<CustomRequirement>
     {

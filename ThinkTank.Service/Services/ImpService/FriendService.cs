@@ -3,15 +3,16 @@ using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json.Serialization;
 using Newtonsoft.Json;
 using System.Net;
-using ThinkTank.Data.Entities;
-using ThinkTank.Data.UnitOfWork;
-using ThinkTank.Service.DTO.Request;
-using ThinkTank.Service.DTO.Response;
-using ThinkTank.Service.Exceptions;
-using ThinkTank.Service.Helpers;
-using ThinkTank.Service.Services.IService;
+using ThinkTank.Application.Services.IService;
+using ThinkTank.Application.UnitOfWork;
+using ThinkTank.Application.DTO.Response;
+using ThinkTank.Application.DTO.Request;
+using ThinkTank.Application.GlobalExceptionHandling.Exceptions;
+using ThinkTank.Domain.Entities;
+using static ThinkTank.Domain.Enums.Enum;
+using ThinkTank.Application.Helpers;
 
-namespace ThinkTank.Service.Services.ImpService
+namespace ThinkTank.Application.Services.ImpService
 {
     public class FriendService : IFriendService
     {
@@ -215,7 +216,7 @@ namespace ThinkTank.Service.Services.ImpService
                     else friends = friendResponses;
                 }
 
-                if (request.Status != Helpers.Enum.StatusType.All)
+                if (request.Status != StatusType.All)
                 {
                     bool? status = null;
                     if (request.Status.ToString().ToLower() != "null")

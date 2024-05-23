@@ -1,6 +1,6 @@
 ﻿
 
-namespace ThinkTank.Service.DTO.Request
+namespace ThinkTank.Application.DTO.Request
 {
     public class CreateFriendRequest
     {

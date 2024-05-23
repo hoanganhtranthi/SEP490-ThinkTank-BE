@@ -1,8 +1,8 @@
 ﻿
 using System.ComponentModel.DataAnnotations;
-using static ThinkTank.Service.Helpers.Enum;
+using static ThinkTank.Domain.Enums.Enum;
 
-namespace ThinkTank.Service.DTO.Request
+namespace ThinkTank.Application.DTO.Request
 {
     public class FriendRequest
     {

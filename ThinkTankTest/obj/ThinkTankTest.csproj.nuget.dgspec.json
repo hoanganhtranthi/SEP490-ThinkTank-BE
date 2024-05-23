@@ -32,8 +32,8 @@
           "net6.0": {
             "targetAlias": "net6.0",
             "projectReferences": {
-              "D:\\SEP490-ThinkTank-BE\\ThinkTank.Service\\ThinkTank.Service.csproj": {
-                "projectPath": "D:\\SEP490-ThinkTank-BE\\ThinkTank.Service\\ThinkTank.Service.csproj"
+              "D:\\SEP490-ThinkTank-BE\\ThinkTank.Service\\ThinkTank.Application.csproj": {
+                "projectPath": "D:\\SEP490-ThinkTank-BE\\ThinkTank.Service\\ThinkTank.Application.csproj"
               }
             }
           }
@@ -148,12 +148,12 @@
         }
       }
     },
-    "D:\\SEP490-ThinkTank-BE\\ThinkTank.Data\\ThinkTank.Data.csproj": {
+    "D:\\SEP490-ThinkTank-BE\\ThinkTank.Data\\ThinkTank.Domain.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "D:\\SEP490-ThinkTank-BE\\ThinkTank.Data\\ThinkTank.Data.csproj",
-        "projectName": "ThinkTank.Data",
-        "projectPath": "D:\\SEP490-ThinkTank-BE\\ThinkTank.Data\\ThinkTank.Data.csproj",
+        "projectUniqueName": "D:\\SEP490-ThinkTank-BE\\ThinkTank.Data\\ThinkTank.Domain.csproj",
+        "projectName": "ThinkTank.Domain",
+        "projectPath": "D:\\SEP490-ThinkTank-BE\\ThinkTank.Data\\ThinkTank.Domain.csproj",
         "packagesPath": "C:\\Users\\Hoang Anh\\.nuget\\packages\\",
         "outputPath": "D:\\SEP490-ThinkTank-BE\\ThinkTank.Data\\obj\\",
         "projectStyle": "PackageReference",
@@ -293,12 +293,12 @@
         }
       }
     },
-    "D:\\SEP490-ThinkTank-BE\\ThinkTank.Service\\ThinkTank.Service.csproj": {
+    "D:\\SEP490-ThinkTank-BE\\ThinkTank.Service\\ThinkTank.Application.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "D:\\SEP490-ThinkTank-BE\\ThinkTank.Service\\ThinkTank.Service.csproj",
-        "projectName": "ThinkTank.Service",
-        "projectPath": "D:\\SEP490-ThinkTank-BE\\ThinkTank.Service\\ThinkTank.Service.csproj",
+        "projectUniqueName": "D:\\SEP490-ThinkTank-BE\\ThinkTank.Service\\ThinkTank.Application.csproj",
+        "projectName": "ThinkTank.Application",
+        "projectPath": "D:\\SEP490-ThinkTank-BE\\ThinkTank.Service\\ThinkTank.Application.csproj",
         "packagesPath": "C:\\Users\\Hoang Anh\\.nuget\\packages\\",
         "outputPath": "D:\\SEP490-ThinkTank-BE\\ThinkTank.Service\\obj\\",
         "projectStyle": "PackageReference",
@@ -321,8 +321,8 @@
           "net6.0": {
             "targetAlias": "net6.0",
             "projectReferences": {
-              "D:\\SEP490-ThinkTank-BE\\ThinkTank.Data\\ThinkTank.Data.csproj": {
-                "projectPath": "D:\\SEP490-ThinkTank-BE\\ThinkTank.Data\\ThinkTank.Data.csproj"
+              "D:\\SEP490-ThinkTank-BE\\ThinkTank.Data\\ThinkTank.Domain.csproj": {
+                "projectPath": "D:\\SEP490-ThinkTank-BE\\ThinkTank.Data\\ThinkTank.Domain.csproj"
               }
             }
           }

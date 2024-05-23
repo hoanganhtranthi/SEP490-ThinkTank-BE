@@ -1,7 +1,7 @@
 ﻿
-using ThinkTank.Service.Commons;
+using ThinkTank.Domain.Commons;
 
-namespace ThinkTank.Service.DTO.Response
+namespace ThinkTank.Application.DTO.Response
 {
     public class ReportResponse
     {

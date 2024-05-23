@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace ThinkTank.Service.DTO.Response
+namespace ThinkTank.Application.DTO.Response
 {
     public class PagedResults<T>
     {

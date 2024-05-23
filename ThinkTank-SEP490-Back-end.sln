@@ -5,11 +5,13 @@ VisualStudioVersion = 17.3.32825.248
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ThinkTank.API", "ThinkTank.API\ThinkTank.API.csproj", "{C95E807C-1A32-457F-BE00-52E06C0B37C1}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ThinkTank.Data", "ThinkTank.Data\ThinkTank.Data.csproj", "{1E0D7F24-D94A-45C9-BF16-55FE9BF8EC9F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ThinkTank.Domain", "ThinkTank.Data\ThinkTank.Domain.csproj", "{1E0D7F24-D94A-45C9-BF16-55FE9BF8EC9F}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ThinkTank.Service", "ThinkTank.Service\ThinkTank.Service.csproj", "{536119F7-5010-4458-80AD-DB8450E93FBD}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ThinkTank.Application", "ThinkTank.Service\ThinkTank.Application.csproj", "{536119F7-5010-4458-80AD-DB8450E93FBD}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ThinkTankTest", "ThinkTankTest\ThinkTankTest.csproj", "{03B2EB9C-3F7A-4A78-A067-719F49B8AF98}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ThinkTank.Test", "ThinkTankTest\ThinkTank.Test.csproj", "{03B2EB9C-3F7A-4A78-A067-719F49B8AF98}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ThinkTank.Infrastructures", "ThinkTank.Infrastructures\ThinkTank.Infrastructures.csproj", "{869D83BC-C794-4F62-8B36-509B018EA8F4}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -33,6 +35,10 @@ Global
 		{03B2EB9C-3F7A-4A78-A067-719F49B8AF98}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{03B2EB9C-3F7A-4A78-A067-719F49B8AF98}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{03B2EB9C-3F7A-4A78-A067-719F49B8AF98}.Release|Any CPU.Build.0 = Release|Any CPU
+		{869D83BC-C794-4F62-8B36-509B018EA8F4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{869D83BC-C794-4F62-8B36-509B018EA8F4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{869D83BC-C794-4F62-8B36-509B018EA8F4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{869D83BC-C794-4F62-8B36-509B018EA8F4}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

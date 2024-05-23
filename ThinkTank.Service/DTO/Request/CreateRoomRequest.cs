@@ -2,7 +2,7 @@
 
 using System.ComponentModel.DataAnnotations;
 
-namespace ThinkTank.Service.DTO.Request
+namespace ThinkTank.Application.DTO.Request
 {
     public class CreateRoomRequest
     {

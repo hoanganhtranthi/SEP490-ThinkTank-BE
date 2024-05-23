@@ -2,16 +2,16 @@
 using AutoMapper.QueryableExtensions;
 using Microsoft.EntityFrameworkCore;
 using System.Net;
-using ThinkTank.Data.Entities;
-using ThinkTank.Data.UnitOfWork;
-using ThinkTank.Service.DTO.Request;
-using ThinkTank.Service.DTO.Response;
-using ThinkTank.Service.Exceptions;
-using ThinkTank.Service.Helpers;
-using ThinkTank.Service.Services.IService;
-using ThinkTank.Service.Utilities;
+using ThinkTank.Application.DTO.Request;
+using ThinkTank.Application.DTO.Response;
+using ThinkTank.Application.GlobalExceptionHandling.Exceptions;
+using ThinkTank.Application.Helpers;
+using ThinkTank.Application.Services.IService;
+using ThinkTank.Application.UnitOfWork;
+using ThinkTank.Domain.Entities;
+using static ThinkTank.Domain.Enums.Enum;
 
-namespace ThinkTank.Service.Services.ImpService
+namespace ThinkTank.Application.Services.ImpService
 {
     public class IconService : IIconService
     {
@@ -66,8 +66,8 @@ namespace ThinkTank.Service.Services.ImpService
                     if (acc.Status == false)
                         throw new CrudException(HttpStatusCode.BadRequest, $"Account Id {acc.Id} is block", "");
 
-                    var isTrue = request.StatusIcon == Helpers.Enum.StatusIconType.True;
-                    var isFalse = request.StatusIcon == Helpers.Enum.StatusIconType.False;
+                    var isTrue = request.StatusIcon == StatusIconType.True;
+                    var isFalse = request.StatusIcon == StatusIconType.False;
                     var iconsOfAccount = await GetIconIdsByAccountId((int)request.AccountId);
 
                     if (isTrue)
