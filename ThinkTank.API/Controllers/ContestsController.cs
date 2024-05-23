@@ -1,8 +1,8 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using ThinkTank.Service.DTO.Request;
-using ThinkTank.Service.DTO.Response;
-using ThinkTank.Service.Services.IService;
+using ThinkTank.Application.DTO.Request;
+using ThinkTank.Application.DTO.Response;
+using ThinkTank.Application.Services.IService;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 

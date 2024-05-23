@@ -1,7 +1,7 @@
 ﻿
 using Microsoft.AspNetCore.Mvc;
-using ThinkTank.Service.Services.IService;
-using static ThinkTank.Service.Helpers.Enum;
+using ThinkTank.Application.Services.IService;
+using static ThinkTank.Domain.Enums.Enum;
 
 namespace ThinkTank.API.Controllers
 {

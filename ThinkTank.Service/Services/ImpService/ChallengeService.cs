@@ -1,16 +1,15 @@
-﻿using AutoMapper;
+﻿
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
 using System.Net;
-using ThinkTank.Data.Entities;
-using ThinkTank.Data.UnitOfWork;
-using ThinkTank.Service.DTO.Request;
-using ThinkTank.Service.DTO.Response;
-using ThinkTank.Service.Exceptions;
-using ThinkTank.Service.Services.IService;
-using static ThinkTank.Service.Helpers.Enum;
+using ThinkTank.Application.DTO.Request;
+using ThinkTank.Application.DTO.Response;
+using ThinkTank.Application.GlobalExceptionHandling.Exceptions;
+using ThinkTank.Application.Services.IService;
+using ThinkTank.Application.UnitOfWork;
+using ThinkTank.Domain.Entities;
+using static ThinkTank.Domain.Enums.Enum;
 
-namespace ThinkTank.Service.Services.ImpService
+namespace ThinkTank.Application.Services.ImpService
 {
     public class ChallengeService : IChallengeService
     {
@@ -38,7 +37,7 @@ namespace ThinkTank.Service.Services.ImpService
                                                Status= x.Badges.SingleOrDefault(a => a.ChallengeId == x.Id && a.AccountId == request.AccountId).Status
                                            })
                                            .ToList();
-                if (request.Status != Helpers.Enum.StatusType.All)
+                if (request.Status != StatusType.All)
                 {
                     bool? status = null;
                     if (request.Status.ToString().ToLower() != "null")

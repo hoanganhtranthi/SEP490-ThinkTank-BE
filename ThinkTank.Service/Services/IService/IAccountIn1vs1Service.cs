@@ -1,8 +1,8 @@
 ﻿
-using ThinkTank.Service.DTO.Request;
-using ThinkTank.Service.DTO.Response;
+using ThinkTank.Application.DTO.Request;
+using ThinkTank.Application.DTO.Response;
 
-namespace ThinkTank.Service.Services.IService
+namespace ThinkTank.Application.Services.IService
 {
     public interface IAccountIn1vs1Service
     {

@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
-using ThinkTank.Service.Services.IService;
+using ThinkTank.Application.Services.IService;
 using ThinkTank.Test;
 
 namespace ThinkTank.Test.Services

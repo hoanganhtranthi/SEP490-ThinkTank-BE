@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace ThinkTank.Data.Entities
+namespace ThinkTank.Domain.Entities
 {
     public partial class Achievement
     {

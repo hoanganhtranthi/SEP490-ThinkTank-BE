@@ -1,7 +1,9 @@
 ﻿
-using ThinkTank.Service.Commons;
 
-namespace ThinkTank.Service.DTO.Response
+
+using ThinkTank.Domain.Commons;
+
+namespace ThinkTank.Application.DTO.Response
 {
     public class AccountIn1vs1Response
     {

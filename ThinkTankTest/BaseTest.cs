@@ -2,13 +2,14 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using MuTote.API.Mapper;
-using Repository.Extensions;
-using ThinkTank.Data.Entities;
-using ThinkTank.Data.Repository;
-using ThinkTank.Data.UnitOfWork;
-using ThinkTank.Service.Services.ImpService;
-using ThinkTank.Service.Services.IService;
+using ThinkTank.Application.Repository;
+using ThinkTank.Application.Services.ImpService;
+using ThinkTank.Application.Services.IService;
+using ThinkTank.Application.UnitOfWork;
+using ThinkTank.Infrastructures.DatabaseContext;
+using ThinkTank.Infrastructures.Mapper;
+using ThinkTank.Infrastructures.Repository;
+using ThinkTank.Infrastructures.UnitOfWork;
 
 namespace ThinkTank.Test
 {

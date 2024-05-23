@@ -3,9 +3,9 @@ using FireSharp.Config;
 using FireSharp.Interfaces;
 using FireSharp.Response;
 using Microsoft.Extensions.Configuration;
-using ThinkTank.Service.Services.IService;
+using ThinkTank.Application.Services.IService;
 
-namespace ThinkTank.Service.Services.ImpService
+namespace ThinkTank.Application.Services.ImpService
 {
     public class FirebaseRealtimeDatabaseService:IFirebaseRealtimeDatabaseService
     {

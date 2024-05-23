@@ -1,7 +1,7 @@
 ﻿using FirebaseAdmin.Messaging;
-using ThinkTank.Service.Services.IService;
+using ThinkTank.Application.Services.IService;
 
-namespace ThinkTank.Service.Services.ImpService
+namespace ThinkTank.Application.Services.ImpService
 {
     public class FirebaseMessagingService : IFirebaseMessagingService
     {

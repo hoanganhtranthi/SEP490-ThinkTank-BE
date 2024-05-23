@@ -2,20 +2,16 @@
 using Newtonsoft.Json.Serialization;
 using Newtonsoft.Json;
 using System.Net;
-using ThinkTank.Data.Entities;
-using ThinkTank.Data.UnitOfWork;
-using ThinkTank.Service.DTO.Request;
-using ThinkTank.Service.DTO.Response;
-using ThinkTank.Service.Exceptions;
-using ThinkTank.Service.Services.IService;
+using ThinkTank.Application.Services.IService;
 using Microsoft.EntityFrameworkCore;
-using Notification = ThinkTank.Data.Entities.Notification;
-using ThinkTank.Service.Helpers;
-using ThinkTank.Service.Utilities;
-using Repository.Extensions;
+using ThinkTank.Application.Helpers;
+using ThinkTank.Application.UnitOfWork;
+using ThinkTank.Application.DTO.Response;
+using ThinkTank.Application.DTO.Request;
+using ThinkTank.Application.GlobalExceptionHandling.Exceptions;
+using ThinkTank.Domain.Entities;
 
-
-namespace ThinkTank.Service.Services.ImpService
+namespace ThinkTank.Application.Services.ImpService
 {
     public class AccountIn1vs1Service : IAccountIn1vs1Service
     {

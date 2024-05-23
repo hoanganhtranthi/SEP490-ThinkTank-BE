@@ -1,28 +1,20 @@
 ﻿using AutoMapper;
-using AutoMapper.QueryableExtensions;
 using Hangfire;
-using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json.Serialization;
 using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using System.Net;
-using System.Text;
-using System.Threading.Tasks;
-using ThinkTank.Data.Entities;
-using ThinkTank.Data.UnitOfWork;
-using ThinkTank.Service.DTO.Request;
-using ThinkTank.Service.DTO.Response;
-using ThinkTank.Service.Exceptions;
-using ThinkTank.Service.Helpers;
-using ThinkTank.Service.Services.IService;
-using ThinkTank.Service.Utilities;
 using Microsoft.EntityFrameworkCore;
-using Notification = ThinkTank.Data.Entities.Notification;
+using Notification = ThinkTank.Domain.Entities.Notification;
+using ThinkTank.Application.Helpers;
+using ThinkTank.Application.Services.IService;
+using ThinkTank.Application.UnitOfWork;
+using ThinkTank.Application.DTO.Response;
+using ThinkTank.Application.DTO.Request;
+using ThinkTank.Application.GlobalExceptionHandling.Exceptions;
+using ThinkTank.Domain.Entities;
+using static ThinkTank.Domain.Enums.Enum;
 
-namespace ThinkTank.Service.Services.ImpService
+namespace ThinkTank.Application.Services.ImpService
 {
     public class ContestService : IContestService
     {
@@ -633,7 +625,7 @@ namespace ThinkTank.Service.Services.ImpService
                                            })
                                            .DynamicFilter(filter)
                                            .ToList();
-                if (request.ContestStatus != Helpers.Enum.StatusType.All)
+                if (request.ContestStatus != StatusType.All)
                 {
                     bool? status = null;
                     if (request.ContestStatus.ToString().ToLower() != "null")

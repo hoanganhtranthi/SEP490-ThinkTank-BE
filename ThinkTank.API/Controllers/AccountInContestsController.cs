@@ -1,10 +1,9 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using ThinkTank.Service.DTO.Request;
-using ThinkTank.Service.DTO.Response;
-using ThinkTank.Service.Services.ImpService;
-using ThinkTank.Service.Services.IService;
+using ThinkTank.Application.DTO.Request;
+using ThinkTank.Application.DTO.Response;
+using ThinkTank.Application.Services.IService;
 
 namespace ThinkTank.API.Controllers
 {

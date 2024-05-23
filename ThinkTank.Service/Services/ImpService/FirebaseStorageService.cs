@@ -3,18 +3,11 @@
 using Firebase.Auth;
 using Firebase.Storage;
 using Microsoft.Extensions.Configuration;
-using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.IO;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
-using ThinkTank.Service.Services.IService;
-using static ThinkTank.Service.Helpers.Enum;
+using ThinkTank.Application.Services.IService;
+using static ThinkTank.Domain.Enums.Enum;
 using Stream = System.IO.Stream;
 
-namespace ThinkTank.Service.ImpService
+namespace ThinkTank.Application.ImpService
 {
     public class FirebaseStorageService : IFileStorageService
     {
