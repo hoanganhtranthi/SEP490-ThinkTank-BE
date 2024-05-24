@@ -9,16 +9,11 @@ using FirebaseAdmin;
 using Google.Apis.Auth.OAuth2;
 using Hangfire;
 using ThinkTank.API.AppStart;
-using ThinkTank.Application.Services.IService;
-using ThinkTank.Infrastructures.Mapper;
-using ThinkTank.Application.ImpService;
-using ThinkTank.Application.Repository;
-using ThinkTank.Infrastructures.Repository;
 using ThinkTank.Application.Services.ImpService;
-using ThinkTank.Application.UnitOfWork;
-using ThinkTank.Infrastructures.UnitOfWork;
+
 using ThinkTank.Application.GlobalExceptionHandling.Utility;
 using ThinkTank.Infrastructures.DatabaseContext;
+using ThinkTank.Infrastructures;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -28,36 +23,7 @@ builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-
-builder.Services.AddAutoMapper(typeof(Mapping));
-builder.Services.AddScoped<IFileStorageService, FirebaseStorageService>();
-builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
-builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
-builder.Services.AddScoped<IAccountService, AccountService>();
-builder.Services.AddScoped<IFriendService, FriendService>();
-builder.Services.AddScoped<IGameService, GameService>();
-builder.Services.AddScoped<ICacheService, CacheService>();
-builder.Services.AddScoped<IAchievementService, AchievementService>();
-builder.Services.AddScoped<IIconService, IconService>();
-builder.Services.AddScoped<IIconOfAccountService,IconOfAccountService>();
-builder.Services.AddScoped<IAccountIn1vs1Service, AccountIn1vs1Service>();
-builder.Services.AddScoped<IContestService, ContestService>();
-builder.Services.AddScoped<IChallengeService, ChallengeService>();
-builder.Services.AddScoped<IFirebaseMessagingService, FirebaseMessagingService>();
-builder.Services.AddScoped<IAccountInContestService, AccountInContestService>();
-builder.Services.AddScoped<IReportService, ReportService>();
-builder.Services.AddScoped<INotificationService, NotificationService>();
-builder.Services.AddScoped<IRoomService,RoomService>();
-builder.Services.AddScoped<ITypeOfAssetService, TypeOfAssetService>();
-builder.Services.AddScoped<ITypeOfAssetInContestService, TypeOfAssetInContestService>();
-builder.Services.AddScoped<ITopicService, TopicService>();
-builder.Services.AddScoped<IAssetService, AssetService>();
-builder.Services.AddScoped<IAccountIn1vs1Service, AccountIn1vs1Service>();
-builder.Services.AddScoped<IAccountInRoomService, AccountInRoomService>();
-builder.Services.AddScoped<IFirebaseRealtimeDatabaseService, FirebaseRealtimeDatabaseService>();
-builder.Services.AddScoped<IAnalysisService, AnalysisService>();
-builder.Services.AddScoped<IAuthorizationHandler, CustomAuthorizationHandler>();
-
+builder.Services.AddInfrastructuresService(builder.Configuration);
 //FCM
 System.Environment.SetEnvironmentVariable("GOOGLE_APPLICATION_CREDENTIALS", "thinktank-ad0b3-45e7681d45c6.json");
 FirebaseApp.Create(new AppOptions()
@@ -66,19 +32,7 @@ FirebaseApp.Create(new AppOptions()
     ProjectId = builder.Configuration.GetValue<string>("Firebase:ProjectId")
 });
 
-//Redis Connection
-builder.Services.AddStackExchangeRedisCache(options =>
-{
-    options.Configuration = builder.Configuration.GetConnectionString("RedisConnectionString");
-    options.InstanceName = "SampleInstance";
-});
 
-
-//Database Connection
-builder.Services.AddDbContext<ThinkTankContext>(options =>
-{
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultSQLConnection"));
-});
 
 //CORS
 builder.Services.AddCors(options =>
