@@ -1,5 +1,19 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Net;
+using ThinkTank.Application.Accounts.Commands.BanAccount;
+using ThinkTank.Application.Accounts.Commands.CreateAccount;
+using ThinkTank.Application.Accounts.Commands.ForgotPassword;
+using ThinkTank.Application.Accounts.Commands.Login;
+using ThinkTank.Application.Accounts.Commands.LoginGoogle;
+using ThinkTank.Application.Accounts.Commands.Logout;
+using ThinkTank.Application.Accounts.Commands.UpdateAccount;
+using ThinkTank.Application.Accounts.Commands.VerifyAndGenerateToken;
+using ThinkTank.Application.Accounts.Queries.GetAccountById;
+using ThinkTank.Application.Accounts.Queries.GetAccounts;
+using ThinkTank.Application.Accounts.Queries.GetAccountToLogin;
+using ThinkTank.Application.Accounts.Queries.GetGameLevelByAccountId;
 using ThinkTank.Application.DTO.Request;
 using ThinkTank.Application.DTO.Response;
 using ThinkTank.Application.Services.IService;
@@ -10,11 +24,10 @@ namespace ThinkTank.API.Controllers
     [ApiController]
     public class AccountsController : Controller
     {
-        private readonly IAccountService _accountService;
-
-        public AccountsController(IAccountService accountService)
+        private readonly IMediator _mediator;
+        public AccountsController(IMediator mediator)
         {
-            _accountService = accountService;
+            _mediator = mediator;
         }
         /// <summary>
         /// Get list of accounts
@@ -22,11 +35,12 @@ namespace ThinkTank.API.Controllers
         /// <param name="pagingRequest"></param>
         /// <param name="accountRequest"></param>
         /// <returns></returns>
-       //[Authorize(Policy = "Admin")]
+       [Authorize(Policy = "Admin")]
         [HttpGet]
-        public async Task<ActionResult<List<AccountResponse>>> GetAccounts([FromQuery] PagingRequest pagingRequest, [FromQuery] AccountRequest accountRequest)
+        [ProducesResponseType(typeof(PagedResults<AccountResponse>), (int)HttpStatusCode.OK)]
+        public async Task<IActionResult> GetAccounts([FromQuery] PagingRequest pagingRequest, [FromQuery] AccountRequest accountRequest)
         {
-            var rs = await _accountService.GetAccounts(accountRequest, pagingRequest);
+            var rs = await _mediator.Send(new GetAccountsQuery(pagingRequest,accountRequest));
             return Ok(rs);
         }
         /// <summary>
@@ -36,9 +50,10 @@ namespace ThinkTank.API.Controllers
         /// <returns></returns>
         [Authorize(Policy = "All")]
         [HttpGet("{id:int}")]
-        public async Task<ActionResult<AccountResponse>> GetAccount(int id)
+        [ProducesResponseType(typeof(AccountResponse), (int)HttpStatusCode.OK)]
+        public async Task<IActionResult> GetAccount(int id)
         {
-            var rs = await _accountService.GetAccountById(id);
+            var rs = await _mediator.Send(new GetAccountByIdQuery(id));
             return Ok(rs);
         }
         /// <summary>
@@ -49,9 +64,10 @@ namespace ThinkTank.API.Controllers
         /// <returns></returns>
        [Authorize(Policy = "Player")]
         [HttpPut("{id:int}")]
-        public async Task<ActionResult<AccountResponse>> UpdateAccount([FromBody] UpdateAccountRequest userRequest, int id)
+        [ProducesResponseType(typeof(AccountResponse), (int)HttpStatusCode.OK)]
+        public async Task<IActionResult> UpdateAccount([FromBody] UpdateAccountRequest userRequest, int id)
         {
-            var rs = await _accountService.UpdateAccount(id, userRequest);
+            var rs = await _mediator.Send(new UpdateAccountCommand(id, userRequest));
             if (rs == null) return NotFound();
             return Ok(rs);
         }
@@ -62,9 +78,10 @@ namespace ThinkTank.API.Controllers
         /// <returns></returns>
         [Authorize(Policy = "Admin")]
         [HttpGet("{accId:int}/account-banned")]
-        public async Task<ActionResult<AccountResponse>> GetToBanAccount(int accId)
+        [ProducesResponseType(typeof(AccountResponse), (int)HttpStatusCode.OK)]
+        public async Task<IActionResult> GetToBanAccount(int accId)
         {
-            var rs = await _accountService.GetToBanAccount(accId);
+            var rs = await _mediator.Send(new BanAccountCommand(accId));
             return Ok(rs);
         }
         /// <summary>
@@ -73,10 +90,11 @@ namespace ThinkTank.API.Controllers
         /// <param name="account"></param>
         /// <returns></returns>
         [AllowAnonymous]
-        [HttpPost()]
-        public async Task<ActionResult<AccountResponse>> CreateCustomer([FromBody] CreateAccountRequest account)
+        [HttpPost]
+        [ProducesResponseType(typeof(AccountResponse), (int)HttpStatusCode.OK)]
+        public async Task<IActionResult> CreateCustomer([FromBody] CreateAccountRequest account)
         {
-            var rs = await _accountService.CreateAccount(account);
+            var rs = await _mediator.Send(new CreateAccountCommand(account));
             return Ok(rs);
         }
         /// <summary>
@@ -86,9 +104,10 @@ namespace ThinkTank.API.Controllers
         /// <returns></returns>
         [AllowAnonymous]
         [HttpPost("authentication-player")]
-        public async Task<ActionResult<AccountResponse>> LoginPlayer([FromBody] LoginRequest model)
+        [ProducesResponseType(typeof(AccountResponse), (int)HttpStatusCode.OK)]
+        public async Task<IActionResult> LoginPlayer([FromBody] LoginRequest model)
         {
-            var rs = await _accountService.LoginPlayer(model);
+            var rs = await _mediator.Send(new LoginPlayerCommand(model));
             return Ok(rs);
         }
         /// <summary>
@@ -100,9 +119,10 @@ namespace ThinkTank.API.Controllers
         /// <returns></returns>
         [AllowAnonymous]
         [HttpGet("authentication-checking")]
-        public async Task<ActionResult<AccountResponse>> GetAccountToLogin([FromQuery] string? username,[FromQuery] string? password, [FromQuery] string? googleId)
+        [ProducesResponseType(typeof(AccountResponse), (int)HttpStatusCode.OK)]
+        public async Task<IActionResult> GetAccountToLogin([FromQuery] string? username,[FromQuery] string? password, [FromQuery] string? googleId)
         {
-            var rs = await _accountService.GetAccountToLogin(username,password,googleId);
+            var rs = await _mediator.Send(new GetAccountToLoginQuery(username,password,googleId));
             return Ok(rs);
         }
         /// <summary>
@@ -112,9 +132,10 @@ namespace ThinkTank.API.Controllers
         /// <returns></returns>
         [AllowAnonymous]
         [HttpPost("authentication-admin")]
-        public async Task<ActionResult<AccountResponse>> LoginAdmin([FromBody] LoginRequest model)
+        [ProducesResponseType(typeof(AccountResponse), (int)HttpStatusCode.OK)]
+        public async Task<IActionResult> LoginAdmin([FromBody] LoginRequest model)
         {
-            var rs = await _accountService.LoginAdmin(model);
+            var rs = await _mediator.Send(new LoginAdminCommand(model));
             return Ok(rs);
         }
         /// <summary>
@@ -124,9 +145,10 @@ namespace ThinkTank.API.Controllers
         /// <returns></returns>
         [AllowAnonymous]
         [HttpPost("forgotten-password")]
-        public async Task<ActionResult<AccountResponse>> ResetPassword([FromQuery] ResetPasswordRequest resetPassword)
+        [ProducesResponseType(typeof(AccountResponse), (int)HttpStatusCode.OK)]
+        public async Task<IActionResult> ResetPassword([FromQuery] ResetPasswordRequest resetPassword)
         {
-            var rs = await _accountService.UpdatePass(resetPassword);
+            var rs = await _mediator.Send(new ForgotPasswordCommand(resetPassword));
             return Ok(rs);
         }
 
@@ -137,9 +159,10 @@ namespace ThinkTank.API.Controllers
         /// <returns></returns>
         [AllowAnonymous]
         [HttpPost("token-verification")]
-        public async Task<ActionResult<AccountResponse>> VerifyAndGenerateToken(TokenRequest request)
+        [ProducesResponseType(typeof(AccountResponse), (int)HttpStatusCode.OK)]
+        public async Task<IActionResult> VerifyAndGenerateToken(TokenRequest request)
         {
-            var rs = await _accountService.VerifyAndGenerateToken(request);
+            var rs = await _mediator.Send(new VerifyAndGenerateTokenCommand(request));
             return Ok(rs);
         }
 
@@ -150,9 +173,10 @@ namespace ThinkTank.API.Controllers
         /// <returns></returns>
         [AllowAnonymous]
         [HttpPost("{userId:int}/token-revoke")]
-        public async Task<ActionResult<AccountResponse>> RevokeRefreshToken(int userId)
+        [ProducesResponseType(typeof(AccountResponse), (int)HttpStatusCode.OK)]
+        public async Task<IActionResult> RevokeRefreshToken(int userId)
         {
-            var rs = await _accountService.RevokeRefreshToken(userId);
+            var rs = await _mediator.Send(new RevokeRefreshTokenCommand(userId));
             return Ok(rs);
         }
 
@@ -163,9 +187,10 @@ namespace ThinkTank.API.Controllers
         /// <returns></returns>
         [AllowAnonymous]
         [HttpPost("google-authentication")]
-        public async Task<ActionResult<AccountResponse>> LoginGoogle([FromBody] LoginGoogleRequest request)
+        [ProducesResponseType(typeof(AccountResponse), (int)HttpStatusCode.OK)]
+        public async Task<IActionResult> LoginGoogle([FromBody] LoginGoogleRequest request)
         {
-            var rs = await _accountService.LoginGoogle(request);
+            var rs = await _mediator.Send(new LoginGoogleCommand(request));
             return Ok(rs);
         }
         /// <summary>
@@ -175,9 +200,10 @@ namespace ThinkTank.API.Controllers
         /// <returns></returns>
         [Authorize(Policy = "All")]
         [HttpGet("{accountId:int}/game-level-of-account")]
-        public async Task<ActionResult<List<GameLevelOfAccountResponse>>> GetGameLevelByAccountId( int accountId)
+        [ProducesResponseType(typeof(List<GameLevelOfAccountResponse>), (int)HttpStatusCode.OK)]
+        public async Task<IActionResult> GetGameLevelByAccountId( int accountId)
         {
-            var rs = await _accountService.GetGameLevelByAccountId(accountId);
+            var rs = await _mediator.Send(new GetGameLevelByAccountIdQuery(accountId));
             return Ok(rs);
         }
     }

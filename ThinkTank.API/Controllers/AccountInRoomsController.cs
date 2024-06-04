@@ -1,8 +1,10 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Net;
+using ThinkTank.Application.CQRS.Rooms.Commands.UpdateAccountInRoom;
 using ThinkTank.Application.DTO.Request;
 using ThinkTank.Application.DTO.Response;
-using ThinkTank.Application.Services.IService;
 
 namespace ThinkTank.API.Controllers
 {
@@ -10,38 +12,11 @@ namespace ThinkTank.API.Controllers
     [ApiController]
     public class AccountInRoomsController : Controller
     {
-        private readonly IAccountInRoomService _accountInRoomService;
-        public AccountInRoomsController(IAccountInRoomService accountInRoomService)
+        private readonly IMediator _mediator;
+        public AccountInRoomsController(IMediator mediator)
         {
-            _accountInRoomService = accountInRoomService;   
+            _mediator = mediator;  
         }
-        /// <summary>
-        /// Get list of account in room
-        /// </summary>
-        /// <param name="pagingRequest"></param>
-        /// <param name="accountInRoomRequest"></param>
-        /// <returns></returns>
-        [Authorize(Policy = "Admin")]
-        [HttpGet]
-        public async Task<ActionResult<List<AccountInRoomResponse>>> GetAccountInRooms([FromQuery] PagingRequest pagingRequest, [FromQuery] AccountInRoomRequest accountInRoomRequest)
-        {
-            var rs = await _accountInRoomService.GetAccountInRooms(accountInRoomRequest, pagingRequest);
-            return Ok(rs);
-        }
-
-        /// <summary>
-        /// Get account in room by Id
-        /// </summary>
-        /// <param name="id"></param>
-        /// <returns></returns>
-        [Authorize(Policy = "Admin")]
-        [HttpGet("{id:int}")]
-        public async Task<ActionResult<AccountInRoomResponse>> GetAccountInRoomById(int id)
-        {
-            var rs = await _accountInRoomService.GetAccountInRoomById(id);
-            return Ok(rs);
-        }
-
         /// <summary>
         /// Update result of account In Room
         /// </summary>
@@ -50,9 +25,10 @@ namespace ThinkTank.API.Controllers
         /// <returns></returns>
         [Authorize(Policy = "Player")]
         [HttpPut("{roomCode}")]
-        public async Task<ActionResult<AccountInRoomResponse>> UpdateAccountInRoom(string roomCode,[FromBody] CreateAndUpdateAccountInRoomRequest request)
+        [ProducesResponseType(typeof(AccountInRoomResponse), (int)HttpStatusCode.OK)]
+        public async Task<IActionResult> UpdateAccountInRoom(string roomCode,[FromBody] CreateAndUpdateAccountInRoomRequest request)
         {
-            var rs = await _accountInRoomService.UpdateAccountInRoom(roomCode,request);
+            var rs = await _mediator.Send(new UpdateAccountInRoomCommand(roomCode, request));
             return Ok(rs);
         }
     }

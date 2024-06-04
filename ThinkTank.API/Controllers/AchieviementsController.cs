@@ -1,8 +1,11 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Net;
+using ThinkTank.Application.CQRS.Achieviements.Commands.CreateAchievement;
+using ThinkTank.Application.CQRS.Achieviements.Queries.GetLeaderboard;
 using ThinkTank.Application.DTO.Request;
 using ThinkTank.Application.DTO.Response;
-using ThinkTank.Application.Services.IService;
 
 namespace ThinkTank.API.Controllers
 {
@@ -10,35 +13,10 @@ namespace ThinkTank.API.Controllers
     [ApiController]
     public class AchieviementsController : Controller
     {
-        private readonly IAchievementService _achievementService;
-        public AchieviementsController(IAchievementService achievementService)
+        private readonly IMediator _mediator;
+        public AchieviementsController(IMediator mediator)
         {
-            _achievementService = achievementService;
-        }
-        /// <summary>
-        /// Get list of achievements
-        /// </summary>
-        /// <param name="pagingRequest"></param>
-        /// <param name="request"></param>
-        /// <returns></returns>
-       [Authorize(Policy ="Admin")]
-        [HttpGet]
-        public async Task<ActionResult<List<AchievementResponse>>> GetAchievements([FromQuery] PagingRequest pagingRequest, [FromQuery] AchievementRequest request)
-        {
-            var rs = await _achievementService.GetAchievements(request, pagingRequest);
-            return Ok(rs);
-        }
-        /// <summary>
-        /// Get achievement  by Id
-        /// </summary>
-        /// <param name="id"></param>
-        /// <returns></returns>
-       [Authorize(Policy ="Admin")]
-        [HttpGet("{id:int}")]
-        public async Task<ActionResult<AchievementResponse>> GetAchievement(int id)
-        {
-            var rs = await _achievementService.GetAchievementById(id);
-            return Ok(rs);
+            _mediator= mediator;
         }
         /// <summary>
         /// Add achievement
@@ -47,9 +25,10 @@ namespace ThinkTank.API.Controllers
         /// <returns></returns>
         [Authorize(Policy = "Player")]
         [HttpPost()]
-        public async Task<ActionResult<AchievementResponse>> CreateAchievement([FromBody] CreateAchievementRequest request)
+        [ProducesResponseType(typeof(AchievementResponse), (int)HttpStatusCode.OK)]
+        public async Task<IActionResult> CreateAchievement([FromBody] CreateAchievementRequest request)
         {
-            var rs = await _achievementService.CreateAchievement(request);
+            var rs = await _mediator.Send(new CreateAchievementCommand(request));
             return Ok(rs);
         }
         /// <summary>
@@ -59,9 +38,10 @@ namespace ThinkTank.API.Controllers
         /// <returns></returns>
         [Authorize(Policy = "All")]
         [HttpGet("{gameId:int}/leaderboard")]
-        public async Task<ActionResult<List<LeaderboardResponse>>> GetLeaderboard(int gameId, [FromQuery] PagingRequest request, [FromQuery] int? accountId)
+        [ProducesResponseType(typeof(PagedResults<LeaderboardResponse>), (int)HttpStatusCode.OK)]
+        public async Task<IActionResult> GetLeaderboard(int gameId, [FromQuery] PagingRequest request, [FromQuery] int? accountId)
         {
-            var rs = await _achievementService.GetLeaderboard(gameId,request,accountId);
+            var rs = await _mediator.Send(new GetLeaderboardQuery(gameId,accountId,request));
             return Ok(rs);
         }
     }

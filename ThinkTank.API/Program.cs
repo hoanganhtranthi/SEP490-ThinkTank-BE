@@ -1,6 +1,4 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Reflection;
@@ -10,10 +8,10 @@ using Google.Apis.Auth.OAuth2;
 using Hangfire;
 using ThinkTank.API.AppStart;
 using ThinkTank.Application.Services.ImpService;
-
 using ThinkTank.Application.GlobalExceptionHandling.Utility;
-using ThinkTank.Infrastructures.DatabaseContext;
 using ThinkTank.Infrastructures;
+using Microsoft.Extensions.DependencyInjection;
+using ThinkTank.Application;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -31,8 +29,6 @@ FirebaseApp.Create(new AppOptions()
     Credential = GoogleCredential.GetApplicationDefault(),
     ProjectId = builder.Configuration.GetValue<string>("Firebase:ProjectId")
 });
-
-
 
 //CORS
 builder.Services.AddCors(options =>
@@ -106,6 +102,7 @@ builder.Services.AddAuthentication(x =>
     });
 //end JWT
 
+builder.Services.RegisterRequestHandlers();
 //Set policy
 builder.Services.AddAuthorization(options =>
 {

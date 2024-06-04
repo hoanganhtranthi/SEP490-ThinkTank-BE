@@ -7,7 +7,7 @@ using ThinkTank.Application.Services.IService;
 using static ThinkTank.Domain.Enums.Enum;
 using Stream = System.IO.Stream;
 
-namespace ThinkTank.Application.ImpService
+namespace ThinkTank.Application.Services.ImpService
 {
     public class FirebaseStorageService : IFileStorageService
     {

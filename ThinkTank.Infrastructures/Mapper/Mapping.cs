@@ -30,8 +30,6 @@ namespace ThinkTank.Infrastructures.Mapper
             CreateMap<NotificationRequest, NotificationResponse>();
             CreateMap<Notification, NotificationResponse>();
 
-            CreateMap<GameRequest, Game>();
-            CreateMap<GameRequest, GameResponse>();
             CreateMap<Game, GameResponse>();
 
             CreateMap<AchievementRequest, Achievement>();
@@ -66,8 +64,6 @@ namespace ThinkTank.Infrastructures.Mapper
             CreateMap<AssetRequest, Asset>();
 
             CreateMap<TypeOfAsset, TypeOfAssetResponse>().ReverseMap();
-            CreateMap<TypeOfAssetRequest, TypeOfAssetResponse>();
-            CreateMap<TypeOfAssetRequest, TypeOfAsset>();
 
             CreateMap<ChallengeRequest, ChallengeResponse>();
             CreateMap<ChallengeRequest, Challenge>();
@@ -80,17 +76,14 @@ namespace ThinkTank.Infrastructures.Mapper
             CreateMap<AccountInContestRequest, AccountInContestResponse>();
             CreateMap<UpdateAccountInContestRequest, AccountInContest>();
 
-            CreateMap<AccountIn1vs1Request, AccountIn1vs1>();
+
             CreateMap<AccountIn1vs1, AccountIn1vs1Response>();
-            CreateMap<AccountIn1vs1Request, AccountIn1vs1Response>();
             CreateMap<CreateAndUpdateAccountIn1vs1Request, AccountIn1vs1>();
 
             CreateMap<CreateAssetOfContestRequest, AssetOfContest>();
             CreateMap<AssetOfContest, AssetOfContestResponse>().ReverseMap();
 
             CreateMap<TypeOfAssetInContest, TypeOfAssetInContestResponse>().ReverseMap();
-            CreateMap<TypeOfAssetInContestRequest, TypeOfAssetInContestResponse>();
-            CreateMap<TypeOfAssetInContestRequest, TypeOfAssetInContest>();
 
             CreateMap<CreateRoomRequest, Room>();
             CreateMap<Room, RoomResponse>().ReverseMap();

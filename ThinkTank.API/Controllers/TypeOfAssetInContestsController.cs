@@ -1,8 +1,11 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Net;
+using ThinkTank.Application.CQRS.TypeOfAssetInContests.Queries.GetTypeOfAssetInContestById;
+using ThinkTank.Application.CQRS.TypeOfAssetInContests.Queries.GetTypeOfAssetInContests;
 using ThinkTank.Application.DTO.Request;
 using ThinkTank.Application.DTO.Response;
-using ThinkTank.Application.Services.IService;
 
 namespace ThinkTank.API.Controllers
 {
@@ -10,23 +13,24 @@ namespace ThinkTank.API.Controllers
     [ApiController]
     public class TypeOfAssetInContestsController : Controller
     {
-        private readonly ITypeOfAssetInContestService _typeOfAssetInContestService;
-        public TypeOfAssetInContestsController(ITypeOfAssetInContestService typeOfAssetInContestService)
+        private readonly IMediator _mediator;
+        public TypeOfAssetInContestsController(IMediator mediator)
         {
-            _typeOfAssetInContestService = typeOfAssetInContestService;
+            _mediator = mediator;
         }
 
         /// <summary>
         /// Get list of type assets in contest
         /// </summary>
         /// <param name="pagingRequest"></param>
-        /// <param name="typeAssetInContestRequest"></param>
+        /// <param name="contestId"></param>
         /// <returns></returns>
         [Authorize(Policy = "Admin")]
         [HttpGet]
-        public async Task<ActionResult<List<TypeOfAssetInContestResponse>>> GetAssetInContests([FromQuery] PagingRequest pagingRequest, [FromQuery] TypeOfAssetInContestRequest typeAssetInContestRequest)
+        [ProducesResponseType(typeof(PagedResults<TypeOfAssetInContestResponse>), (int)HttpStatusCode.OK)]
+        public async Task<IActionResult> GetTypeOfAssetInContests([FromQuery] PagingRequest pagingRequest, [FromQuery] int? contestId)
         {
-            var rs = await _typeOfAssetInContestService.GetTypeOfAssetInContests(typeAssetInContestRequest, pagingRequest);
+            var rs = await _mediator.Send(new GetTypeOfAssetInContestsQuery(pagingRequest, contestId));
             return Ok(rs);
         }
         /// <summary>
@@ -36,9 +40,10 @@ namespace ThinkTank.API.Controllers
         /// <returns></returns>
         [Authorize(Policy = "Admin")]
         [HttpGet("{id:int}")]
-        public async Task<ActionResult<TypeOfAssetInContestResponse>> GetTypeOfAssetsInContestById(int id)
+        [ProducesResponseType(typeof(TypeOfAssetInContestResponse), (int)HttpStatusCode.OK)]
+        public async Task<IActionResult> GetTypeOfAssetsInContestById(int id)
         {
-            var rs = await _typeOfAssetInContestService.GetTypeOfAssetInContestById(id);
+            var rs = await _mediator.Send(new GetTypeOfAssetsInContestByIdQuery(id));
             return Ok(rs);
         }
     }

@@ -1,8 +1,18 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Net;
+using ThinkTank.Application.Accounts.Queries.GetAccountById;
+using ThinkTank.Application.CQRS.Rooms.Commands.CancelRoom;
+using ThinkTank.Application.CQRS.Rooms.Commands.CreateRoom;
+using ThinkTank.Application.CQRS.Rooms.Commands.LeaveRoom;
+using ThinkTank.Application.CQRS.Rooms.Commands.RemoveRoomPartyInRealtimeDatabase;
+using ThinkTank.Application.CQRS.Rooms.Commands.UpdateRoom;
+using ThinkTank.Application.CQRS.Rooms.Queries.GetLeaderboardOfRoom;
+using ThinkTank.Application.CQRS.Rooms.Queries.GetRooms;
+using ThinkTank.Application.CQRS.Rooms.Queries.GetToStartRoom;
 using ThinkTank.Application.DTO.Request;
 using ThinkTank.Application.DTO.Response;
-using ThinkTank.Application.Services.IService;
 
 namespace ThinkTank.API.Controllers
 {
@@ -10,10 +20,10 @@ namespace ThinkTank.API.Controllers
     [ApiController]
     public class RoomsController : Controller
     {
-        private readonly IRoomService _roomService;
-        public RoomsController(IRoomService roomService)
+        private readonly IMediator _mediator;
+        public RoomsController(IMediator mediator)
         {
-            _roomService = roomService;
+            _mediator = mediator;
         }
         /// <summary>
         /// Get list of rooms
@@ -23,9 +33,10 @@ namespace ThinkTank.API.Controllers
         /// <returns></returns>
         [Authorize(Policy = "Admin")]
         [HttpGet]
-        public async Task<ActionResult<List<RoomResponse>>> GetRooms([FromQuery] PagingRequest pagingRequest, [FromQuery] RoomRequest roomRequest)
+        [ProducesResponseType(typeof(PagedResults<RoomResponse>), (int)HttpStatusCode.OK)]
+        public async Task<IActionResult> GetRooms([FromQuery] PagingRequest pagingRequest, [FromQuery] RoomRequest roomRequest)
         {
-            var rs = await _roomService.GetRooms(roomRequest, pagingRequest);
+            var rs = await _mediator.Send(new GetRoomsQuery(pagingRequest,roomRequest));
             return Ok(rs);
         }
         /// <summary>
@@ -35,9 +46,10 @@ namespace ThinkTank.API.Controllers
         /// <returns></returns>
         [Authorize(Policy = "Admin")]
         [HttpGet("{id:int}")]
-        public async Task<ActionResult<RoomResponse>> GetRoomsById(int id)
+        [ProducesResponseType(typeof(RoomResponse), (int)HttpStatusCode.OK)]
+        public async Task<IActionResult> GetRoomsById(int id)
         {
-            var rs = await _roomService.GetRoomById(id);
+            var rs = await _mediator.Send(new GetAccountByIdQuery(id));
             return Ok(rs);
         }
         /// <summary>
@@ -47,9 +59,10 @@ namespace ThinkTank.API.Controllers
         /// <returns></returns>
         [Authorize(Policy = "Player")]
         [HttpPost()]
-        public async Task<ActionResult<RoomResponse>> CreateRoom([FromBody] CreateRoomRequest room)
+        [ProducesResponseType(typeof(RoomResponse), (int)HttpStatusCode.OK)]
+        public async Task<IActionResult> CreateRoom([FromBody] CreateRoomRequest room)
         {
-            var rs = await _roomService.CreateRoom(room);
+            var rs = await _mediator.Send(new CreateRoomCommand(room));
             return Ok(rs);
         }
         /// <summary>
@@ -60,9 +73,10 @@ namespace ThinkTank.API.Controllers
         /// <returns></returns>
         [Authorize(Policy = "Player")]
         [HttpDelete("{id:int},{accountId:int}")]
-        public async Task<ActionResult<RoomResponse>> DeleteRoom(int id, int accountId)
+        [ProducesResponseType(typeof(RoomResponse), (int)HttpStatusCode.OK)]
+        public async Task<IActionResult> DeleteRoom(int id, int accountId)
         {
-            var rs = await _roomService.DeleteRoom(id, accountId);
+            var rs = await _mediator.Send(new CancelRoomCommand(id, accountId));
             if (rs == null) return NotFound();
             return Ok(rs);
         }
@@ -73,9 +87,10 @@ namespace ThinkTank.API.Controllers
         /// <returns></returns>
         [Authorize(Policy = "Player")]
         [HttpGet("{roomCode}/leaderboard")]
-        public async Task<ActionResult<List<LeaderboardResponse>>> GetLeaderboard(string roomCode)
+        [ProducesResponseType(typeof(List<LeaderboardResponse>), (int)HttpStatusCode.OK)]
+        public async Task<IActionResult> GetLeaderboard(string roomCode)
         {
-            var rs = await _roomService.GetLeaderboardOfRoom(roomCode);
+            var rs = await _mediator.Send(new GetLeaderboardOfRoomQuery(roomCode));
             return Ok(rs);
         }
         /// <summary>
@@ -86,9 +101,10 @@ namespace ThinkTank.API.Controllers
         /// <returns></returns>
        [Authorize(Policy = "Player")]
         [HttpPut("{roomCode}")]
-        public async Task<ActionResult<RoomResponse>> UpdateRoom(string roomCode, [FromBody] List<CreateAndUpdateAccountInRoomRequest> createAccountInRoomRequests)
+        [ProducesResponseType(typeof(RoomResponse), (int)HttpStatusCode.OK)]
+        public async Task<IActionResult> UpdateRoom(string roomCode, [FromBody] List<CreateAndUpdateAccountInRoomRequest> createAccountInRoomRequests)
         {
-            var rs = await _roomService.UpdateRoom(roomCode,createAccountInRoomRequests);
+            var rs = await _mediator.Send(new UpdateRoomCommand(roomCode,createAccountInRoomRequests));
             return Ok(rs);
         }
         /// <summary>
@@ -99,9 +115,10 @@ namespace ThinkTank.API.Controllers
         /// <returns></returns>
         [Authorize(Policy = "Player")]
         [HttpPut("{roomId:int},{accountId:int}")]
-        public async Task<ActionResult<RoomResponse>> LeaveRoom(int roomId, int accountId)
+        [ProducesResponseType(typeof(RoomResponse), (int)HttpStatusCode.OK)]
+        public async Task<IActionResult> LeaveRoom(int roomId, int accountId)
         {
-            var rs = await _roomService.LeaveRoom(roomId, accountId);
+            var rs = await _mediator.Send(new LeaveRoomCommand(roomId, accountId));
             return Ok(rs);
         }
         /// <summary>
@@ -113,9 +130,10 @@ namespace ThinkTank.API.Controllers
         /// <returns></returns>
         [Authorize(Policy = "Player")]
         [HttpGet("{accountId:int},{roomCode},{time:int}/started-room")]
-        public async Task<ActionResult<RoomResponse>> GetToStartRoom(int accountId,string roomCode,int time)
+        [ProducesResponseType(typeof(RoomResponse), (int)HttpStatusCode.OK)]
+        public async Task<IActionResult> GetToStartRoom(int accountId,string roomCode,int time)
         {
-            var rs = await _roomService.GetToStartRoom(roomCode,accountId,time);
+            var rs = await _mediator.Send(new GetToStartRoomQuery(roomCode,accountId,time));
             if (rs == null) return NotFound();
             return Ok(rs);
         }
@@ -127,9 +145,10 @@ namespace ThinkTank.API.Controllers
         /// <returns></returns>
         [Authorize(Policy = "Player")]
         [HttpGet("{delayTime:int},{roomCode}/room-removed")]
-        public async Task<ActionResult<bool>> RemoveRoomPartyInRealtimeDatabase(string roomCode, int delayTime)
+        [ProducesResponseType(typeof(bool), (int)HttpStatusCode.OK)]
+        public async Task<IActionResult> RemoveRoomPartyInRealtimeDatabase(string roomCode, int delayTime)
         {
-            var rs = await _roomService.RemoveRoomPartyInRealtimeDatabase(roomCode,delayTime);
+            var rs = await _mediator.Send(new RemoveRoomPartyInRealtimeDatabaseCommand(roomCode, delayTime));
             return Ok(rs);
         }
     }

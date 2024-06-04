@@ -1,5 +1,10 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Net;
+using ThinkTank.Application.CQRS.Notifications.Commands.DeleteNotification;
+using ThinkTank.Application.CQRS.Notifications.Commands.UpdateStatusNotification;
+using ThinkTank.Application.CQRS.Notifications.Queries.GetNotifications;
 using ThinkTank.Application.DTO.Request;
 using ThinkTank.Application.DTO.Response;
 using ThinkTank.Application.Services.IService;
@@ -10,10 +15,10 @@ namespace ThinkTank.API.Controllers
     [ApiController]
     public class NotificationsController : Controller
     {
-       private readonly INotificationService _notificationService;
-        public NotificationsController(INotificationService notificationService)
+       private readonly IMediator _mediator;
+        public NotificationsController(IMediator mediator)
         {
-            _notificationService = notificationService;
+            _mediator=mediator;
         }
         /// <summary>
         /// Get list of notification
@@ -23,21 +28,10 @@ namespace ThinkTank.API.Controllers
         /// <returns></returns>
         [Authorize(Policy = "Player")]
         [HttpGet]
-        public async Task<ActionResult<List<NotificationResponse>>> GetNotifications([FromQuery] PagingRequest pagingRequest, [FromQuery] NotificationRequest notificationRequest)
+        [ProducesResponseType(typeof(PagedResults<NotificationResponse>), (int)HttpStatusCode.OK)]
+        public async Task<IActionResult> GetNotifications([FromQuery] PagingRequest pagingRequest, [FromQuery] NotificationRequest notificationRequest)
         {
-            var rs = await _notificationService.GetNotifications(notificationRequest, pagingRequest);
-            return Ok(rs);
-        }
-        /// <summary>
-        /// Get notification by Id
-        /// </summary>
-        /// <param name="id"></param>
-        /// <returns></returns>
-        [Authorize(Policy = "Player")]
-        [HttpGet("{id:int}")]
-        public async Task<ActionResult<NotificationResponse>> GetNotification(int id)
-        {
-            var rs = await _notificationService.GetNotificationById(id);
+            var rs = await _mediator.Send(new GetNotificationsQuery(pagingRequest,notificationRequest));
             return Ok(rs);
         }
         /// <summary>
@@ -47,9 +41,10 @@ namespace ThinkTank.API.Controllers
         /// <returns></returns>
         [Authorize(Policy = "Player")]
         [HttpGet("{notificationId:int}/status")]
-        public async Task<ActionResult<NotificationResponse>> GetToUpdateStatus(int notificationId)
+        [ProducesResponseType(typeof(IconResponse), (int)HttpStatusCode.OK)]
+        public async Task<IActionResult> GetToUpdateStatus(int notificationId)
         {
-            var rs = await _notificationService.GetToUpdateStatus(notificationId);
+            var rs = await _mediator.Send(new UpdateStatusNotificationCommand(notificationId));
             return Ok(rs);
         }
         /// <summary>
@@ -59,9 +54,10 @@ namespace ThinkTank.API.Controllers
         /// <returns></returns>
         [Authorize(Policy = "Player")]
         [HttpDelete()]
-        public async Task<ActionResult<List<NotificationResponse>>> DeleteNotification([FromBody] List<int> notificationId)
+        [ProducesResponseType(typeof(NotificationResponse), (int)HttpStatusCode.OK)]
+        public async Task<IActionResult> DeleteNotification([FromBody] List<int> notificationId)
         {
-            var rs = await _notificationService.DeleteNotification(notificationId);
+            var rs = await _mediator.Send(new DeleteNotificationCommand(notificationId));
             return Ok(rs);
         }
     }

@@ -1,10 +1,12 @@
 ﻿
+using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using System.Text.Json.Serialization;
-using ThinkTank.Application.ImpService;
+using ThinkTank.Application.Accounts.DomainServices.ImpServices;
+using ThinkTank.Application.CQRS.Accounts.DomainServices.IService;
 using ThinkTank.Application.Repository;
 using ThinkTank.Application.Services.ImpService;
 using ThinkTank.Application.Services.IService;
@@ -13,6 +15,7 @@ using ThinkTank.Infrastructures.DatabaseContext;
 using ThinkTank.Infrastructures.Mapper;
 using ThinkTank.Infrastructures.Repository;
 using ThinkTank.Infrastructures.UnitOfWorkRepo;
+using INotificationService = ThinkTank.Application.Services.IService.INotificationService;
 
 namespace ThinkTank.Infrastructures
 {
@@ -20,45 +23,26 @@ namespace ThinkTank.Infrastructures
     {
         public static IServiceCollection AddInfrastructuresService(this IServiceCollection services, IConfiguration configuration)
         {
-            #region DI_SERVICES
-            services.AddScoped<IFileStorageService, FirebaseStorageService>();            
-            services.AddScoped<IAccountService, AccountService>();
-            services.AddScoped<IFriendService, FriendService>();
-            services.AddScoped<IGameService, GameService>();
-            services.AddScoped<ICacheService, CacheService>();
-            services.AddScoped<IAchievementService, AchievementService>();
-            services.AddScoped<IIconService, IconService>();
-            services.AddScoped<IIconOfAccountService, IconOfAccountService>();
-            services.AddScoped<IAccountIn1vs1Service, AccountIn1vs1Service>();
-            services.AddScoped<IContestService, ContestService>();
-            services.AddScoped<IChallengeService, ChallengeService>();
-            services.AddScoped<IFirebaseMessagingService, FirebaseMessagingService>();
-            services.AddScoped<IAccountInContestService, AccountInContestService>();
-            services.AddScoped<IReportService, ReportService>();
+            #region DI_SERVICES      
+            services.AddScoped<IHashPasswordService, HashPasswordService>();
+            services.AddScoped<IBadgesService, BadgesService>();
+            services.AddScoped<ITokenService, TokenService>();
             services.AddScoped<INotificationService, NotificationService>();
-            services.AddScoped<IRoomService, RoomService>();
-            services.AddScoped<ITypeOfAssetService, TypeOfAssetService>();
-            services.AddScoped<ITypeOfAssetInContestService, TypeOfAssetInContestService>();
-            services.AddScoped<ITopicService, TopicService>();
-            services.AddScoped<IAssetService, AssetService>();
-            services.AddScoped<IAccountIn1vs1Service, AccountIn1vs1Service>();
-            services.AddScoped<IAccountInRoomService, AccountInRoomService>();
+            services.AddScoped<IFirebaseMessagingService, FirebaseMessagingService>();
             services.AddScoped<IFirebaseRealtimeDatabaseService, FirebaseRealtimeDatabaseService>();
-            services.AddScoped<IAnalysisService, AnalysisService>();          
+            services.AddScoped<IFileStorageService, FirebaseStorageService>();
             #endregion
 
             #region DI_REPOSITORY
             services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
-            services.AddScoped<IUnitOfWork, UnitOfWork>();
-
-            #endregion
+            services.AddScoped<IUnitOfWork, UnitOfWork>();           
+           #endregion
             //Redis Connection
             services.AddStackExchangeRedisCache(options =>
             {
                 options.Configuration = configuration.GetConnectionString("RedisConnectionString");
                 options.InstanceName = "SampleInstance";
             });
-
 
             //Database Connection
             services.AddDbContext<ThinkTankContext>(options =>
@@ -68,6 +52,15 @@ namespace ThinkTank.Infrastructures
             services.AddAutoMapper(typeof(Mapping));
             services.AddScoped<IAuthorizationHandler, CustomAuthorizationHandler>();
             services.AddControllers().AddJsonOptions(x => x.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles);
+            return services;
+        }
+        public static IServiceCollection RegisterRequestHandlers(
+           this IServiceCollection services)
+        {
+            foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
+            {
+                services.AddMediatR(cfg => cfg.RegisterServicesFromAssemblies(assembly));
+            }
             return services;
         }
     }

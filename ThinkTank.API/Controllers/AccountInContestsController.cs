@@ -1,6 +1,11 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using System.Net;
+using ThinkTank.Application.CQRS.Contests.Commands.JoinContest;
+using ThinkTank.Application.CQRS.Contests.Commands.UpdateAccountInContest;
+using ThinkTank.Application.CQRS.Contests.Queries.GetAccountInContests;
 using ThinkTank.Application.DTO.Request;
 using ThinkTank.Application.DTO.Response;
 using ThinkTank.Application.Services.IService;
@@ -11,12 +16,11 @@ namespace ThinkTank.API.Controllers
     [ApiController]
     public class AccountInContestsController : ControllerBase
     {
-        private readonly
-            IAccountInContestService _accountInContestService;
+        private readonly IMediator _mediator;
 
-        public AccountInContestsController(IAccountInContestService accountInContestService)
+        public AccountInContestsController(IMediator mediator)
         {
-            _accountInContestService = accountInContestService;
+            _mediator=mediator; 
         }
 
         /// <summary>
@@ -27,9 +31,10 @@ namespace ThinkTank.API.Controllers
         /// <returns></returns>
         [Authorize(Policy = "All")]
         [HttpGet]
-        public async Task<ActionResult<List<AccountInContestResponse>>> GetAccountInContests([FromQuery] PagingRequest pagingRequest, [FromQuery] AccountInContestRequest accountInContestRequest)
+        [ProducesResponseType(typeof(PagedResults<AccountInContestResponse>), (int)HttpStatusCode.OK)]
+        public async Task<IActionResult> GetAccountInContests([FromQuery] PagingRequest pagingRequest, [FromQuery] AccountInContestRequest accountInContestRequest)
         {
-            var rs = await _accountInContestService.GetAccountInContests(accountInContestRequest, pagingRequest);
+            var rs = await _mediator.Send(new GetAccountInContestsQuery(pagingRequest,accountInContestRequest));
             return Ok(rs);
         }
         /// <summary>
@@ -39,24 +44,13 @@ namespace ThinkTank.API.Controllers
         /// <returns></returns>
         [Authorize(Policy = "Player")]
         [HttpPost()]
-        public async Task<ActionResult<AccountInContestResponse>> CreateAccountInContest([FromBody] CreateAccountInContestRequest request)
+        [ProducesResponseType(typeof(AccountInContestResponse), (int)HttpStatusCode.OK)]
+        public async Task<IActionResult> CreateAccountInContest([FromBody] CreateAccountInContestRequest request)
         {
-            var rs = await _accountInContestService.CreateAccountInContest(request);
+            var rs = await _mediator.Send(new JoinContestCommand(request));
             return Ok(rs);
         }
-        /// <summary>
-        /// Get account in contest by Id
-        /// </summary>
-        /// <param name="id"></param>
-        /// <returns></returns>
-        [Authorize(Policy = "All")]
-        [HttpGet("{id:int}")]
-        public async Task<ActionResult<AccountInContestResponse>> GetAccountInContestById( int id)
-        {
-            var rs = await _accountInContestService.GetAccountInContestById(id);
-            return Ok(rs);
-        }
-
+       
         /// <summary>
         /// Update Account In Contest
         /// </summary>
@@ -64,9 +58,10 @@ namespace ThinkTank.API.Controllers
         /// <returns></returns>
        [Authorize(Policy = "Player")]
         [HttpPut]
-        public async Task<ActionResult<AccountInContestResponse>> UpdateAccountInContest([FromBody] UpdateAccountInContestRequest request)
+        [ProducesResponseType(typeof(AccountInContestResponse), (int)HttpStatusCode.OK)]
+        public async Task<IActionResult> UpdateAccountInContest([FromBody] UpdateAccountInContestRequest request)
         {
-            var rs = await _accountInContestService.UpdateAccountInContest(request);
+            var rs = await _mediator.Send(new UpdateAccountInContestCommand(request));
             return Ok(rs);
         }
     }

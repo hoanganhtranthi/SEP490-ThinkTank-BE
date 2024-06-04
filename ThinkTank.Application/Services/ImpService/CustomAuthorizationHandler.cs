@@ -1,7 +1,9 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using System.IdentityModel.Tokens.Jwt;
 using System.Net;
 using System.Security.Claims;
+using ThinkTank.Application.Accounts.Queries.GetAccountById;
 using ThinkTank.Application.DTO.Response;
 using ThinkTank.Application.GlobalExceptionHandling.Exceptions;
 using ThinkTank.Application.Services.IService;
@@ -10,12 +12,12 @@ namespace ThinkTank.Application.Services.ImpService
 {
     public class CustomAuthorizationHandler : AuthorizationHandler<CustomRequirement>
     {
-        private readonly IAccountService _accountRepository;
+        private readonly IMediator _mediator;
         private readonly IFirebaseRealtimeDatabaseService _firebaseRealtimeDatabaseService;
 
-        public CustomAuthorizationHandler(IAccountService accountRepository,IFirebaseRealtimeDatabaseService firebaseRealtimeDatabaseService)
+        public CustomAuthorizationHandler(IMediator mediator,IFirebaseRealtimeDatabaseService firebaseRealtimeDatabaseService)
         {
-            _accountRepository = accountRepository;
+            _mediator = mediator;
             _firebaseRealtimeDatabaseService = firebaseRealtimeDatabaseService;
         }
 
@@ -61,7 +63,7 @@ namespace ThinkTank.Application.Services.ImpService
                 else
                 {
                     var accountId = int.Parse(idClaimValue);
-                    var account = await _accountRepository.GetAccountById(accountId);
+                    var account = await _mediator.Send( new GetAccountByIdQuery(accountId));
                     var versionCheck = account.VersionToken;
                     if (versionClaimValue.SequenceEqual(versionCheck.ToString()))
                     {

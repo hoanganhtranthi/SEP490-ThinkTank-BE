@@ -28,6 +28,10 @@ namespace ThinkTank.Test
             .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
             .Build();
 
+            foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
+            {
+                services.AddMediatR(cfg => cfg.RegisterServicesFromAssemblies(assembly));
+            }
             services.AddSingleton<IConfiguration>(configuration);
             services.AddDbContext<ThinkTankContext>(options =>
             {
@@ -36,7 +40,6 @@ namespace ThinkTank.Test
             services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
             services.AddScoped<IUnitOfWork, UnitOfWork>();
             services.AddScoped<IFirebaseMessagingService, FirebaseMessagingService>();          
-            services.AddScoped<IAccountIn1vs1Service, AccountIn1vs1Service>();
             services.AddScoped<IFirebaseRealtimeDatabaseService, FirebaseRealtimeDatabaseService>();
             services.AddScoped<IAuthorizationHandler, CustomAuthorizationHandler>();
             ServiceProvider = services.BuildServiceProvider();
