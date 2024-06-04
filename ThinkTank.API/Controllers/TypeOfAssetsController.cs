@@ -1,8 +1,11 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Net;
+using ThinkTank.Application.Accounts.Queries.GetAccountById;
+using ThinkTank.Application.CQRS.TypeOfAssets.Queries.GetTypeOfAssets;
 using ThinkTank.Application.DTO.Request;
 using ThinkTank.Application.DTO.Response;
-using ThinkTank.Application.Services.IService;
 
 namespace ThinkTank.API.Controllers
 {
@@ -10,23 +13,23 @@ namespace ThinkTank.API.Controllers
     [ApiController]
     public class TypeOfAssetsController : Controller
     {
-        private readonly ITypeOfAssetService _typeOfAssetService;
-        public TypeOfAssetsController(ITypeOfAssetService typeOfAssetService)
+        private readonly IMediator _mediator;
+        public TypeOfAssetsController(IMediator mediator)
         {
-            _typeOfAssetService = typeOfAssetService;
+           _mediator = mediator;
         }
 
         /// <summary>
         /// Get list type of assets
         /// </summary>
         /// <param name="pagingRequest"></param>
-        /// <param name="typeOfAssetRequest"></param>
         /// <returns></returns>
        [Authorize(Policy = "Admin")]
         [HttpGet]
-        public async Task<ActionResult<List<TypeOfAssetResponse>>> GetTypeOfAssets([FromQuery] PagingRequest pagingRequest, [FromQuery] TypeOfAssetRequest typeOfAssetRequest)
+        [ProducesResponseType(typeof(PagedResults<TypeOfAssetResponse>), (int)HttpStatusCode.OK)]
+        public async Task<IActionResult> GetTypeOfAssets([FromQuery] PagingRequest pagingRequest)
         {
-            var rs = await _typeOfAssetService.GetTypeOfAssets(typeOfAssetRequest, pagingRequest);
+            var rs = await _mediator.Send(new GetTypeOfAssetsQuery(pagingRequest));
             return Ok(rs);
         }
         /// <summary>
@@ -36,9 +39,10 @@ namespace ThinkTank.API.Controllers
         /// <returns></returns>
         [Authorize(Policy = "Admin")]
         [HttpGet("{id:int}")]
-        public async Task<ActionResult<TypeOfAssetResponse>> GetTypeOfAssetsById(int id)
+        [ProducesResponseType(typeof(TypeOfAssetResponse), (int)HttpStatusCode.OK)]
+        public async Task<IActionResult> GetTypeOfAssetsById(int id)
         {
-            var rs = await _typeOfAssetService.GetTypeOfAssetById(id);
+            var rs = await _mediator.Send(new GetAccountByIdQuery(id));
             return Ok(rs);
         }
 

@@ -1,8 +1,12 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Net;
+using ThinkTank.Application.Accounts.Queries.GetAccountById;
+using ThinkTank.Application.CQRS.Games.Queries.GetGames;
+using ThinkTank.Application.CQRS.Topics.Queries.GetReportOGame;
 using ThinkTank.Application.DTO.Request;
 using ThinkTank.Application.DTO.Response;
-using ThinkTank.Application.Services.IService;
 
 namespace ThinkTank.API.Controllers
 {
@@ -10,22 +14,22 @@ namespace ThinkTank.API.Controllers
     [ApiController]
     public class GamesController : Controller
     {
-       private readonly IGameService _gameService;
-        public GamesController(IGameService gameService)
+       private readonly IMediator _mediator;
+        public GamesController(IMediator mediator)
         {
-            _gameService = gameService;
+            _mediator = mediator;
         }
         /// <summary>
         /// Get list of games
         /// </summary>
         /// <param name="pagingRequest"></param>
-        /// <param name="gameRequest"></param>
         /// <returns></returns>
         [Authorize(Policy = "All")]
         [HttpGet]
-        public async Task<ActionResult<List<GameResponse>>> GetGames([FromQuery] PagingRequest pagingRequest, [FromQuery] GameRequest gameRequest)
+        [ProducesResponseType(typeof(PagedResults<GameResponse>), (int)HttpStatusCode.OK)]
+        public async Task<IActionResult> GetGames([FromQuery] PagingRequest pagingRequest)
         {
-            var rs = await _gameService.GetGames(gameRequest, pagingRequest);
+            var rs = await _mediator.Send(new GetGamesQuery(pagingRequest));
             return Ok(rs);
         }
         /// <summary>
@@ -35,9 +39,10 @@ namespace ThinkTank.API.Controllers
         /// <returns></returns>
         [Authorize(Policy = "All")]
         [HttpGet("{id:int}")]
-        public async Task<ActionResult<GameResponse>> GetGame(int id)
+        [ProducesResponseType(typeof(GameResponse), (int)HttpStatusCode.OK)]
+        public async Task<IActionResult> GetGame(int id)
         {
-            var rs = await _gameService.GetGameById(id);
+            var rs = await _mediator.Send(new GetAccountByIdQuery(id));
             return Ok(rs);
         }
         /// <summary>
@@ -46,9 +51,10 @@ namespace ThinkTank.API.Controllers
         /// <returns></returns>
         [Authorize(Policy ="Admin")]
         [HttpGet("game-report")]
-        public async Task<ActionResult<dynamic>> GetReportgame()
+        [ProducesResponseType(typeof(GameReportResponse), (int)HttpStatusCode.OK)]
+        public async Task<IActionResult> GetReportgame()
         {
-            var rs = await _gameService.GetReportOGame();
+            var rs = await _mediator.Send(new GetReportOfGameQuery());
             return Ok(rs);
         }
       

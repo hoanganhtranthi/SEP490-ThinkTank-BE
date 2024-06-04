@@ -1,8 +1,13 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Net;
+using ThinkTank.Application.Analysis.Queries.GetAnalysisOfAccountId;
+using ThinkTank.Application.Analysis.Queries.GetAnalysisOfAccountIdAndGameId;
+using ThinkTank.Application.Analysis.Queries.GetAnalysisOfMemoryTypeByAccountId;
+using ThinkTank.Application.Analysis.Queries.GetAverageScoreAnalysis;
 using ThinkTank.Application.DTO.Request;
 using ThinkTank.Application.DTO.Response;
-using ThinkTank.Application.Services.IService;
 
 namespace ThinkTank.API.Controllers
 {
@@ -10,10 +15,10 @@ namespace ThinkTank.API.Controllers
     [ApiController]
     public class AnalysesController : Controller
     {
-        private readonly IAnalysisService _analysisService;
-        public AnalysesController(IAnalysisService analysisService)
+        private readonly IMediator _mediator;
+        public AnalysesController(IMediator mediator)
         {
-            _analysisService = analysisService;
+            _mediator = mediator;
         }
         /// <summary>
         /// Get analysis of account by account Id
@@ -22,9 +27,10 @@ namespace ThinkTank.API.Controllers
         /// <returns></returns>
         [Authorize(Policy = "Admin")]
         [HttpGet("{accountId}")]
-        public async Task<ActionResult<dynamic>> GetAnalysisOfAccount(int accountId)
+        [ProducesResponseType(typeof(AdminDashboardResponse), (int)HttpStatusCode.OK)]
+        public async Task<IActionResult> GetAnalysisOfAccount(int accountId)
         {
-            var rs = await _analysisService.GetAnalysisOfAccountId(accountId);
+            var rs = await _mediator.Send(new GetAnalysisOfAccountIdQuery(accountId));
             return Ok(rs);
         }
         /// <summary>
@@ -33,9 +39,10 @@ namespace ThinkTank.API.Controllers
         /// <returns></returns>
         [Authorize(Policy = "Player")]
         [HttpGet()]
-        public async Task<ActionResult<dynamic>> GetAnalysisOfAccount([FromQuery] AnalysisRequest request)
+        [ProducesResponseType(typeof(List<RatioMemorizedDailyResponse>), (int)HttpStatusCode.OK)]
+        public async Task<IActionResult> GetAnalysisOfAccount([FromQuery] AnalysisRequest request)
         {
-            var rs = await _analysisService.GetAnalysisOfAccountIdAndGameId(request);
+            var rs = await _mediator.Send(new GetAnalysisOfAccountIdAndGameIdQuery(request));
             return Ok(rs);
         }
         /// <summary>
@@ -45,9 +52,10 @@ namespace ThinkTank.API.Controllers
         /// <returns></returns>
         [Authorize(Policy = "Player")]
         [HttpGet("{accountId:int}/by-memory-type")]
-        public async Task<ActionResult<dynamic>> GetAnalysisOfEachTypeOfMemoryOfAccount(int accountId)
+        [ProducesResponseType(typeof(AnalysisOfMemoryTypeResponse), (int)HttpStatusCode.OK)]
+        public async Task<IActionResult> GetAnalysisOfEachTypeOfMemoryOfAccount(int accountId)
         {
-            var rs = await _analysisService.GetAnalysisOfMemoryTypeByAccountId(accountId);
+            var rs = await _mediator.Send(new GetAnalysisOfMemoryTypeByAccountIdQuery(accountId));
             return Ok(rs);
         }
         /// <summary>
@@ -58,9 +66,10 @@ namespace ThinkTank.API.Controllers
         /// <returns></returns>
         [Authorize(Policy = "Player")]
         [HttpGet("{userId:int},{gameId:int}/average-score")]
-        public async Task<ActionResult<AnalysisAverageScoreResponse>> GetAverageScoreAnalysis(int gameId, int userId)
+        [ProducesResponseType(typeof(AnalysisAverageScoreResponse), (int)HttpStatusCode.OK)]
+        public async Task<IActionResult> GetAverageScoreAnalysis(int gameId, int userId)
         {
-            var rs = await _analysisService.GetAverageScoreAnalysis(gameId,userId);
+            var rs = await _mediator.Send(new GetAverageScoreAnalysisQuery(userId,gameId));
             return Ok(rs);
         }
     }

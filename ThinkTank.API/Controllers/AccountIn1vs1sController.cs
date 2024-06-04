@@ -1,8 +1,16 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Net;
+using ThinkTank.Application.CQRS.AccountIn1vs1s.Commands.CreateAccountIn1vs1;
+using ThinkTank.Application.CQRS.AccountIn1vs1s.Commands.CreateRoomPlayCountervailingWithFriend;
+using ThinkTank.Application.CQRS.AccountIn1vs1s.Commands.FindAccountTo1vs1;
+using ThinkTank.Application.CQRS.AccountIn1vs1s.Commands.RemoveRoom1vs1InRealtimeDatabase;
+using ThinkTank.Application.CQRS.AccountIn1vs1s.Commands.StartRoomIn1vs1;
+using ThinkTank.Application.CQRS.AccountIn1vs1s.Commands.UpdateAccount1vs1;
+using ThinkTank.Application.CQRS.AccountIn1vs1s.Queries.RemoveAccountFromQueue;
 using ThinkTank.Application.DTO.Request;
 using ThinkTank.Application.DTO.Response;
-using ThinkTank.Application.Services.IService;
 
 namespace ThinkTank.API.Controllers
 {
@@ -10,36 +18,10 @@ namespace ThinkTank.API.Controllers
     [ApiController]
     public class AccountIn1vs1sController : Controller
     {
-       private readonly IAccountIn1vs1Service _accountIn1Vs1Service;
-        public AccountIn1vs1sController(IAccountIn1vs1Service accountIn1Vs1Service)
+       private readonly IMediator _mediator;
+        public AccountIn1vs1sController(IMediator mediator)
         {
-            _accountIn1Vs1Service = accountIn1Vs1Service;
-        }
-        /// <summary>
-        /// Get list of account in 1vs1 
-        /// </summary>
-        /// <param name="pagingRequest"></param>
-        /// <param name="accountIn1Vs1Request"></param>
-        /// <returns></returns>
-        [Authorize(Policy = "Admin")]
-        [HttpGet]
-        public async Task<ActionResult<List<AccountIn1vs1Response>>> GetAccountIn1vs1s([FromQuery] PagingRequest pagingRequest, [FromQuery] AccountIn1vs1Request accountIn1Vs1Request)
-        {
-            var rs = await _accountIn1Vs1Service.GetAccount1vs1s(accountIn1Vs1Request, pagingRequest);
-            return Ok(rs);
-        }
-
-        /// <summary>
-        /// Get account in 1vs1 by Id
-        /// </summary>
-        /// <param name="id"></param>
-        /// <returns></returns>
-        [Authorize(Policy = "All")]
-        [HttpGet("{id:int}")]
-        public async Task<ActionResult<AccountIn1vs1Response>> GetAccountIn1vs1ById( int id)
-        {
-            var rs = await _accountIn1Vs1Service.GetAccount1vs1ById(id);
-            return Ok(rs);
+            _mediator = mediator;
         }
 
         /// <summary>
@@ -49,9 +31,10 @@ namespace ThinkTank.API.Controllers
         /// <returns></returns>
         [Authorize(Policy = "Player")]
         [HttpPost]
-        public async Task<ActionResult<AccountIn1vs1Response>> CreateAccountIn1vs1([FromBody] CreateAndUpdateAccountIn1vs1Request request)
+        [ProducesResponseType(typeof(AccountIn1vs1Response), (int)HttpStatusCode.OK)]
+        public async Task<IActionResult> CreateAccountIn1vs1([FromBody] CreateAndUpdateAccountIn1vs1Request request)
         {
-            var rs = await _accountIn1Vs1Service.CreateAccount1vs1(request);
+            var rs = await _mediator.Send(new CreateAccountIn1vs1Command(request));
             return Ok(rs);
         }
         /// <summary>
@@ -61,9 +44,10 @@ namespace ThinkTank.API.Controllers
         /// <returns></returns>
         [Authorize(Policy = "Player")]
         [HttpPut]
-        public async Task<ActionResult<AccountIn1vs1Response>> UpdateAccountIn1vs1([FromBody] CreateAndUpdateAccountIn1vs1Request request)
+        [ProducesResponseType(typeof(AccountIn1vs1Response), (int)HttpStatusCode.OK)]
+        public async Task<IActionResult> UpdateAccountIn1vs1([FromBody] CreateAndUpdateAccountIn1vs1Request request)
         {
-            var rs = await _accountIn1Vs1Service.UpdateAccount1vs1(request);
+            var rs = await _mediator.Send(new UpdateAccount1vs1Command(request));
             return Ok(rs);
         }
         /// <summary>
@@ -75,9 +59,10 @@ namespace ThinkTank.API.Controllers
         ///<returns></returns>
         [Authorize(Policy = "Player")]
         [HttpGet("{accountId:int},{gameId:int},{coin:int}/opponent-of-account")]
-        public async Task<ActionResult<dynamic>> FindAccountIn1vs1( int accountId,  int gameId,  int coin)
+        [ProducesResponseType(typeof(RoomIn1vs1Response), (int)HttpStatusCode.OK)]
+        public async Task<IActionResult> FindAccountIn1vs1( int accountId,  int gameId,  int coin)
         {
-            var rs = await _accountIn1Vs1Service.FindAccountTo1vs1(accountId,coin,gameId);
+            var rs = await _mediator.Send(new FindAccountTo1vs1Command(gameId, accountId, coin));
             return Ok(rs);
         }
         /// <summary>
@@ -89,9 +74,10 @@ namespace ThinkTank.API.Controllers
         /// <returns></returns>
        [Authorize(Policy = "Player")]
         [HttpGet("{accountId1:int},{gameId:int},{accountId2:int}/countervailing-mode-with-friend")]
-        public async Task<ActionResult<dynamic>> CreateRoomPlayCountervailingWithFriend(int accountId1, int gameId, int accountId2)
+        [ProducesResponseType(typeof(RoomIn1vs1Response), (int)HttpStatusCode.OK)]
+        public async Task<IActionResult> CreateRoomPlayCountervailingWithFriend(int accountId1, int gameId, int accountId2)
         {
-            var rs = await _accountIn1Vs1Service.CreateRoomPlayCountervailingWithFriend(gameId, accountId1, accountId2);
+            var rs = await _mediator.Send(new CreateRoomPlayCountervailingWithFriendCommand(gameId, accountId1, accountId2));
             return Ok(rs);
         }
         /// <summary>
@@ -104,9 +90,10 @@ namespace ThinkTank.API.Controllers
         /// <returns></returns>
         [Authorize(Policy = "Player")]
         [HttpGet("{accountId:int},{gameId:int},{coin:int},{roomOfAccount1vs1Id},{delay:int}/account-removed")]
-        public async Task<ActionResult<bool>> RemoveAccountFromQueue(int accountId,  int gameId,  int coin, string roomOfAccount1vs1Id, int delay)
+        [ProducesResponseType(typeof(bool), (int)HttpStatusCode.OK)]
+        public async Task<IActionResult> RemoveAccountFromQueue(int accountId,  int gameId,  int coin, string roomOfAccount1vs1Id, int delay)
         {
-            var rs = await _accountIn1Vs1Service.RemoveAccountFromQueue(accountId, coin, gameId,roomOfAccount1vs1Id,delay);
+            var rs = await _mediator.Send(new RemoveAccountFromQueueCommand(accountId, coin, roomOfAccount1vs1Id, delay, gameId));
             return Ok(rs);
         }
         /// <summary>
@@ -119,9 +106,10 @@ namespace ThinkTank.API.Controllers
         /// <returns></returns>
         [Authorize(Policy = "Player")]
         [HttpGet("{room1vs1Id},{isUser1},{time:int},{progressTime:int}/started-room")]
-        public async Task<ActionResult<bool>> GetToStartRoom(string room1vs1Id, bool isUser1, int time, int progressTime)
+        [ProducesResponseType(typeof(bool), (int)HttpStatusCode.OK)]
+        public async Task<IActionResult> GetToStartRoom(string room1vs1Id, bool isUser1, int time, int progressTime)
         {
-            var rs = await _accountIn1Vs1Service.GetToStartRoom(room1vs1Id, isUser1, time, progressTime);
+            var rs = await _mediator.Send(new StartRoomIn1vs1Command(room1vs1Id, isUser1, time, progressTime));
             return Ok(rs);
         }
         /// <summary>
@@ -132,9 +120,10 @@ namespace ThinkTank.API.Controllers
         /// <returns></returns>
         [Authorize(Policy = "Player")]
         [HttpGet("{delayTime:int},{roomOfAccount1vs1Id}/room-1vs1-removed")]
-        public async Task<ActionResult<bool>> RemoveRoom1vs1InRealtimeDatabase(string roomOfAccount1vs1Id, int delayTime)
+        [ProducesResponseType(typeof(bool), (int)HttpStatusCode.OK)]
+        public async Task<IActionResult> RemoveRoom1vs1InRealtimeDatabase(string roomOfAccount1vs1Id, int delayTime)
         {
-            var rs = await _accountIn1Vs1Service.RemoveRoom1vs1InRealtimeDatabase(roomOfAccount1vs1Id, delayTime);
+            var rs = await _mediator.Send(new RemoveRoom1vs1InRealtimeDatabaseCommand(roomOfAccount1vs1Id,delayTime));
             return Ok(rs);
         }
     }

@@ -1,8 +1,14 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Net;
+using ThinkTank.Application.CQRS.Friends.Commands.AddFriend;
+using ThinkTank.Application.CQRS.Friends.Commands.UnFriend;
+using ThinkTank.Application.CQRS.Friends.Queries.GetFriendById;
+using ThinkTank.Application.CQRS.Friends.Queries.GetFriends;
+using ThinkTank.Application.CQRS.Friends.UpdateStatusFriendship;
 using ThinkTank.Application.DTO.Request;
 using ThinkTank.Application.DTO.Response;
-using ThinkTank.Application.Services.IService;
 
 namespace ThinkTank.API.Controllers
 {
@@ -11,10 +17,10 @@ namespace ThinkTank.API.Controllers
     public class FriendsController : Controller
     {
 
-        private readonly IFriendService _friendService;
-        public FriendsController(IFriendService friendService)
+        private readonly IMediator _mediator;
+        public FriendsController(IMediator mediator)
         {
-            _friendService = friendService;
+            _mediator=mediator;
         }
         /// <summary>
         /// Get list of friendships of account Id (1: All, 2 : True, 3:False, 4: Null)
@@ -24,9 +30,10 @@ namespace ThinkTank.API.Controllers
         /// <returns></returns>
         [Authorize(Policy = "Player")]
         [HttpGet]
-        public async Task<ActionResult<List<FriendResponse>>> GetFriends([FromQuery] PagingRequest pagingRequest, [FromQuery] FriendRequest friendRequest)
+        [ProducesResponseType(typeof(FriendResponse), (int)HttpStatusCode.OK)]
+        public async Task<IActionResult> GetFriends([FromQuery] PagingRequest pagingRequest, [FromQuery] FriendRequest friendRequest)
         {
-            var rs = await _friendService.GetFriends(friendRequest, pagingRequest);
+            var rs = await _mediator.Send(new GetFriendsQuery(pagingRequest,friendRequest));
             return Ok(rs);
         }
         /// <summary>
@@ -36,9 +43,10 @@ namespace ThinkTank.API.Controllers
         /// <returns></returns>
         [Authorize(Policy = "Player")]
         [HttpGet("{id:int}")]
-        public async Task<ActionResult<FriendResponse>> GetFriend(int id)
+        [ProducesResponseType(typeof(FriendResponse), (int)HttpStatusCode.OK)]
+        public async Task<IActionResult> GetFriend(int id)
         {
-            var rs = await _friendService.GetFriendById(id);
+            var rs = await _mediator.Send(new GetFriendByIdQuery(id));
             return Ok(rs);
         }
         /// <summary>
@@ -48,9 +56,10 @@ namespace ThinkTank.API.Controllers
         /// <returns></returns>
          [Authorize(Policy = "Player")]
         [HttpGet("{friendId:int}/status")]
-        public async Task<ActionResult<FriendResponse>> GetToUpdateStatus(int friendId)
+        [ProducesResponseType(typeof(FriendResponse), (int)HttpStatusCode.OK)]
+        public async Task<IActionResult> GetToUpdateStatus(int friendId)
         {
-            var rs = await _friendService.GetToUpdateStatus(friendId);
+            var rs = await _mediator.Send(new UpdateStatusFriendshipCommand(friendId));
             return Ok(rs);
         }
         /// <summary>
@@ -58,11 +67,12 @@ namespace ThinkTank.API.Controllers
         /// </summary>
         /// <param name="friend"></param>
         /// <returns></returns>
-       [Authorize(Policy = "Player")]
+        [Authorize(Policy = "Player")]
         [HttpPost()]
-        public async Task<ActionResult<FriendResponse>> AddFriend([FromBody] CreateFriendRequest friend)
+        [ProducesResponseType(typeof(FriendResponse), (int)HttpStatusCode.OK)]
+        public async Task<IActionResult> AddFriend([FromBody] CreateFriendRequest friend)
         {
-            var rs = await _friendService.CreateFriend(friend);
+            var rs = await _mediator.Send(new AddFriendCommand(friend));    
             return Ok(rs);
         }
         /// <summary>
@@ -72,9 +82,10 @@ namespace ThinkTank.API.Controllers
         /// <returns></returns>
         [Authorize(Policy = "Player")]
         [HttpDelete("{id:int}")]
-        public async Task<ActionResult<FriendResponse>> DeleteFriendship(int id)
+        [ProducesResponseType(typeof(FriendResponse), (int)HttpStatusCode.OK)]
+        public async Task<IActionResult> DeleteFriendship(int id)
         {
-            var rs = await _friendService.DeleteFriendship(id);
+            var rs = await _mediator.Send(new UnFriendCommand(id));
             return Ok(rs);
         }
     }

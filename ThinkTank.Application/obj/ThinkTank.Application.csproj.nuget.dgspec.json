@@ -76,6 +76,10 @@
               "target": "Package",
               "version": "[1.8.11, )"
             },
+            "MediatR": {
+              "target": "Package",
+              "version": "[12.2.0, )"
+            },
             "Microsoft.AspNetCore.Authentication.JwtBearer": {
               "target": "Package",
               "version": "[6.0.25, )"

@@ -1,5 +1,14 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Net;
+using ThinkTank.Application.CQRS.Contests.Commands.CreateContest;
+using ThinkTank.Application.CQRS.Contests.Commands.DeleteContest;
+using ThinkTank.Application.CQRS.Contests.Commands.UpdateContest;
+using ThinkTank.Application.CQRS.Contests.Queries.GetContestById;
+using ThinkTank.Application.CQRS.Contests.Queries.GetContests;
+using ThinkTank.Application.CQRS.Contests.Queries.GetLeaderboardOfContest;
+using ThinkTank.Application.CQRS.Contests.Queries.GetReportOfContest;
 using ThinkTank.Application.DTO.Request;
 using ThinkTank.Application.DTO.Response;
 using ThinkTank.Application.Services.IService;
@@ -12,12 +21,11 @@ namespace ThinkTank.API.Controllers
     [ApiController]
     public class ContestsController : ControllerBase
     {
-        private readonly 
-            IContestService _contestService;
+        private readonly IMediator _mediator;
 
-        public ContestsController(IContestService contestService)
+        public ContestsController(IMediator mediator)
         {
-            _contestService = contestService;
+            _mediator=mediator;
         }
         /// <summary>
         /// Get list of contest (1: All, 2 : True, 3:False, 4: Null)
@@ -27,9 +35,10 @@ namespace ThinkTank.API.Controllers
         /// <returns></returns>
        [Authorize(Policy = "All")]
         [HttpGet]
-        public async Task<ActionResult<List<ContestResponse>>> GetContests([FromQuery] PagingRequest pagingRequest, [FromQuery] ContestRequest contestRequest)
+        [ProducesResponseType(typeof(PagedResults<ContestResponse>), (int)HttpStatusCode.OK)]
+        public async Task<IActionResult> GetContests([FromQuery] PagingRequest pagingRequest, [FromQuery] ContestRequest contestRequest)
         {
-            var rs = await _contestService.GetContests(contestRequest, pagingRequest);
+            var rs = await _mediator.Send(new GetContestsQuery(pagingRequest,contestRequest));
             return Ok(rs);
         }
         /// <summary>
@@ -40,9 +49,10 @@ namespace ThinkTank.API.Controllers
         /// <returns></returns>
         [Authorize(Policy = "All")]
         [HttpGet("{id:int}/leaderboard")]
-        public async Task<ActionResult<List<LeaderboardResponse>>> GetLeaderboardOfContest(int id, [FromQuery] PagingRequest request)
+        [ProducesResponseType(typeof(PagedResults<ContestResponse>), (int)HttpStatusCode.OK)]
+        public async Task<IActionResult> GetLeaderboardOfContest(int id, [FromQuery] PagingRequest request)
         {
-            var rs = await _contestService.GetLeaderboardOfContest(id,request);
+            var rs = await _mediator.Send(new GetLeaderboardOfContestQuery(id, request));   
             return Ok(rs);
         }
         /// <summary>
@@ -52,9 +62,10 @@ namespace ThinkTank.API.Controllers
         /// <returns></returns>
         [Authorize(Policy = "All")]
         [HttpGet("{id:int}")]
-        public async Task<ActionResult<ContestResponse>> GetContest(int id)
+        [ProducesResponseType(typeof(ContestResponse), (int)HttpStatusCode.OK)]
+        public async Task<IActionResult> GetContest(int id)
         {
-            var rs = await _contestService.GetContestById(id);
+            var rs = await _mediator.Send(new GetContestByIdQuery(id));
             return Ok(rs);
         }
         /// <summary>
@@ -64,9 +75,10 @@ namespace ThinkTank.API.Controllers
         /// <returns></returns>
         [Authorize(Policy = "Admin")]
         [HttpPost]
-        public async Task<ActionResult<ContestResponse>> CreateContest([FromBody] CreateAndUpdateContestRequest contestRequest)
+        [ProducesResponseType(typeof(ContestResponse), (int)HttpStatusCode.OK)]
+        public async Task<IActionResult> CreateContest([FromBody] CreateAndUpdateContestRequest contestRequest)
         {
-            var rs = await _contestService.CreateContest(contestRequest);
+            var rs = await _mediator.Send(new CreateContestCommand(contestRequest));    
             return Ok(rs);
         }
 
@@ -78,9 +90,10 @@ namespace ThinkTank.API.Controllers
         /// <returns></returns>
         [Authorize(Policy = "Admin")]
         [HttpPut("{id:int}")]
-        public async Task<ActionResult<ContestResponse>> UpdateContest([FromBody] CreateAndUpdateContestRequest contestRequest, int id)
+        [ProducesResponseType(typeof(ContestResponse), (int)HttpStatusCode.OK)]
+        public async Task<IActionResult> UpdateContest([FromBody] CreateAndUpdateContestRequest contestRequest, int id)
         {
-            var rs = await _contestService.UpdateContest(id, contestRequest);
+            var rs = await _mediator.Send(new UpdateContestCommand(contestRequest, id));
             if (rs == null) return NotFound();
             return Ok(rs);
         }
@@ -92,9 +105,10 @@ namespace ThinkTank.API.Controllers
         /// <returns></returns>
         [Authorize(Policy = "Admin")]
         [HttpDelete("{id:int}")]
-        public async Task<ActionResult<ContestResponse>> DeleteContest(int id)
+        [ProducesResponseType(typeof(ContestResponse), (int)HttpStatusCode.OK)]
+        public async Task<IActionResult> DeleteContest(int id)
         {
-            var rs = await _contestService.DeleteContest(id);
+            var rs = await _mediator.Send(new DeleteContestCommand(id));
             if (rs == null) return NotFound();
             return Ok(rs);
         }
@@ -104,9 +118,10 @@ namespace ThinkTank.API.Controllers
         /// <returns></returns>
         [Authorize(Policy = "Admin")]
         [HttpGet("contest-report")]
-        public async Task<ActionResult<dynamic>> GetReportOfContest()
+        [ProducesResponseType(typeof(ContestReportResponse), (int)HttpStatusCode.OK)]
+        public async Task<IActionResult> GetReportOfContest()
         {
-            var rs = await _contestService.GetReportOfContest();
+            var rs = await _mediator.Send(new GetReportOfContestQuery());
             return Ok(rs);
         }
     }

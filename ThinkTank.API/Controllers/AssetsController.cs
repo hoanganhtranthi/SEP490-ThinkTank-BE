@@ -1,8 +1,12 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Net;
+using ThinkTank.Application.CQRS.Assets.Commands.CreateAsset;
+using ThinkTank.Application.CQRS.Assets.Commands.DeleteAsset;
+using ThinkTank.Application.CQRS.Assets.Queries.GetAssetById;
 using ThinkTank.Application.DTO.Request;
 using ThinkTank.Application.DTO.Response;
-using ThinkTank.Application.Services.IService;
 
 namespace ThinkTank.API.Controllers
 {
@@ -10,10 +14,10 @@ namespace ThinkTank.API.Controllers
     [ApiController]
     public class AssetsController : Controller
     {
-        private readonly IAssetService _assetService;
-        public AssetsController(IAssetService assetService)
+        private readonly IMediator _mediator;
+        public AssetsController(IMediator mediator)
         {
-            _assetService = assetService;
+            _mediator=mediator;
         }
 
         /// <summary>
@@ -24,9 +28,10 @@ namespace ThinkTank.API.Controllers
         /// <returns></returns>
        [Authorize(Policy = "All")]
         [HttpGet]
-        public async Task<ActionResult<List<AssetResponse>>> GetAssets([FromQuery] PagingRequest pagingRequest, [FromQuery] AssetRequest assetRequest)
+        [ProducesResponseType(typeof(PagedResults<AssetResponse>), (int)HttpStatusCode.OK)]
+        public async Task<IActionResult> GetAssets([FromQuery] PagingRequest pagingRequest, [FromQuery] AssetRequest assetRequest)
         {
-            var rs = await _assetService.GetAssets(assetRequest, pagingRequest);
+            var rs = await _mediator.Send(GetAssets(pagingRequest,assetRequest));
             return Ok(rs);
         }
         /// <summary>
@@ -36,9 +41,10 @@ namespace ThinkTank.API.Controllers
         /// <returns></returns>
         [Authorize(Policy = "All")]
         [HttpGet("{id:int}")]
-        public async Task<ActionResult<AssetResponse>> GetAssetsById(int id)
+        [ProducesResponseType(typeof(AssetResponse), (int)HttpStatusCode.OK)]
+        public async Task<IActionResult> GetAssetsById(int id)
         {
-            var rs = await _assetService.GetAssetById(id);
+            var rs = await _mediator.Send(new GetAssetByIdQuery(id));
             return Ok(rs);
         }
         /// <summary>
@@ -48,9 +54,10 @@ namespace ThinkTank.API.Controllers
         /// <returns></returns>
      [Authorize(Policy = "Admin")]
         [HttpPost()]
-        public async Task<ActionResult<List<AssetResponse>>> CreateAsset([FromBody] List<CreateAssetRequest> resource)
+        [ProducesResponseType(typeof(AssetResponse), (int)HttpStatusCode.OK)]
+        public async Task<IActionResult> CreateAsset([FromBody] List<CreateAssetRequest> resource)
         {
-            var rs = await _assetService.CreateAsset(resource);
+            var rs = await _mediator.Send(new CreateAssetCommand(resource));
             return Ok(rs);
         }
         /// <summary>
@@ -60,9 +67,10 @@ namespace ThinkTank.API.Controllers
         /// <returns></returns>
         [Authorize(Policy = "Admin")]
         [HttpDelete]
-        public async Task<ActionResult<List<AssetResponse>>> DeleteAsset([FromBody] List<int> assetId)
+        [ProducesResponseType(typeof(AssetResponse), (int)HttpStatusCode.OK)]
+        public async Task<IActionResult> DeleteAsset([FromBody] List<int> assetId)
         {
-            var rs = await _assetService.DeleteAsset(assetId);
+            var rs = await _mediator.Send(new DeleteAssetCommand(assetId));
             return Ok(rs);
         }
     }

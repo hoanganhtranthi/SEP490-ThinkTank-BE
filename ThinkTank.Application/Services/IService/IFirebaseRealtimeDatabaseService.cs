@@ -1,5 +1,4 @@
-﻿
-namespace ThinkTank.Application.Services.IService
+﻿namespace ThinkTank.Application.Services.IService
 {
     public interface IFirebaseRealtimeDatabaseService
     {

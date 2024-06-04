@@ -1,8 +1,12 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Net;
+using ThinkTank.Application.Accounts.Queries.GetAccountById;
+using ThinkTank.Application.CQRS.Topics.Commands.CreateTopic;
+using ThinkTank.Application.CQRS.Topics.Queries.GetTopics;
 using ThinkTank.Application.DTO.Request;
 using ThinkTank.Application.DTO.Response;
-using ThinkTank.Application.Services.IService;
 
 namespace ThinkTank.API.Controllers
 
@@ -12,10 +16,10 @@ namespace ThinkTank.API.Controllers
     public class TopicsController : Controller
     {
         
-        private readonly ITopicService _topicService;
-        public TopicsController(ITopicService topicService)
+        private readonly IMediator _mediator;
+        public TopicsController(IMediator mediator)
         {
-            _topicService = topicService;
+            _mediator = mediator;
         }
         /// <summary>
         /// Get list of topic (StatusTopicType: 1: All, 2: Has Asset, 3: No Asset)
@@ -25,9 +29,10 @@ namespace ThinkTank.API.Controllers
         /// <returns></returns>
         [Authorize(Policy ="All")]
         [HttpGet]
-        public async Task<ActionResult<List<TopicResponse>>> GetTopics([FromQuery] PagingRequest pagingRequest, [FromQuery] TopicRequest request)
+        [ProducesResponseType(typeof(PagedResults<TopicResponse>), (int)HttpStatusCode.OK)]
+        public async Task<IActionResult> GetTopics([FromQuery] PagingRequest pagingRequest, [FromQuery] TopicRequest request)
         {
-            var rs = await _topicService.GetTopics(request, pagingRequest);
+            var rs = await _mediator.Send(new GetTopicsQuery(pagingRequest,request));
             return Ok(rs);
         }
         /// <summary>
@@ -37,9 +42,10 @@ namespace ThinkTank.API.Controllers
         /// <returns></returns>
         [Authorize(Policy ="All")]
         [HttpGet("{id:int}")]
-        public async Task<ActionResult<TopicResponse>> GetTopic(int id)
+        [ProducesResponseType(typeof(TopicResponse), (int)HttpStatusCode.OK)]
+        public async Task<IActionResult> GetTopic(int id)
         {
-            var rs = await _topicService.GetTopicById(id);
+            var rs = await _mediator.Send(new GetAccountByIdQuery(id));
             return Ok(rs);
         }
         /// <summary>
@@ -49,9 +55,10 @@ namespace ThinkTank.API.Controllers
         /// <returns></returns>
        [Authorize(Policy = "Admin")]
        [HttpPost()]
-        public async Task<ActionResult<TopicResponse>> CreatTopic([FromBody] CreateTopicRequest request)
+        [ProducesResponseType(typeof(TopicResponse), (int)HttpStatusCode.OK)]
+        public async Task<IActionResult> CreatTopic([FromBody] CreateTopicRequest request)
         {
-            var rs = await _topicService.CreateTopic(request);
+            var rs = await _mediator.Send(new CreateTopicCommand(request));
             return Ok(rs);
         }
     }

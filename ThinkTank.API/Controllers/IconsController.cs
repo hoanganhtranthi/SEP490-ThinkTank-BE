@@ -1,5 +1,8 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Net;
+using ThinkTank.Application.CQRS.Icons.Queries.GetIcons;
 using ThinkTank.Application.DTO.Request;
 using ThinkTank.Application.DTO.Response;
 using ThinkTank.Application.Services.IService;
@@ -10,10 +13,10 @@ namespace ThinkTank.API.Controllers
     [ApiController]
     public class IconsController : Controller
     {
-        private readonly IIconService _iconService;
-        public IconsController(IIconService iconService)
+        private readonly IMediator _mediator;
+        public IconsController(IMediator mediator)
         {
-            _iconService = iconService;
+            _mediator= mediator;
         }
 
         /// <summary>
@@ -24,21 +27,10 @@ namespace ThinkTank.API.Controllers
         /// <returns></returns>
         [Authorize(Policy = "Player")]
         [HttpGet]
-        public async Task<ActionResult<List<IconResponse>>> GetIcons([FromQuery] PagingRequest pagingRequest, [FromQuery] IconRequest iconRequest)
+        [ProducesResponseType(typeof(PagedResults<IconResponse>), (int)HttpStatusCode.OK)]
+        public async Task<IActionResult> GetIcons([FromQuery] PagingRequest pagingRequest, [FromQuery] IconRequest iconRequest)
         {
-            var rs = await _iconService.GetIcons(iconRequest, pagingRequest);
-            return Ok(rs);
-        }
-        /// <summary>
-        /// Get icon by Id
-        /// </summary>
-        /// <param name="id"></param>
-        /// <returns></returns>
-        [Authorize(Policy = "Player")]
-        [HttpGet("{id:int}")]
-        public async Task<ActionResult<IconResponse>> GetIcon(int id)
-        {
-            var rs = await _iconService.GetIconById(id);
+            var rs = await _mediator.Send(new GetIconsQuery(pagingRequest,iconRequest));
             return Ok(rs);
         }
     }
