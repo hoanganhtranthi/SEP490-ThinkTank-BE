@@ -6,6 +6,7 @@ using System.Net;
 using ThinkTank.Application.Configuration.Commands;
 using ThinkTank.Application.DTO.Response;
 using ThinkTank.Application.GlobalExceptionHandling.Exceptions;
+using ThinkTank.Application.Services.IService;
 using ThinkTank.Application.UnitOfWork;
 using ThinkTank.Domain.Entities;
 
@@ -15,10 +16,12 @@ namespace ThinkTank.Application.CQRS.Notifications.Commands.DeleteNotification
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
-        public DeleteNotificationCommandHandler(IUnitOfWork unitOfWork, IMapper mapper)
+        private readonly ISlackService _slackService;
+        public DeleteNotificationCommandHandler(IUnitOfWork unitOfWork, IMapper mapper, ISlackService slackService)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
+            _slackService = slackService;
         }
 
         public async Task<List<NotificationResponse>> Handle(DeleteNotificationCommand request, CancellationToken cancellationToken)
@@ -55,6 +58,7 @@ namespace ThinkTank.Application.CQRS.Notifications.Commands.DeleteNotification
             }
             catch (Exception ex)
             {
+                await _slackService.SendMessage(_slackService.CreateMessage(ex, "Delete list notifications error!!!!!"));
                 throw new CrudException(HttpStatusCode.InternalServerError, "Delete list notifications error!!!!!", ex.Message);
             }
         }

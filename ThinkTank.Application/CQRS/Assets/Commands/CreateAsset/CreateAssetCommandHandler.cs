@@ -7,6 +7,7 @@ using ThinkTank.Application.Configuration.Commands;
 using ThinkTank.Application.DTO.Request;
 using ThinkTank.Application.DTO.Response;
 using ThinkTank.Application.GlobalExceptionHandling.Exceptions;
+using ThinkTank.Application.Services.IService;
 using ThinkTank.Application.UnitOfWork;
 using ThinkTank.Domain.Entities;
 
@@ -16,10 +17,12 @@ namespace ThinkTank.Application.CQRS.Assets.Commands.CreateAsset
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
-        public CreateAssetCommandHandler(IUnitOfWork unitOfWork, IMapper mapper)
+        private readonly ISlackService _slackService;
+        public CreateAssetCommandHandler(IUnitOfWork unitOfWork, IMapper mapper, ISlackService slackService)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
+            _slackService = slackService;
         }
 
         public async Task<List<AssetResponse>> Handle(CreateAssetCommand request, CancellationToken cancellationToken)
@@ -129,6 +132,7 @@ namespace ThinkTank.Application.CQRS.Assets.Commands.CreateAsset
             }
             catch (Exception ex)
             {
+                await _slackService.SendMessage(_slackService.CreateMessage(ex, "Create Asset Error!!!"));
                 throw new CrudException(HttpStatusCode.InternalServerError, "Create Asset Error!!!", ex?.Message);
             }
         }

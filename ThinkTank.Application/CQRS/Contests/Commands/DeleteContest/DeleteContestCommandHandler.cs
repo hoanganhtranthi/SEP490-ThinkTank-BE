@@ -18,8 +18,9 @@ namespace ThinkTank.Application.CQRS.Contests.Commands.DeleteContest
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
         private readonly DateTime date;
+        private readonly ISlackService _slackService;
         private readonly IFirebaseRealtimeDatabaseService firebaseRealtimeDatabaseService;
-        public DeleteContestCommandHandler(IUnitOfWork unitOfWork, IMapper mapper, IFirebaseRealtimeDatabaseService firebaseRealtimeDatabaseService)
+        public DeleteContestCommandHandler(IUnitOfWork unitOfWork, IMapper mapper, IFirebaseRealtimeDatabaseService firebaseRealtimeDatabaseService, ISlackService slackService)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
@@ -27,6 +28,7 @@ namespace ThinkTank.Application.CQRS.Contests.Commands.DeleteContest
                 date = DateTime.UtcNow.ToLocalTime().AddHours(7);
             else date = DateTime.Now;
             this.firebaseRealtimeDatabaseService = firebaseRealtimeDatabaseService;
+            _slackService = slackService;
         }
 
         public async Task<ContestResponse> Handle(DeleteContestCommand request, CancellationToken cancellationToken)
@@ -72,6 +74,7 @@ namespace ThinkTank.Application.CQRS.Contests.Commands.DeleteContest
             }
             catch (Exception ex)
             {
+                await _slackService.SendMessage(_slackService.CreateMessage(ex, "Delete contest error!!!!!"));
                 throw new CrudException(HttpStatusCode.InternalServerError, "Delete contest error!!!!!", ex.Message);
             }
         }

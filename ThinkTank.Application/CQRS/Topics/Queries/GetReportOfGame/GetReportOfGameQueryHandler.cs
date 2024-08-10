@@ -5,6 +5,7 @@ using ThinkTank.Application.Configuration.Queries;
 using ThinkTank.Application.CQRS.Topics.Queries.GetReportOGame;
 using ThinkTank.Application.DTO.Response;
 using ThinkTank.Application.GlobalExceptionHandling.Exceptions;
+using ThinkTank.Application.Services.IService;
 using ThinkTank.Application.UnitOfWork;
 using ThinkTank.Domain.Entities;
 
@@ -14,12 +15,14 @@ namespace ThinkTank.Application.CQRS.Topics.Queries.GetReportOfGame
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly DateTime date;
-        public GetReportOfGameQueryHandler(IUnitOfWork unitOfWork)
+        private readonly ISlackService _slackService;
+        public GetReportOfGameQueryHandler(IUnitOfWork unitOfWork, ISlackService slackService)
         {
             _unitOfWork = unitOfWork;
             if (TimeZoneInfo.Local.BaseUtcOffset != TimeSpan.FromHours(7))
                 date = DateTime.UtcNow.ToLocalTime().AddHours(7);
             else date = DateTime.Now;
+            _slackService = slackService;
         }
 
         public async Task<GameReportResponse> Handle(GetReportOfGameQuery request, CancellationToken cancellationToken)
@@ -89,6 +92,7 @@ namespace ThinkTank.Application.CQRS.Topics.Queries.GetReportOfGame
             }
             catch (Exception ex)
             {
+                await _slackService.SendMessage(_slackService.CreateMessage(ex, "Get Report Game  Error"));
                 throw new CrudException(HttpStatusCode.InternalServerError, "Get Report Game  Error", ex.InnerException?.Message);
             }
         }

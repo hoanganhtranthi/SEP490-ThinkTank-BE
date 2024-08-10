@@ -8,15 +8,18 @@ using ThinkTank.Application.GlobalExceptionHandling.Exceptions;
 using ThinkTank.Application.UnitOfWork;
 using static ThinkTank.Domain.Enums.Enum;
 using ThinkTank.Domain.Entities;
+using ThinkTank.Application.Services.IService;
 
 namespace ThinkTank.Application.CQRS.Challenges.Queries.GetChallenges
 {
     public class GetChallengesQueryHandler : IQueryHandler<GetChallengesQuery, List<ChallengeResponse>>
     {
         private readonly IUnitOfWork _unitOfWork;
-        public GetChallengesQueryHandler(IUnitOfWork unitOfWork)
+        private readonly ISlackService _slackService;
+        public GetChallengesQueryHandler(IUnitOfWork unitOfWork,ISlackService slackService)
         {
             _unitOfWork = unitOfWork;
+            _slackService = slackService;
         }
 
         public async Task<List<ChallengeResponse>> Handle(GetChallengesQuery request, CancellationToken cancellationToken)
@@ -51,6 +54,7 @@ namespace ThinkTank.Application.CQRS.Challenges.Queries.GetChallenges
             }
             catch (CrudException ex)
             {
+                await _slackService.SendMessage(_slackService.CreateMessage(ex, "Get challenge list error!!!!!"));
                 throw new CrudException(HttpStatusCode.InternalServerError, "Get challenge list error!!!!!", ex.Message);
             }
         }

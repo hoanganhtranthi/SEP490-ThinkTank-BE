@@ -5,6 +5,7 @@ using System.Net;
 using ThinkTank.Application.Configuration.Queries;
 using ThinkTank.Application.DTO.Response;
 using ThinkTank.Application.GlobalExceptionHandling.Exceptions;
+using ThinkTank.Application.Services.IService;
 using ThinkTank.Application.UnitOfWork;
 using ThinkTank.Domain.Entities;
 
@@ -13,9 +14,11 @@ namespace ThinkTank.Application.Accounts.Queries.GetGameLevelByAccountId
     public class GetGameLevelByAccountIdQueryHandler : IQueryHandler<GetGameLevelByAccountIdQuery, List<GameLevelOfAccountResponse>>
     {
         private readonly IUnitOfWork _unitOfWork;
-        public GetGameLevelByAccountIdQueryHandler(IUnitOfWork unitOfWork)
+        private readonly ISlackService _slackService;
+        public GetGameLevelByAccountIdQueryHandler(IUnitOfWork unitOfWork,ISlackService slackService)
         {
             _unitOfWork = unitOfWork;
+            _slackService = slackService;
         }
 
         public async Task<List<GameLevelOfAccountResponse>> Handle(GetGameLevelByAccountIdQuery request, CancellationToken cancellationToken)
@@ -55,6 +58,7 @@ namespace ThinkTank.Application.Accounts.Queries.GetGameLevelByAccountId
             }
             catch (Exception ex)
             {
+                await _slackService.SendMessage(_slackService.CreateMessage(ex, "Get game level of account error!!!!!"));
                 throw new CrudException(HttpStatusCode.InternalServerError, "Get game level of account error!!!!!", ex.Message);
             }
         }

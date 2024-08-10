@@ -4,6 +4,7 @@ using System.Net;
 using ThinkTank.Application.Configuration.Queries;
 using ThinkTank.Application.CQRS.AccountIn1vs1s.DomainServices;
 using ThinkTank.Application.GlobalExceptionHandling.Exceptions;
+using ThinkTank.Application.Services.IService;
 using ThinkTank.Application.UnitOfWork;
 using ThinkTank.Domain.Entities;
 
@@ -12,9 +13,11 @@ namespace ThinkTank.Application.CQRS.AccountIn1vs1s.Queries.RemoveAccountFromQue
     public class RemoveAccountFromQueueCommandHandler : IQueryHandler<RemoveAccountFromQueueCommand, bool>
     {
         private readonly IUnitOfWork _unitOfWork;
-        public RemoveAccountFromQueueCommandHandler(IUnitOfWork unitOfWork)
+        private readonly ISlackService _slackService;
+        public RemoveAccountFromQueueCommandHandler(IUnitOfWork unitOfWork, ISlackService slackService)
         {
             _unitOfWork = unitOfWork;
+            _slackService = slackService;
         }
 
         public async Task<bool> Handle(RemoveAccountFromQueueCommand request, CancellationToken cancellationToken)
@@ -46,7 +49,7 @@ namespace ThinkTank.Application.CQRS.AccountIn1vs1s.Queries.RemoveAccountFromQue
                 if (acc == null)
                     throw new CrudException(HttpStatusCode.BadRequest, $"Account Id {request.AccountId} Not Found In Cache!!!!!", "");
 
-                Thread.Sleep(request.DelayTime * 1000);
+                await Task.Delay(request.DelayTime * 1000);
                 await CacheService.Instance.DeleteJobAsync("account1vs1", account);
 
                 return true;
@@ -57,6 +60,7 @@ namespace ThinkTank.Application.CQRS.AccountIn1vs1s.Queries.RemoveAccountFromQue
             }
             catch (Exception ex)
             {
+                await _slackService.SendMessage(_slackService.CreateMessage(ex, "Remove account from queue error!!!"));
                 throw new CrudException(HttpStatusCode.InternalServerError, "Remove account from queue error!!!", ex.InnerException?.Message);
             }
         }

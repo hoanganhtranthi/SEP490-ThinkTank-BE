@@ -3,13 +3,12 @@ using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using System.Net;
-using System.Security.Cryptography;
-using System.Text;
 using ThinkTank.Application.Configuration.Commands;
 using ThinkTank.Application.CQRS.Accounts.DomainServices.IService;
 using ThinkTank.Application.DTO.Request;
 using ThinkTank.Application.DTO.Response;
 using ThinkTank.Application.GlobalExceptionHandling.Exceptions;
+using ThinkTank.Application.Services.IService;
 using ThinkTank.Application.UnitOfWork;
 using ThinkTank.Domain.Entities;
 
@@ -22,7 +21,8 @@ namespace ThinkTank.Application.Accounts.Commands.CreateAccount
         private readonly IConfiguration _config;
         private readonly DateTime date;
         private readonly IHashPasswordService _hashPasswordHandler;
-        public CreateAccountCommandHandler(IUnitOfWork unitOfWork, IMapper mapper,IConfiguration configuration,IHashPasswordService hashPasswordHandler)
+        private readonly ISlackService _slackService;
+        public CreateAccountCommandHandler(IUnitOfWork unitOfWork, IMapper mapper,IConfiguration configuration,IHashPasswordService hashPasswordHandler,ISlackService slackService)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
@@ -31,6 +31,7 @@ namespace ThinkTank.Application.Accounts.Commands.CreateAccount
                 date = DateTime.UtcNow.ToLocalTime().AddHours(7);
             else date = DateTime.Now;
             _hashPasswordHandler = hashPasswordHandler;
+            _slackService = slackService;
         }
         public async Task<AccountResponse> Handle(CreateAccountCommand request, CancellationToken cancellationToken)
         {
@@ -97,6 +98,7 @@ namespace ThinkTank.Application.Accounts.Commands.CreateAccount
             }
             catch (Exception ex)
             {
+                await _slackService.SendMessage(_slackService.CreateMessage(ex, "Create Account Error!!!"));
                 throw new CrudException(HttpStatusCode.InternalServerError, "Create Account Error!!!", ex?.Message);
             }
         }

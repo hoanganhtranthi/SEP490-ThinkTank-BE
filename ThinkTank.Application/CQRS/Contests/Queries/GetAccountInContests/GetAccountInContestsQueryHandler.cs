@@ -10,6 +10,7 @@ using ThinkTank.Application.UnitOfWork;
 using ThinkTank.Domain.Entities;
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
+using ThinkTank.Application.Services.IService;
 
 namespace ThinkTank.Application.CQRS.Contests.Queries.GetAccountInContests
 {
@@ -17,10 +18,12 @@ namespace ThinkTank.Application.CQRS.Contests.Queries.GetAccountInContests
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
-        public GetAccountInContestsQueryHandler(IUnitOfWork unitOfWork, IMapper mapper)
+        private readonly ISlackService _slackService;
+        public GetAccountInContestsQueryHandler(IUnitOfWork unitOfWork, IMapper mapper,ISlackService slackService)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
+            _slackService = slackService;
         }
 
         public async Task<PagedResults<AccountInContestResponse>> Handle(GetAccountInContestsQuery request, CancellationToken cancellationToken)
@@ -49,6 +52,7 @@ namespace ThinkTank.Application.CQRS.Contests.Queries.GetAccountInContests
             }
             catch (CrudException ex)
             {
+                await _slackService.SendMessage(_slackService.CreateMessage(ex, "Get Account In Contest list error!!!!!"));
                 throw new CrudException(HttpStatusCode.InternalServerError, "Get Account In Contest list error!!!!!", ex.Message);
             }
         }

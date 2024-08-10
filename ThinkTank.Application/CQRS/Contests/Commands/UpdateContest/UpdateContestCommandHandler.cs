@@ -8,7 +8,6 @@ using ThinkTank.Application.Configuration.Commands;
 using ThinkTank.Application.DTO.Request;
 using ThinkTank.Application.DTO.Response;
 using ThinkTank.Application.GlobalExceptionHandling.Exceptions;
-using ThinkTank.Application.Services.ImpService;
 using ThinkTank.Application.Services.IService;
 using ThinkTank.Application.UnitOfWork;
 using ThinkTank.Domain.Entities;
@@ -22,9 +21,10 @@ namespace ThinkTank.Application.CQRS.Contests.Commands.UpdateContest
         private readonly DateTime date;
         private readonly INotificationService _notificationService;
         private readonly IBadgesService _badgesService;
+        private readonly ISlackService _slackService;
         private readonly IFirebaseRealtimeDatabaseService firebaseRealtimeDatabaseService;
         public UpdateContestCommandHandler(IUnitOfWork unitOfWork, IMapper mapper, IBadgesService badgesService,
-            INotificationService notificationService, IFirebaseRealtimeDatabaseService firebaseRealtimeDatabaseService)
+            INotificationService notificationService, IFirebaseRealtimeDatabaseService firebaseRealtimeDatabaseService, ISlackService slackService)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
@@ -34,6 +34,7 @@ namespace ThinkTank.Application.CQRS.Contests.Commands.UpdateContest
             _notificationService = notificationService;
             _badgesService = badgesService;
             this.firebaseRealtimeDatabaseService = firebaseRealtimeDatabaseService;
+            _slackService = slackService;
         }
 
         public async Task<ContestResponse> Handle(UpdateContestCommand request, CancellationToken cancellationToken)
@@ -196,6 +197,7 @@ namespace ThinkTank.Application.CQRS.Contests.Commands.UpdateContest
             }
             catch (Exception ex)
             {
+                await _slackService.SendMessage(_slackService.CreateMessage(ex, "Update contest error!!!!!"));
                 throw new CrudException(HttpStatusCode.InternalServerError, "Update contest error!!!!!", ex.Message);
             }
         }
@@ -276,6 +278,7 @@ namespace ThinkTank.Application.CQRS.Contests.Commands.UpdateContest
             }
             catch (Exception ex)
             {
+                await _slackService.SendMessage(_slackService.CreateMessage(ex, "Update status's contest error!!!!!"));
                 throw new CrudException(HttpStatusCode.InternalServerError, "Update status's contest error!!!!!", ex.Message);
             }
         }
@@ -342,6 +345,7 @@ namespace ThinkTank.Application.CQRS.Contests.Commands.UpdateContest
             }
             catch (CrudException ex)
             {
+                await _slackService.SendMessage(_slackService.CreateMessage(ex, "Send Notification To Start Contest Error!!!!!"));
                 throw new CrudException(HttpStatusCode.InternalServerError, "Send Notification To Start Contest Error!!!!!", ex.Message);
             }
         }

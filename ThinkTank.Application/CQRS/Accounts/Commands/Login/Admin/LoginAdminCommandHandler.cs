@@ -18,9 +18,10 @@ namespace ThinkTank.Application.Accounts.Commands.Login.Admin
         private readonly IConfiguration _config;
         private readonly ITokenService _tokenHandler;
         private readonly DateTime date;
+        private readonly ISlackService _slackService;
         private readonly IFirebaseRealtimeDatabaseService _firebaseRealtimeDatabaseService;
 
-        public LoginAdminCommandHandler( IMapper mapper, IConfiguration config, ITokenService tokenHandler, IFirebaseRealtimeDatabaseService firebaseRealtimeDatabaseService)
+        public LoginAdminCommandHandler( IMapper mapper, IConfiguration config, ITokenService tokenHandler, IFirebaseRealtimeDatabaseService firebaseRealtimeDatabaseService, ISlackService slackService)
         {
             _mapper = mapper;
             _config = config;
@@ -29,6 +30,7 @@ namespace ThinkTank.Application.Accounts.Commands.Login.Admin
                 date = DateTime.UtcNow.ToLocalTime().AddHours(7);
             else date = DateTime.Now;
             _firebaseRealtimeDatabaseService = firebaseRealtimeDatabaseService;
+            _slackService = slackService;
         }
 
         public async Task<AccountResponse> Handle(LoginAdminCommand request, CancellationToken cancellationToken)
@@ -89,6 +91,7 @@ namespace ThinkTank.Application.Accounts.Commands.Login.Admin
             }
             catch (Exception ex)
             {
+                await _slackService.SendMessage(_slackService.CreateMessage(ex, "Login  Fail"));
                 throw new CrudException(HttpStatusCode.InternalServerError, "Login  Fail", ex.InnerException?.Message);
             }
         }

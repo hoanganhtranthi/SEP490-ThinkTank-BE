@@ -3,11 +3,10 @@ using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using System.Net;
 using ThinkTank.Application.Configuration.Queries;
-using ThinkTank.Application.DTO.Request;
 using ThinkTank.Application.DTO.Response;
 using ThinkTank.Application.GlobalExceptionHandling.Exceptions;
+using ThinkTank.Application.Services.IService;
 using ThinkTank.Application.UnitOfWork;
-using static ThinkTank.Domain.Enums.Enum;
 using ThinkTank.Domain.Entities;
 
 namespace ThinkTank.Application.Analysis.Queries.GetAnalysisOfAccountId
@@ -16,11 +15,12 @@ namespace ThinkTank.Application.Analysis.Queries.GetAnalysisOfAccountId
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
-
-        public GetAnalysisOfAccountIdQueryHandler(IUnitOfWork unitOfWork, IMapper mapper)
+        private readonly ISlackService _slackService;
+        public GetAnalysisOfAccountIdQueryHandler(IUnitOfWork unitOfWork, IMapper mapper, ISlackService slackService)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
+            _slackService = slackService;
         }
 
         public async Task<AdminDashboardResponse> Handle(GetAnalysisOfAccountIdQuery request, CancellationToken cancellationToken)
@@ -85,6 +85,7 @@ namespace ThinkTank.Application.Analysis.Queries.GetAnalysisOfAccountId
             }
             catch (Exception ex)
             {
+                await _slackService.SendMessage(_slackService.CreateMessage(ex, "Get analysis of account by account Id error!!!!!"));
                 throw new CrudException(HttpStatusCode.InternalServerError, "Get analysis of account by account Id error!!!!!", ex.Message);
             }
         }

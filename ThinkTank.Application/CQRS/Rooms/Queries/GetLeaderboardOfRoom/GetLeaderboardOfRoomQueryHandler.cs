@@ -6,6 +6,7 @@ using System.Net;
 using ThinkTank.Application.Configuration.Queries;
 using ThinkTank.Application.DTO.Response;
 using ThinkTank.Application.GlobalExceptionHandling.Exceptions;
+using ThinkTank.Application.Services.IService;
 using ThinkTank.Application.UnitOfWork;
 using ThinkTank.Domain.Entities;
 
@@ -14,9 +15,11 @@ namespace ThinkTank.Application.CQRS.Rooms.Queries.GetLeaderboardOfRoom
     public class GetLeaderboardOfRoomQueryHandler : IQueryHandler<GetLeaderboardOfRoomQuery, List<LeaderboardResponse>>
     {
         private readonly IUnitOfWork _unitOfWork;
-        public GetLeaderboardOfRoomQueryHandler(IUnitOfWork unitOfWork)
+        private readonly ISlackService _slackService;
+        public GetLeaderboardOfRoomQueryHandler(IUnitOfWork unitOfWork, ISlackService slacService)
         {
             _unitOfWork = unitOfWork;
+            _slackService = slacService;
         }
 
         public async Task<List<LeaderboardResponse>> Handle(GetLeaderboardOfRoomQuery request, CancellationToken cancellationToken)
@@ -76,6 +79,7 @@ namespace ThinkTank.Application.CQRS.Rooms.Queries.GetLeaderboardOfRoom
             }
             catch (Exception ex)
             {
+                await _slackService.SendMessage(_slackService.CreateMessage(ex, "Get leaderboard of room error!!!!!"));
                 throw new CrudException(HttpStatusCode.InternalServerError, "Get leaderboard of room error!!!!!", ex.Message);
             }
         }

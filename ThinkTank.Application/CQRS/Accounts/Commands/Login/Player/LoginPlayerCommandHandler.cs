@@ -20,8 +20,9 @@ namespace ThinkTank.Application.Accounts.Commands.Login.Player
         private readonly ITokenService _tokenHandler;
         private readonly DateTime date;
         private readonly IBadgesService _badgesService;
+        private readonly ISlackService _slackService;
         public LoginPlayerCommandHandler(IUnitOfWork unitOfWork,
-            IMapper mapper,IHashPasswordService hashPasswordHandler, ITokenService tokenHandler,IBadgesService badgesService)
+            IMapper mapper,IHashPasswordService hashPasswordHandler, ITokenService tokenHandler, IBadgesService badgesService, ISlackService slackService)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
@@ -31,6 +32,7 @@ namespace ThinkTank.Application.Accounts.Commands.Login.Player
                 date = DateTime.UtcNow.ToLocalTime().AddHours(7);
             else date = DateTime.Now;
             _badgesService = badgesService;
+            _slackService = slackService;
         }
 
         public async Task<AccountResponse> Handle(LoginPlayerCommand request, CancellationToken cancellationToken)
@@ -65,7 +67,6 @@ namespace ThinkTank.Application.Accounts.Commands.Login.Player
                     await _badgesService.GetBadge(user, "Nocturnal");
 
                 await _unitOfWork.CommitAsync();
-
                 var rs = _mapper.Map<Account, AccountResponse>(user);
                 rs.AccessToken = _tokenHandler.GenerateJwtToken(user, date);
                 return rs;
@@ -76,6 +77,7 @@ namespace ThinkTank.Application.Accounts.Commands.Login.Player
             }
             catch (Exception ex)
             {
+                await _slackService.SendMessage(_slackService.CreateMessage(ex, "Login  Fail"));
                 throw new CrudException(HttpStatusCode.InternalServerError, "Login  Fail", ex.InnerException?.Message);
             }
         }

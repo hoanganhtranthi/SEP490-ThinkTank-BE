@@ -18,8 +18,9 @@ namespace ThinkTank.Application.CQRS.Achieviements.Commands.CreateAchievement
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
         private readonly DateTime date;
-        public IBadgesService _badgesService;
-        public CreateAchievementCommandHandler(IUnitOfWork unitOfWork, IMapper mapper, IBadgesService badgesService)
+        private IBadgesService _badgesService;
+        private ISlackService _slackService;
+        public CreateAchievementCommandHandler(IUnitOfWork unitOfWork, IMapper mapper, IBadgesService badgesService,ISlackService slackService)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
@@ -27,6 +28,7 @@ namespace ThinkTank.Application.CQRS.Achieviements.Commands.CreateAchievement
                 date = DateTime.UtcNow.ToLocalTime().AddHours(7);
             else date = DateTime.Now;
             _badgesService = badgesService;
+            _slackService = slackService;
         }
         public async Task<AchievementResponse> Handle(CreateAchievementCommand request, CancellationToken cancellationToken)
         {
@@ -130,6 +132,7 @@ namespace ThinkTank.Application.CQRS.Achieviements.Commands.CreateAchievement
             }
             catch (Exception ex)
             {
+                await _slackService.SendMessage(_slackService.CreateMessage(ex, "Create Achievement Error!!!"));
                 throw new CrudException(HttpStatusCode.InternalServerError, "Create Achievement Error!!!", ex?.Message);
             }
         }

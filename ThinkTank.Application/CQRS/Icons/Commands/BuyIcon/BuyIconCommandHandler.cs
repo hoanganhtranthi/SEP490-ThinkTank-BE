@@ -6,6 +6,7 @@ using ThinkTank.Application.Configuration.Commands;
 using ThinkTank.Application.DTO.Request;
 using ThinkTank.Application.DTO.Response;
 using ThinkTank.Application.GlobalExceptionHandling.Exceptions;
+using ThinkTank.Application.Services.IService;
 using ThinkTank.Application.UnitOfWork;
 using ThinkTank.Domain.Entities;
 
@@ -15,10 +16,12 @@ namespace ThinkTank.Application.CQRS.Icons.Commands.BuyIcon
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
-        public BuyIconCommandHandler(IUnitOfWork unitOfWork, IMapper mapper)
+        private readonly ISlackService _slackService;
+        public BuyIconCommandHandler(IUnitOfWork unitOfWork, IMapper mapper, ISlackService slackService)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
+            _slackService = slackService;
         }
         public async Task<IconOfAccountResponse> Handle(BuyIconCommand request, CancellationToken cancellationToken)
         {
@@ -82,6 +85,7 @@ namespace ThinkTank.Application.CQRS.Icons.Commands.BuyIcon
             }
             catch (Exception ex)
             {
+                await _slackService.SendMessage(_slackService.CreateMessage(ex, "Buy Icon Error!!!!!"));
                 throw new CrudException(HttpStatusCode.InternalServerError, "Buy Icon Error!!!!!", ex.Message);
             }
         }

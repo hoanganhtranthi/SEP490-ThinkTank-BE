@@ -6,6 +6,7 @@ using System.Net;
 using ThinkTank.Application.Configuration.Commands;
 using ThinkTank.Application.DTO.Response;
 using ThinkTank.Application.GlobalExceptionHandling.Exceptions;
+using ThinkTank.Application.Services.IService;
 using ThinkTank.Application.UnitOfWork;
 using ThinkTank.Domain.Entities;
 
@@ -16,13 +17,15 @@ namespace ThinkTank.Application.CQRS.Rooms.Commands.CancelRoom
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
         private readonly DateTime date;
-        public CancelRoomCommandHandler(IUnitOfWork unitOfWork, IMapper mapper)
+        private readonly ISlackService _slackService;
+        public CancelRoomCommandHandler(IUnitOfWork unitOfWork, IMapper mapper, ISlackService slackService)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
             if (TimeZoneInfo.Local.BaseUtcOffset != TimeSpan.FromHours(7))
                 date = DateTime.UtcNow.ToLocalTime().AddHours(7);
             else date = DateTime.Now;
+            _slackService = slackService;
         }
 
         public async Task<RoomResponse> Handle(CancelRoomCommand request, CancellationToken cancellationToken)
@@ -74,6 +77,7 @@ namespace ThinkTank.Application.CQRS.Rooms.Commands.CancelRoom
             }
             catch (Exception ex)
             {
+                await _slackService.SendMessage(_slackService.CreateMessage(ex, "Cancel room error!!!!!"));
                 throw new CrudException(HttpStatusCode.InternalServerError, "Cancel room error!!!!!", ex.Message);
             }
         }

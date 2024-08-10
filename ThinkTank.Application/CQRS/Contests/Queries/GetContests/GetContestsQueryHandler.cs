@@ -11,6 +11,7 @@ using ThinkTank.Application.Helpers;
 using ThinkTank.Application.UnitOfWork;
 using static ThinkTank.Domain.Enums.Enum;
 using ThinkTank.Domain.Entities;
+using ThinkTank.Application.Services.IService;
 
 namespace ThinkTank.Application.CQRS.Contests.Queries.GetContests
 {
@@ -18,10 +19,12 @@ namespace ThinkTank.Application.CQRS.Contests.Queries.GetContests
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
-        public GetContestsQueryHandler(IUnitOfWork unitOfWork, IMapper mapper)
+        private readonly ISlackService _slackService;
+        public GetContestsQueryHandler(IUnitOfWork unitOfWork, IMapper mapper, ISlackService slackService)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
+            _slackService = slackService;
         }
 
         public async Task<PagedResults<ContestResponse>> Handle(GetContestsQuery request, CancellationToken cancellationToken)
@@ -71,6 +74,7 @@ namespace ThinkTank.Application.CQRS.Contests.Queries.GetContests
             }
             catch (CrudException ex)
             {
+                await _slackService.SendMessage(_slackService.CreateMessage(ex, "Get contest list error!!!!!"));
                 throw new CrudException(HttpStatusCode.InternalServerError, "Get contest list error!!!!!", ex.Message);
             }
         }

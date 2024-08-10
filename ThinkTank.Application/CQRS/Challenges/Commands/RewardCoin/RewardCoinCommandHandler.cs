@@ -5,6 +5,7 @@ using System.Net;
 using ThinkTank.Application.Configuration.Commands;
 using ThinkTank.Application.DTO.Response;
 using ThinkTank.Application.GlobalExceptionHandling.Exceptions;
+using ThinkTank.Application.Services.IService;
 using ThinkTank.Application.UnitOfWork;
 using ThinkTank.Domain.Entities;
 
@@ -13,9 +14,11 @@ namespace ThinkTank.Application.CQRS.Challenges.Commands.RewardCoin
     public class RewardCoinCommandHandler : ICommandHandler<RewardCoinCommand, List<ChallengeResponse>>
     {
         private readonly IUnitOfWork _unitOfWork;
-        public RewardCoinCommandHandler(IUnitOfWork unitOfWork)
+        private readonly ISlackService _slackService;
+        public RewardCoinCommandHandler(IUnitOfWork unitOfWork, ISlackService slackService)
         {
             _unitOfWork = unitOfWork;
+            _slackService = slackService;
         }
 
         public async Task<List<ChallengeResponse>> Handle(RewardCoinCommand request, CancellationToken cancellationToken)
@@ -83,6 +86,7 @@ namespace ThinkTank.Application.CQRS.Challenges.Commands.RewardCoin
             }
             catch (Exception ex)
             {
+                await _slackService.SendMessage(_slackService.CreateMessage(ex, " Get reward error!!!!!"));
                 throw new CrudException(HttpStatusCode.InternalServerError, " Get reward error!!!!!", ex.Message);
             }
         }

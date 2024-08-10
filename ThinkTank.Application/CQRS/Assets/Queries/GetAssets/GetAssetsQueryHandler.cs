@@ -10,6 +10,7 @@ using ThinkTank.Application.GlobalExceptionHandling.Exceptions;
 using ThinkTank.Application.Helpers;
 using ThinkTank.Application.UnitOfWork;
 using ThinkTank.Domain.Entities;
+using ThinkTank.Application.Services.IService;
 
 namespace ThinkTank.Application.CQRS.Assets.Queries.GetAssets
 {
@@ -17,10 +18,12 @@ namespace ThinkTank.Application.CQRS.Assets.Queries.GetAssets
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
-        public GetAssetsQueryHandler(IUnitOfWork unitOfWork, IMapper mapper)
+        private readonly ISlackService _slackService;
+        public GetAssetsQueryHandler(IUnitOfWork unitOfWork, IMapper mapper, ISlackService slackService)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
+            _slackService = slackService;
         }
 
         public async Task<PagedResults<AssetResponse>> Handle(GetAssetsQuery request, CancellationToken cancellationToken)
@@ -49,6 +52,7 @@ namespace ThinkTank.Application.CQRS.Assets.Queries.GetAssets
             }
             catch (CrudException ex)
             {
+                await _slackService.SendMessage(_slackService.CreateMessage(ex, "Get assets list error!!!!!"));
                 throw new CrudException(HttpStatusCode.InternalServerError, "Get assets list error!!!!!", ex.Message);
             }
         }

@@ -19,11 +19,13 @@ namespace ThinkTank.Application.CQRS.Friends.Commands.AddFriend
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
         private readonly INotificationService _notificationService;
-        public AddFriendCommandHandler(IUnitOfWork unitOfWork, IMapper mapper, INotificationService notificationService)
+        private readonly ISlackService _slackService;
+        public AddFriendCommandHandler(IUnitOfWork unitOfWork, IMapper mapper, INotificationService notificationService, ISlackService slackService)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
             _notificationService = notificationService;
+            _slackService = slackService;
         }
         public async Task<FriendResponse> Handle(AddFriendCommand request, CancellationToken cancellationToken)
         {
@@ -81,6 +83,7 @@ namespace ThinkTank.Application.CQRS.Friends.Commands.AddFriend
             }
             catch (Exception ex)
             {
+                await _slackService.SendMessage(_slackService.CreateMessage(ex, "Add Friend Error!!!"));
                 throw new CrudException(HttpStatusCode.InternalServerError, "Add Friend Error!!!", ex?.Message);
             }
         }

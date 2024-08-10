@@ -9,15 +9,18 @@ using ThinkTank.Application.UnitOfWork;
 using static ThinkTank.Domain.Enums.Enum;
 using Microsoft.EntityFrameworkCore;
 using ThinkTank.Domain.Entities;
+using ThinkTank.Application.Services.IService;
 
 namespace ThinkTank.Application.CQRS.Friends.Queries.GetFriends
 {
     public class GetFriendsQueryHandler : IQueryHandler<GetFriendsQuery, PagedResults<FriendResponse>>
     {
         private readonly IUnitOfWork _unitOfWork;
-        public GetFriendsQueryHandler(IUnitOfWork unitOfWork)
+        private readonly ISlackService _slackService;
+        public GetFriendsQueryHandler(IUnitOfWork unitOfWork, ISlackService slackService)
         {
             _unitOfWork = unitOfWork;
+            _slackService = slackService;
         }
 
         public async Task<PagedResults<FriendResponse>> Handle(GetFriendsQuery request, CancellationToken cancellationToken)
@@ -66,6 +69,7 @@ namespace ThinkTank.Application.CQRS.Friends.Queries.GetFriends
             }
             catch (CrudException ex)
             {
+                await _slackService.SendMessage(_slackService.CreateMessage(ex, "Get friendship list error!!!!!"));
                 throw new CrudException(HttpStatusCode.InternalServerError, "Get friendship list error!!!!!", ex.Message);
             }
         }

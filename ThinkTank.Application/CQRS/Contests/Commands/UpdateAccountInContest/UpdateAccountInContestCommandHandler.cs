@@ -18,7 +18,8 @@ namespace ThinkTank.Application.CQRS.Contests.Commands.UpdateAccountInContest
         private readonly IMapper _mapper;
         private readonly DateTime date;
         private readonly IBadgesService _badgesService;
-        public UpdateAccountInContestCommandHandler(IUnitOfWork unitOfWork, IMapper mapper, IBadgesService badgesService)
+        private readonly ISlackService _slackService;
+        public UpdateAccountInContestCommandHandler(IUnitOfWork unitOfWork, IMapper mapper, IBadgesService badgesService, ISlackService slackService)
         {
             if (TimeZoneInfo.Local.BaseUtcOffset != TimeSpan.FromHours(7))
                 date = DateTime.UtcNow.ToLocalTime().AddHours(7);
@@ -26,6 +27,7 @@ namespace ThinkTank.Application.CQRS.Contests.Commands.UpdateAccountInContest
             _unitOfWork = unitOfWork;
             _mapper = mapper;
             _badgesService = badgesService;
+            _slackService = slackService;
         }
 
         public async Task<AccountInContestResponse> Handle(UpdateAccountInContestCommand request, CancellationToken cancellationToken)
@@ -87,6 +89,7 @@ namespace ThinkTank.Application.CQRS.Contests.Commands.UpdateAccountInContest
             }
             catch (Exception ex)
             {
+                await _slackService.SendMessage(_slackService.CreateMessage(ex, "Update Account In Contest Error!!!"));
                 throw new CrudException(HttpStatusCode.InternalServerError, "Update Account In Contest Error!!!", ex?.Message);
             }
         }

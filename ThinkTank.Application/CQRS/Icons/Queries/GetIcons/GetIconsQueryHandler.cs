@@ -12,6 +12,7 @@ using ThinkTank.Application.UnitOfWork;
 using static ThinkTank.Domain.Enums.Enum;
 using ThinkTank.Domain.Entities;
 using AutoMapper.QueryableExtensions;
+using ThinkTank.Application.Services.IService;
 
 namespace ThinkTank.Application.CQRS.Icons.Queries.GetIcons
 {
@@ -19,10 +20,12 @@ namespace ThinkTank.Application.CQRS.Icons.Queries.GetIcons
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
-        public GetIconsQueryHandler(IUnitOfWork unitOfWork, IMapper mapper)
+        private readonly ISlackService _slackService;
+        public GetIconsQueryHandler(IUnitOfWork unitOfWork, IMapper mapper, ISlackService slackService)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
+            _slackService = slackService;
         }
 
         public async Task<PagedResults<IconResponse>> Handle(GetIconsQuery request, CancellationToken cancellationToken)
@@ -70,6 +73,7 @@ namespace ThinkTank.Application.CQRS.Icons.Queries.GetIcons
             }
             catch (CrudException ex)
             {
+                await _slackService.SendMessage(_slackService.CreateMessage(ex, "Get icon list error!!!!!"));
                 throw new CrudException(HttpStatusCode.InternalServerError, "Get icon list error!!!!!", ex.Message);
             }
         }

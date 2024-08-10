@@ -1,7 +1,7 @@
 ﻿
 
 using System.Net;
-using System.Windows.Input;
+
 using ThinkTank.Application.Configuration.Commands;
 using ThinkTank.Application.GlobalExceptionHandling.Exceptions;
 using ThinkTank.Application.Services.IService;
@@ -14,10 +14,12 @@ namespace ThinkTank.Application.CQRS.AccountIn1vs1s.Commands.RemoveRoom1vs1InRea
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IFirebaseRealtimeDatabaseService _firebaseRealtimeDatabaseService;
-        public RemoveRoom1vs1InRealtimeDatabaseCommandHandler(IUnitOfWork unitOfWork, IFirebaseRealtimeDatabaseService firebaseRealtimeDatabaseService)
+        private readonly ISlackService _slackService;
+        public RemoveRoom1vs1InRealtimeDatabaseCommandHandler(IUnitOfWork unitOfWork, IFirebaseRealtimeDatabaseService firebaseRealtimeDatabaseService, ISlackService slackService)
         {
             _unitOfWork = unitOfWork;
             _firebaseRealtimeDatabaseService = firebaseRealtimeDatabaseService;
+            _slackService = slackService;
         }
 
         public async Task<bool> Handle(RemoveRoom1vs1InRealtimeDatabaseCommand request, CancellationToken cancellationToken)
@@ -29,7 +31,7 @@ namespace ThinkTank.Application.CQRS.AccountIn1vs1s.Commands.RemoveRoom1vs1InRea
                     throw new CrudException(HttpStatusCode.NotFound, $"Room Id {request.Room1vs1Id} is not found", "");
 
                 var roomRealtimeDatabase = await _firebaseRealtimeDatabaseService.GetAsyncOfFlutterRealtimeDatabase<dynamic>($"battle/{request.Room1vs1Id}");
-                Thread.Sleep(request.DelayTime * 1000);
+                await Task.Delay(request.DelayTime * 1000);
 
                 if (roomRealtimeDatabase == null)
                     throw new CrudException(HttpStatusCode.BadRequest, $"Room Id {request.Room1vs1Id} has already deleted", "");
@@ -42,6 +44,7 @@ namespace ThinkTank.Application.CQRS.AccountIn1vs1s.Commands.RemoveRoom1vs1InRea
             }
             catch (Exception ex)
             {
+                await _slackService.SendMessage(_slackService.CreateMessage(ex, "Remove room 1vs1 in realtime database error!!!"));
                 throw new CrudException(HttpStatusCode.InternalServerError, "Remove room 1vs1 in realtime database error!!!", ex.InnerException?.Message);
             }
         }

@@ -6,6 +6,7 @@ using ThinkTank.Application.Configuration.Commands;
 using ThinkTank.Application.DTO.Request;
 using ThinkTank.Application.DTO.Response;
 using ThinkTank.Application.GlobalExceptionHandling.Exceptions;
+using ThinkTank.Application.Services.IService;
 using ThinkTank.Application.UnitOfWork;
 using ThinkTank.Domain.Entities;
 
@@ -16,13 +17,15 @@ namespace ThinkTank.Application.CQRS.Rooms.Commands.UpdateAccountInRoom
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
         private readonly DateTime date;
-        public UpdateAccountInRoomCommandHandler(IUnitOfWork unitOfWork, IMapper mapper)
+        private readonly ISlackService _slackService;
+        public UpdateAccountInRoomCommandHandler(IUnitOfWork unitOfWork, IMapper mapper, ISlackService slackService)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
             if (TimeZoneInfo.Local.BaseUtcOffset != TimeSpan.FromHours(7))
                 date = DateTime.UtcNow.ToLocalTime().AddHours(7);
             else date = DateTime.Now;
+            _slackService = slackService;
         }
         
         public async Task<AccountInRoomResponse> Handle(UpdateAccountInRoomCommand request, CancellationToken cancellationToken)
@@ -67,6 +70,7 @@ namespace ThinkTank.Application.CQRS.Rooms.Commands.UpdateAccountInRoom
             }
             catch (Exception ex)
             {
+                await _slackService.SendMessage(_slackService.CreateMessage(ex, "Update Account In Room Error!!!"));
                 throw new CrudException(HttpStatusCode.InternalServerError, "Update Account In Room Error!!!", ex?.Message);
             }
         }

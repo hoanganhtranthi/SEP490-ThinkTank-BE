@@ -18,11 +18,13 @@ namespace ThinkTank.Application.Accounts.Commands.Logout
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
         private readonly IFirebaseRealtimeDatabaseService _firebaseRealtimeDatabaseService;
-        public RevokeRefreshTokenCommandHandler(IUnitOfWork unitOfWork, IMapper mapper, IFirebaseRealtimeDatabaseService firebaseRealtimeDatabaseService)
+        private readonly ISlackService _slackService;
+        public RevokeRefreshTokenCommandHandler(IUnitOfWork unitOfWork, IMapper mapper, IFirebaseRealtimeDatabaseService firebaseRealtimeDatabaseService, ISlackService slackService)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
             _firebaseRealtimeDatabaseService = firebaseRealtimeDatabaseService;
+            _slackService = slackService;
         }
 
         public async Task<AccountResponse> Handle(RevokeRefreshTokenCommand request, CancellationToken cancellationToken)
@@ -67,6 +69,7 @@ namespace ThinkTank.Application.Accounts.Commands.Logout
             }
             catch (Exception ex)
             {
+                await _slackService.SendMessage(_slackService.CreateMessage(ex, "Revoke RefreshToken Fail"));
                 throw new CrudException(HttpStatusCode.InternalServerError, "Revoke RefreshToken Fail", ex.InnerException?.Message);
             }
         }

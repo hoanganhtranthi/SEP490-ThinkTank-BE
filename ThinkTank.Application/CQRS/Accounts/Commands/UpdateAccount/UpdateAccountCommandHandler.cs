@@ -7,6 +7,7 @@ using ThinkTank.Application.CQRS.Accounts.DomainServices.IService;
 using ThinkTank.Application.DTO.Request;
 using ThinkTank.Application.DTO.Response;
 using ThinkTank.Application.GlobalExceptionHandling.Exceptions;
+using ThinkTank.Application.Services.IService;
 using ThinkTank.Application.UnitOfWork;
 using ThinkTank.Domain.Entities;
 
@@ -19,7 +20,8 @@ namespace ThinkTank.Application.Accounts.Commands.UpdateAccount
         private readonly IHashPasswordService _hashPasswordHandler;
         private readonly ITokenService _tokenHandler;
         private readonly DateTime date;
-        public UpdateAccountCommandHandler(IUnitOfWork unitOfWork, IMapper mapper, IHashPasswordService hashPasswordHandler, ITokenService tokenHandler)
+        private readonly ISlackService _slackService;
+        public UpdateAccountCommandHandler(IUnitOfWork unitOfWork, IMapper mapper, IHashPasswordService hashPasswordHandler, ITokenService tokenHandler,ISlackService slackService)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
@@ -28,6 +30,7 @@ namespace ThinkTank.Application.Accounts.Commands.UpdateAccount
             if (TimeZoneInfo.Local.BaseUtcOffset != TimeSpan.FromHours(7))
                 date = DateTime.UtcNow.ToLocalTime().AddHours(7);
             else date = DateTime.Now;
+            _slackService = slackService;
         }
 
         public async Task<AccountResponse> Handle(UpdateAccountCommand request, CancellationToken cancellationToken)
@@ -90,6 +93,7 @@ namespace ThinkTank.Application.Accounts.Commands.UpdateAccount
             }
             catch (Exception ex)
             {
+                await _slackService.SendMessage(_slackService.CreateMessage(ex, "Update account error!!!!!"));
                 throw new CrudException(HttpStatusCode.InternalServerError, "Update account error!!!!!", ex.Message);
             }
         }

@@ -14,10 +14,12 @@ namespace ThinkTank.Application.CQRS.Rooms.Commands.RemoveRoomPartyInRealtimeDat
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IFirebaseRealtimeDatabaseService _firebaseRealtimeDatabaseService;
-        public RemoveRoomPartyInRealtimeDatabaseCommandHandler(IUnitOfWork unitOfWork,IFirebaseRealtimeDatabaseService firebaseRealtimeDatabaseService)
+        private readonly ISlackService _slackService;
+        public RemoveRoomPartyInRealtimeDatabaseCommandHandler(IUnitOfWork unitOfWork,IFirebaseRealtimeDatabaseService firebaseRealtimeDatabaseService, ISlackService slackService)
         {
             _unitOfWork = unitOfWork;
             _firebaseRealtimeDatabaseService = firebaseRealtimeDatabaseService;
+            _slackService = slackService;
         }
 
         public async Task<bool> Handle(RemoveRoomPartyInRealtimeDatabaseCommand request, CancellationToken cancellationToken)
@@ -33,7 +35,7 @@ namespace ThinkTank.Application.CQRS.Rooms.Commands.RemoveRoomPartyInRealtimeDat
                 }
 
                 var roomRealtimeDatabase = await _firebaseRealtimeDatabaseService.GetAsyncOfFlutterRealtimeDatabase<RoomRealtimeDatabaseResponse>($"room/{request.RoomCode}");
-                Thread.Sleep(request.DelayTime * 1000);
+                await Task.Delay(request.DelayTime * 1000);
 
                 if (roomRealtimeDatabase == null)
                     throw new CrudException(HttpStatusCode.BadRequest, $"Room Code {request.RoomCode} has already deleted", "");
@@ -46,6 +48,7 @@ namespace ThinkTank.Application.CQRS.Rooms.Commands.RemoveRoomPartyInRealtimeDat
             }
             catch (Exception ex)
             {
+                await _slackService.SendMessage(_slackService.CreateMessage(ex, "Remove Room in realtime database error!!!!!"));
                 throw new CrudException(HttpStatusCode.InternalServerError, "Remove Room in realtime database error!!!!!", ex.Message);
             }
         }
