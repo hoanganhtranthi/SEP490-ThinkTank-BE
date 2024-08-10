@@ -10,9 +10,11 @@ namespace ThinkTank.Application.CQRS.AccountIn1vs1s.Commands.StartRoomIn1vs1
     public class StartRoomIn1vs1CommandHandler : ICommandHandler<StartRoomIn1vs1Command, bool>
     {
         private readonly IFirebaseRealtimeDatabaseService _firebaseRealtimeDatabaseService;
-        public StartRoomIn1vs1CommandHandler(IFirebaseRealtimeDatabaseService firebaseRealtimeDatabaseService)
+        private readonly ISlackService _slackService;
+        public StartRoomIn1vs1CommandHandler(IFirebaseRealtimeDatabaseService firebaseRealtimeDatabaseService, ISlackService slackService)
         {
             _firebaseRealtimeDatabaseService = firebaseRealtimeDatabaseService;
+            _slackService = slackService;
         }
 
         public async Task<bool> Handle(StartRoomIn1vs1Command request, CancellationToken cancellationToken)
@@ -21,7 +23,7 @@ namespace ThinkTank.Application.CQRS.AccountIn1vs1s.Commands.StartRoomIn1vs1
             {
 
                 var roomRealtimeDatabase = await _firebaseRealtimeDatabaseService.GetAsyncOfFlutterRealtimeDatabase<dynamic>($"battle/{request.RoomIn1vs1Id}");
-                Thread.Sleep(request.Time * 1000 + 15000);
+                await Task.Delay(request.Time * 1000 + 15000);
 
                 if (roomRealtimeDatabase != null)
                 {
@@ -37,6 +39,7 @@ namespace ThinkTank.Application.CQRS.AccountIn1vs1s.Commands.StartRoomIn1vs1
             }
             catch (Exception ex)
             {
+                await _slackService.SendMessage(_slackService.CreateMessage(ex, "Start To Play 1vs1 error!!!!!"));
                 throw new CrudException(HttpStatusCode.InternalServerError, "Start To Play 1vs1 error!!!!!", ex.Message);
             }
         }

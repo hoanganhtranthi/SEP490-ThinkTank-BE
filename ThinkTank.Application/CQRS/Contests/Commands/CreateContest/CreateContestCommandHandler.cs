@@ -2,8 +2,6 @@
 using AutoMapper;
 using Hangfire;
 using Microsoft.EntityFrameworkCore;
-using Newtonsoft.Json.Serialization;
-using Newtonsoft.Json;
 using System.Net;
 using ThinkTank.Application.Configuration.Commands;
 using ThinkTank.Application.DTO.Request;
@@ -11,7 +9,6 @@ using ThinkTank.Application.DTO.Response;
 using ThinkTank.Application.GlobalExceptionHandling.Exceptions;
 using ThinkTank.Application.UnitOfWork;
 using ThinkTank.Domain.Entities;
-using FirebaseAdmin.Messaging;
 using ThinkTank.Application.Services.IService;
 
 namespace ThinkTank.Application.CQRS.Contests.Commands.CreateContest
@@ -24,8 +21,9 @@ namespace ThinkTank.Application.CQRS.Contests.Commands.CreateContest
         private readonly IFirebaseRealtimeDatabaseService firebaseRealtimeDatabaseService;
         private readonly INotificationService _notificationService;
         private readonly IBadgesService _badgesService;
+        private readonly ISlackService _slackService;
         public CreateContestCommandHandler(IUnitOfWork unitOfWork, IMapper mapper, INotificationService notificationService,IBadgesService badgesService
-            ,  IFirebaseRealtimeDatabaseService firebaseRealtimeDatabaseService)
+            ,  IFirebaseRealtimeDatabaseService firebaseRealtimeDatabaseService,ISlackService slackService)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
@@ -35,6 +33,7 @@ namespace ThinkTank.Application.CQRS.Contests.Commands.CreateContest
             _notificationService = notificationService;
             _badgesService = badgesService;
             this.firebaseRealtimeDatabaseService = firebaseRealtimeDatabaseService;
+            _slackService = slackService;
         }
 
         public async Task<ContestResponse> Handle(CreateContestCommand request, CancellationToken cancellationToken)
@@ -176,6 +175,7 @@ namespace ThinkTank.Application.CQRS.Contests.Commands.CreateContest
             }
             catch (Exception ex)
             {
+                await _slackService.SendMessage(_slackService.CreateMessage(ex, "Create Contest Error!!!"));
                 throw new CrudException(HttpStatusCode.InternalServerError, "Create Contest Error!!!", ex?.Message);
             }
         }

@@ -24,7 +24,8 @@ namespace ThinkTank.Application.Accounts.Commands.LoginGoogle
         private readonly ITokenService _tokenHandler;
         private readonly DateTime date;
         private readonly IBadgesService _badgesService;
-        public LoginGoogleCommandHandler(IUnitOfWork unitOfWork, IMapper mapper, ITokenService tokenHandler, IBadgesService badgesService)
+        private readonly ISlackService _slackService;
+        public LoginGoogleCommandHandler(IUnitOfWork unitOfWork, IMapper mapper, ITokenService tokenHandler, IBadgesService badgesService, ISlackService slackService)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
@@ -33,6 +34,7 @@ namespace ThinkTank.Application.Accounts.Commands.LoginGoogle
                 date = DateTime.UtcNow.ToLocalTime().AddHours(7);
             else date = DateTime.Now;
             _badgesService = badgesService;
+            _slackService = slackService;
         }
 
         public async Task<AccountResponse> Handle(LoginGoogleCommand request, CancellationToken cancellationToken)
@@ -107,6 +109,7 @@ namespace ThinkTank.Application.Accounts.Commands.LoginGoogle
             }
             catch (Exception ex)
             {
+                await _slackService.SendMessage(_slackService.CreateMessage(ex, "Login Google Fail!!!"));
                 throw new CrudException(HttpStatusCode.InternalServerError, "Login Google Fail!!!", ex.InnerException?.Message);
             }
         }

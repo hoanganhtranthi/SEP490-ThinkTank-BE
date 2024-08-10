@@ -5,6 +5,7 @@ using ThinkTank.Application.Configuration.Commands;
 using ThinkTank.Application.CQRS.AccountIn1vs1s.DomainServices;
 using ThinkTank.Application.DTO.Response;
 using ThinkTank.Application.GlobalExceptionHandling.Exceptions;
+using ThinkTank.Application.Services.IService;
 using ThinkTank.Application.UnitOfWork;
 using ThinkTank.Domain.Entities;
 
@@ -13,10 +14,12 @@ namespace ThinkTank.Application.CQRS.AccountIn1vs1s.Commands.FindAccountTo1vs1
     public class FindAccountTo1vs1CommandHandler : ICommandHandler<FindAccountTo1vs1Command, RoomIn1vs1Response>
     {
         private readonly IUnitOfWork _unitOfWork;
-        private static SemaphoreSlim _semaphore = new SemaphoreSlim(1, 1); //chỉ cho phép một luồng truy cập vào critical section tại một thời điểm
-        public FindAccountTo1vs1CommandHandler(IUnitOfWork unitOfWork)
+        private readonly SemaphoreSlim _semaphore = new SemaphoreSlim(1, 1); //chỉ cho phép một luồng truy cập vào critical section tại một thời điểm
+        private readonly ISlackService _slackService;
+        public FindAccountTo1vs1CommandHandler(IUnitOfWork unitOfWork, ISlackService slackService)
         {
             _unitOfWork = unitOfWork;
+            _slackService = slackService;
         }
 
         public async Task<RoomIn1vs1Response> Handle(FindAccountTo1vs1Command request, CancellationToken cancellationToken)
@@ -112,6 +115,7 @@ namespace ThinkTank.Application.CQRS.AccountIn1vs1s.Commands.FindAccountTo1vs1
             }
             catch (Exception ex)
             {
+                await _slackService.SendMessage(_slackService.CreateMessage(ex, "Find account to play 1vs1 Error!!!"));
                 throw new CrudException(HttpStatusCode.InternalServerError, "Find account to play 1vs1 Error!!!", ex.InnerException?.Message);
             }
         }

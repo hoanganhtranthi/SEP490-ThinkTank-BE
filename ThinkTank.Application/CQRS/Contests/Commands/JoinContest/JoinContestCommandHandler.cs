@@ -6,6 +6,7 @@ using System.Net;
 using ThinkTank.Application.Configuration.Commands;
 using ThinkTank.Application.DTO.Response;
 using ThinkTank.Application.GlobalExceptionHandling.Exceptions;
+using ThinkTank.Application.Services.IService;
 using ThinkTank.Application.UnitOfWork;
 using ThinkTank.Domain.Entities;
 
@@ -15,10 +16,12 @@ namespace ThinkTank.Application.CQRS.Contests.Commands.JoinContest
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
-        public JoinContestCommandHandler(IUnitOfWork unitOfWork, IMapper mapper)
+        private readonly ISlackService _slackService;
+        public JoinContestCommandHandler(IUnitOfWork unitOfWork, IMapper mapper,ISlackService slackService)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
+            _slackService = slackService;
         }
 
         public async Task<AccountInContestResponse> Handle(JoinContestCommand request, CancellationToken cancellationToken)
@@ -73,6 +76,7 @@ namespace ThinkTank.Application.CQRS.Contests.Commands.JoinContest
             }
             catch (Exception ex)
             {
+                await _slackService.SendMessage(_slackService.CreateMessage(ex, "Create account in contest error!!!"));
                 throw new CrudException(HttpStatusCode.InternalServerError, "Create account in contest error!!!", ex?.Message);
             }
         }

@@ -10,6 +10,7 @@ using ThinkTank.Application.GlobalExceptionHandling.Exceptions;
 using ThinkTank.Application.Helpers;
 using ThinkTank.Application.UnitOfWork;
 using ThinkTank.Domain.Entities;
+using ThinkTank.Application.Services.IService;
 
 namespace ThinkTank.Application.CQRS.Rooms.Queries.GetRooms
 {
@@ -17,10 +18,12 @@ namespace ThinkTank.Application.CQRS.Rooms.Queries.GetRooms
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
-        public GetRoomsQueryHandler(IUnitOfWork unitOfWork, IMapper mapper)
+        private readonly ISlackService _slackService;
+        public GetRoomsQueryHandler(IUnitOfWork unitOfWork, IMapper mapper, ISlackService slackService)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
+            _slackService = slackService;
         }
 
         public async Task<PagedResults<RoomResponse>> Handle(GetRoomsQuery request, CancellationToken cancellationToken)
@@ -60,6 +63,7 @@ namespace ThinkTank.Application.CQRS.Rooms.Queries.GetRooms
             }
             catch (CrudException ex)
             {
+                await _slackService.SendMessage(_slackService.CreateMessage(ex, "Get rooms list error!!!!!"));
                 throw new CrudException(HttpStatusCode.InternalServerError, "Get rooms list error!!!!!", ex.Message);
             }
         }

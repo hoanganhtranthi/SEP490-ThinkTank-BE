@@ -20,8 +20,9 @@ namespace ThinkTank.Application.CQRS.Friends.Commands.UpdateStatusFriendship
         private readonly DateTime date;
         private readonly INotificationService _notificationService;
         private readonly IBadgesService _badgesService;
+        private readonly ISlackService _slackService;
         public UpdateStatusFriendshipCommandHandler(IUnitOfWork unitOfWork, IMapper mapper,
-            INotificationService notificationService,IBadgesService badgesService)
+            INotificationService notificationService,IBadgesService badgesService, ISlackService slackService)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
@@ -30,6 +31,7 @@ namespace ThinkTank.Application.CQRS.Friends.Commands.UpdateStatusFriendship
             else date = DateTime.Now;
             _notificationService = notificationService;
             _badgesService = badgesService;
+            _slackService = slackService;
         }
 
         public async Task<FriendResponse> Handle(UpdateStatusFriendshipCommand request, CancellationToken cancellationToken)
@@ -80,6 +82,7 @@ namespace ThinkTank.Application.CQRS.Friends.Commands.UpdateStatusFriendship
             }
             catch (Exception ex)
             {
+                await _slackService.SendMessage(_slackService.CreateMessage(ex, "Accept friend error!!!!!"));
                 throw new CrudException(HttpStatusCode.InternalServerError, "Accept friend error!!!!!", ex.Message);
             }
         }

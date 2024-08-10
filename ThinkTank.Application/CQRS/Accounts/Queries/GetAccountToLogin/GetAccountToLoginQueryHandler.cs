@@ -7,6 +7,7 @@ using ThinkTank.Application.Configuration.Queries;
 using ThinkTank.Application.CQRS.Accounts.DomainServices.IService;
 using ThinkTank.Application.DTO.Response;
 using ThinkTank.Application.GlobalExceptionHandling.Exceptions;
+using ThinkTank.Application.Services.IService;
 using ThinkTank.Application.UnitOfWork;
 using ThinkTank.Domain.Entities;
 
@@ -17,11 +18,13 @@ namespace ThinkTank.Application.Accounts.Queries.GetAccountToLogin
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
         private readonly IHashPasswordService _hashPasswordService;
-        public GetAccountToLoginQueryHandler(IUnitOfWork unitOfWork, IMapper mapper, IHashPasswordService hashPasswordService)
+        private readonly ISlackService _slackService;
+        public GetAccountToLoginQueryHandler(IUnitOfWork unitOfWork, IMapper mapper, IHashPasswordService hashPasswordService, ISlackService slackService)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
             _hashPasswordService = hashPasswordService;
+            _slackService = slackService;
         }
 
         public async Task<AccountResponse> Handle(GetAccountToLoginQuery request, CancellationToken cancellationToken)
@@ -70,6 +73,7 @@ namespace ThinkTank.Application.Accounts.Queries.GetAccountToLogin
             }
             catch (Exception ex)
             {
+                await _slackService.SendMessage(_slackService.CreateMessage(ex, "Get account to login error!!!!!"));
                 throw new CrudException(HttpStatusCode.InternalServerError, "Get account to login error!!!!!", ex.Message);
             }
         }

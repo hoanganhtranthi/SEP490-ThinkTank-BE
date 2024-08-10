@@ -1,11 +1,10 @@
 ﻿
-
-using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using System.Net;
 using ThinkTank.Application.Configuration.Queries;
 using ThinkTank.Application.DTO.Response;
 using ThinkTank.Application.GlobalExceptionHandling.Exceptions;
+using ThinkTank.Application.Services.IService;
 using ThinkTank.Application.UnitOfWork;
 using ThinkTank.Domain.Entities;
 
@@ -14,11 +13,11 @@ namespace ThinkTank.Application.CQRS.TypeOfAssets.Queries.GetTypeOfAssetById
     public class GetTypeOfAssetByIdQueryHanlder : IQueryHandler<GetTypeOfAssetByIdQuery, TypeOfAssetResponse>
     {
         private readonly IUnitOfWork _unitOfWork;
-        private readonly IMapper _mapper;
-        public GetTypeOfAssetByIdQueryHanlder(IUnitOfWork unitOfWork, IMapper mapper)
+        private readonly ISlackService _slackService;
+        public GetTypeOfAssetByIdQueryHanlder(IUnitOfWork unitOfWork, ISlackService slackService)
         {
             _unitOfWork = unitOfWork;
-            _mapper = mapper;
+            _slackService = slackService;
         }
 
         public async Task<TypeOfAssetResponse> Handle(GetTypeOfAssetByIdQuery request, CancellationToken cancellationToken)
@@ -52,6 +51,7 @@ namespace ThinkTank.Application.CQRS.TypeOfAssets.Queries.GetTypeOfAssetById
             }
             catch (Exception ex)
             {
+                await _slackService.SendMessage(_slackService.CreateMessage(ex, "Get type of asset by id Error!!!"));
                 throw new CrudException(HttpStatusCode.InternalServerError, "Get type of asset by id Error!!!", ex.InnerException?.Message);
             }
         }

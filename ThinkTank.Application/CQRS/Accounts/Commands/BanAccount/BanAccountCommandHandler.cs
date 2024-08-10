@@ -16,11 +16,13 @@ namespace ThinkTank.Application.Accounts.Commands.BanAccount
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
         private readonly IFirebaseRealtimeDatabaseService _firebaseRealtimeDatabaseService;
-        public BanAccountCommandHandler(IUnitOfWork unitOfWork, IMapper mapper,IFirebaseRealtimeDatabaseService firebaseRealtimeDatabaseService)
+        private readonly ISlackService _slackService;
+        public BanAccountCommandHandler(IUnitOfWork unitOfWork, IMapper mapper,IFirebaseRealtimeDatabaseService firebaseRealtimeDatabaseService, ISlackService slackService)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
             _firebaseRealtimeDatabaseService = firebaseRealtimeDatabaseService;
+            _slackService = slackService;
         }
 
         public async Task<AccountResponse> Handle(BanAccountCommand request, CancellationToken cancellationToken)
@@ -53,7 +55,8 @@ namespace ThinkTank.Application.Accounts.Commands.BanAccount
                 throw ex;
             }
             catch (Exception ex)
-            {
+            {   
+                await _slackService.SendMessage(_slackService.CreateMessage(ex, "Ban account error!!!!!"));
                 throw new CrudException(HttpStatusCode.InternalServerError, "Ban account error!!!!!", ex.Message);
             }
         }

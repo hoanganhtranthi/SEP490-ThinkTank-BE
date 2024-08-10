@@ -17,7 +17,8 @@ namespace ThinkTank.Application.CQRS.Rooms.Queries.GetToStartRoom
         private readonly IMapper _mapper;
         private readonly DateTime date;
         private readonly IFirebaseRealtimeDatabaseService _firebaseRealtimeDatabaseService;
-        public GetToStartRoomQueryHandler(IUnitOfWork unitOfWork, IMapper mapper, IFirebaseRealtimeDatabaseService firebaseRealtimeDatabaseService)
+        private readonly ISlackService _slackService;
+        public GetToStartRoomQueryHandler(IUnitOfWork unitOfWork, IMapper mapper, IFirebaseRealtimeDatabaseService firebaseRealtimeDatabaseService, ISlackService slackService)
         {
             _unitOfWork = unitOfWork;
             if (TimeZoneInfo.Local.BaseUtcOffset != TimeSpan.FromHours(7))
@@ -25,6 +26,7 @@ namespace ThinkTank.Application.CQRS.Rooms.Queries.GetToStartRoom
             else date = DateTime.Now;
             _mapper = mapper;
             _firebaseRealtimeDatabaseService = firebaseRealtimeDatabaseService;
+            _slackService = slackService;
         }
 
         public async Task<RoomResponse> Handle(GetToStartRoomQuery request, CancellationToken cancellationToken)
@@ -91,6 +93,7 @@ namespace ThinkTank.Application.CQRS.Rooms.Queries.GetToStartRoom
             }
             catch (Exception ex)
             {
+                await _slackService.SendMessage(_slackService.CreateMessage(ex, "Start Room To Play error!!!!!"));
                 throw new CrudException(HttpStatusCode.InternalServerError, "Start Room To Play error!!!!!", ex.Message);
             }
         }

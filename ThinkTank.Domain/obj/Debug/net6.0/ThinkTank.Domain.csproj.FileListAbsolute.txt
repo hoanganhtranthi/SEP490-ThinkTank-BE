@@ -1,0 +1,14 @@
+D:\SEP490-ThinkTank-BE\ThinkTank.Domain\bin\Debug\net6.0\ThinkTank.Domain.deps.json
+D:\SEP490-ThinkTank-BE\ThinkTank.Domain\bin\Debug\net6.0\ThinkTank.Domain.runtimeconfig.json
+D:\SEP490-ThinkTank-BE\ThinkTank.Domain\bin\Debug\net6.0\ThinkTank.Domain.dll
+D:\SEP490-ThinkTank-BE\ThinkTank.Domain\bin\Debug\net6.0\ThinkTank.Domain.pdb
+D:\SEP490-ThinkTank-BE\ThinkTank.Domain\obj\Debug\net6.0\ThinkTank.Domain.csproj.AssemblyReference.cache
+D:\SEP490-ThinkTank-BE\ThinkTank.Domain\obj\Debug\net6.0\ThinkTank.Domain.GeneratedMSBuildEditorConfig.editorconfig
+D:\SEP490-ThinkTank-BE\ThinkTank.Domain\obj\Debug\net6.0\ThinkTank.Domain.AssemblyInfoInputs.cache
+D:\SEP490-ThinkTank-BE\ThinkTank.Domain\obj\Debug\net6.0\ThinkTank.Domain.AssemblyInfo.cs
+D:\SEP490-ThinkTank-BE\ThinkTank.Domain\obj\Debug\net6.0\ThinkTank.Domain.csproj.CoreCompileInputs.cache
+D:\SEP490-ThinkTank-BE\ThinkTank.Domain\obj\Debug\net6.0\ThinkTank.Domain.dll
+D:\SEP490-ThinkTank-BE\ThinkTank.Domain\obj\Debug\net6.0\refint\ThinkTank.Domain.dll
+D:\SEP490-ThinkTank-BE\ThinkTank.Domain\obj\Debug\net6.0\ThinkTank.Domain.pdb
+D:\SEP490-ThinkTank-BE\ThinkTank.Domain\obj\Debug\net6.0\ThinkTank.Domain.genruntimeconfig.cache
+D:\SEP490-ThinkTank-BE\ThinkTank.Domain\obj\Debug\net6.0\ref\ThinkTank.Domain.dll

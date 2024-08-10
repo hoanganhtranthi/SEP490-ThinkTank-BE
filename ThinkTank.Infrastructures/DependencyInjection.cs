@@ -31,6 +31,7 @@ namespace ThinkTank.Infrastructures
             services.AddScoped<IFirebaseMessagingService, FirebaseMessagingService>();
             services.AddScoped<IFirebaseRealtimeDatabaseService, FirebaseRealtimeDatabaseService>();
             services.AddScoped<IFileStorageService, FirebaseStorageService>();
+            services.AddScoped<ISlackService, SlackService>();
             #endregion
 
             #region DI_REPOSITORY

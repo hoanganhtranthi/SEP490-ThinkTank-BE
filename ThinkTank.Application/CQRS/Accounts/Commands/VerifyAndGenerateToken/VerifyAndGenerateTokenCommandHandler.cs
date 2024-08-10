@@ -19,8 +19,9 @@ namespace ThinkTank.Application.Accounts.Commands.VerifyAndGenerateToken
         private readonly ITokenService _tokenService;
         private readonly DateTime date;
         private readonly IFirebaseRealtimeDatabaseService _firebaseRealtimeDatabaseService;
+        private readonly ISlackService _slackService;
         public VerifyAndGenerateTokenCommandHandler(IUnitOfWork unitOfWork, IMapper mapper
-            , IFirebaseRealtimeDatabaseService firebaseRealtimeDatabaseService,ITokenService tokenService)
+            , IFirebaseRealtimeDatabaseService firebaseRealtimeDatabaseService,ITokenService tokenService, ISlackService slackService)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
@@ -29,6 +30,7 @@ namespace ThinkTank.Application.Accounts.Commands.VerifyAndGenerateToken
             else date = DateTime.Now;
             _firebaseRealtimeDatabaseService = firebaseRealtimeDatabaseService;
             _tokenService = tokenService;
+            _slackService = slackService;
         }
 
         public async Task<AccountResponse> Handle(VerifyAndGenerateTokenCommand request, CancellationToken cancellationToken)
@@ -114,6 +116,7 @@ namespace ThinkTank.Application.Accounts.Commands.VerifyAndGenerateToken
             }
             catch (Exception ex)
             {
+                await _slackService.SendMessage(_slackService.CreateMessage(ex, "Verify and generate token rrror!!!"));
                 throw new CrudException(HttpStatusCode.InternalServerError, "Verify and generate token rrror!!!", ex.InnerException?.Message);
             }
         }

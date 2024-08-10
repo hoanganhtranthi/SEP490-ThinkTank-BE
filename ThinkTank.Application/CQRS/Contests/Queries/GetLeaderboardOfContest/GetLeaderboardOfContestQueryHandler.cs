@@ -10,15 +10,18 @@ using ThinkTank.Application.GlobalExceptionHandling.Exceptions;
 using ThinkTank.Application.Helpers;
 using ThinkTank.Application.UnitOfWork;
 using ThinkTank.Domain.Entities;
+using ThinkTank.Application.Services.IService;
 
 namespace ThinkTank.Application.CQRS.Contests.Queries.GetLeaderboardOfContest
 {
     public class GetLeaderboardOfContestQueryHandler : IQueryHandler<GetLeaderboardOfContestQuery, PagedResults<LeaderboardResponse>>
     {
         private readonly IUnitOfWork _unitOfWork;
-        public GetLeaderboardOfContestQueryHandler(IUnitOfWork unitOfWork)
+        private readonly ISlackService _slackService;
+        public GetLeaderboardOfContestQueryHandler(IUnitOfWork unitOfWork, ISlackService slackService)
         {
             _unitOfWork = unitOfWork;
+            _slackService = slackService;
         }
 
         public async Task<PagedResults<LeaderboardResponse>> Handle(GetLeaderboardOfContestQuery request, CancellationToken cancellationToken)
@@ -76,6 +79,7 @@ namespace ThinkTank.Application.CQRS.Contests.Queries.GetLeaderboardOfContest
             }
             catch (Exception ex)
             {
+                await _slackService.SendMessage(_slackService.CreateMessage(ex, "Get leaderboard of contest error!!!!!"));
                 throw new CrudException(HttpStatusCode.InternalServerError, "Get leaderboard of contest error!!!!!", ex.Message);
             }
         }

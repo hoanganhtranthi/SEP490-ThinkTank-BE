@@ -11,6 +11,7 @@ using ThinkTank.Application.GlobalExceptionHandling.Exceptions;
 using ThinkTank.Application.UnitOfWork;
 using ThinkTank.Domain.Entities;
 using ThinkTank.Application.CQRS.Accounts.DomainServices.IService;
+using ThinkTank.Application.Services.IService;
 
 namespace ThinkTank.Application.Accounts.Commands.ForgotPassword
 {
@@ -20,13 +21,15 @@ namespace ThinkTank.Application.Accounts.Commands.ForgotPassword
         private readonly IMapper _mapper;   
         private readonly IConfiguration _configuration;
         private readonly IHashPasswordService _hashPasswordHandler;
+        private readonly ISlackService _slackService;
 
-        public ForgotPasswordCommandHandler(IUnitOfWork unitOfWork, IMapper mapper, IHashPasswordService hashPasswordHandler, IConfiguration configuration)
+        public ForgotPasswordCommandHandler(IUnitOfWork unitOfWork, IMapper mapper, IHashPasswordService hashPasswordHandler, IConfiguration configuration, ISlackService slackService)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
             _hashPasswordHandler = hashPasswordHandler;
             _configuration = configuration;
+            _slackService = slackService;
         }
 
         public async Task<AccountResponse> Handle(ForgotPasswordCommand request, CancellationToken cancellationToken)
@@ -83,6 +86,7 @@ namespace ThinkTank.Application.Accounts.Commands.ForgotPassword
             }
             catch (Exception ex)
             {
+                await _slackService.SendMessage(_slackService.CreateMessage(ex, "Update Password account error!!!!!"));
                 throw new CrudException(HttpStatusCode.InternalServerError, "Update Password account error!!!!!", ex.Message);
             }
         }

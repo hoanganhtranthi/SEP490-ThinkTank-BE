@@ -6,6 +6,7 @@ using System.Net;
 using ThinkTank.Application.Configuration.Queries;
 using ThinkTank.Application.DTO.Response;
 using ThinkTank.Application.GlobalExceptionHandling.Exceptions;
+using ThinkTank.Application.Services.IService;
 using ThinkTank.Application.UnitOfWork;
 using ThinkTank.Domain.Entities;
 
@@ -14,9 +15,11 @@ namespace ThinkTank.Application.Analysis.Queries.GetAverageScoreAnalysis
     public class GetAverageScoreAnalysisQueryHandler : IQueryHandler<GetAverageScoreAnalysisQuery, AnalysisAverageScoreResponse>
     {
         private readonly IUnitOfWork _unitOfWork;
-        public GetAverageScoreAnalysisQueryHandler(IUnitOfWork unitOfWork)
+        private readonly ISlackService _slackService;
+        public GetAverageScoreAnalysisQueryHandler(IUnitOfWork unitOfWork,ISlackService slackService)
         {
             _unitOfWork = unitOfWork;
+            _slackService = slackService;
         }
         public async Task<AnalysisAverageScoreResponse> Handle(GetAverageScoreAnalysisQuery request, CancellationToken cancellationToken)
         {
@@ -113,6 +116,7 @@ namespace ThinkTank.Application.Analysis.Queries.GetAverageScoreAnalysis
             }
             catch (Exception ex)
             {
+                await _slackService.SendMessage(_slackService.CreateMessage(ex, "Get Analysis of Account's Average Score error!!!!!"));
                 throw new CrudException(HttpStatusCode.InternalServerError, "Get Analysis of Account's Average Score error!!!!!", ex.Message);
             }
 

@@ -5,6 +5,7 @@ using System.Net;
 using ThinkTank.Application.Configuration.Commands;
 using ThinkTank.Application.DTO.Response;
 using ThinkTank.Application.GlobalExceptionHandling.Exceptions;
+using ThinkTank.Application.Services.IService;
 using ThinkTank.Application.UnitOfWork;
 using ThinkTank.Domain.Entities;
 
@@ -14,10 +15,12 @@ namespace ThinkTank.Application.CQRS.Assets.Commands.DeleteAsset
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
-        public DeleteAssetCommandHandler(IUnitOfWork unitOfWork, IMapper mapper)
+        private readonly ISlackService _slackService;
+        public DeleteAssetCommandHandler(IUnitOfWork unitOfWork, IMapper mapper, ISlackService slackService)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
+            _slackService = slackService;
         }
 
         public async Task<List<AssetResponse>> Handle(DeleteAssetCommand request, CancellationToken cancellationToken)
@@ -69,6 +72,7 @@ namespace ThinkTank.Application.CQRS.Assets.Commands.DeleteAsset
             }
             catch (Exception ex)
             {
+                await _slackService.SendMessage(_slackService.CreateMessage(ex, "Delete Asset Error!!!"));
                 throw new CrudException(HttpStatusCode.InternalServerError, "Delete Asset Error!!!", ex?.Message);
             }
         }

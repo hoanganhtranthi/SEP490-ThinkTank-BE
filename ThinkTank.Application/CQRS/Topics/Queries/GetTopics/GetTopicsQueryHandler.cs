@@ -11,6 +11,7 @@ using ThinkTank.Application.Helpers;
 using ThinkTank.Application.UnitOfWork;
 using static ThinkTank.Domain.Enums.Enum;
 using ThinkTank.Domain.Entities;
+using ThinkTank.Application.Services.IService;
 
 namespace ThinkTank.Application.CQRS.Topics.Queries.GetTopics
 {
@@ -18,10 +19,12 @@ namespace ThinkTank.Application.CQRS.Topics.Queries.GetTopics
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
-        public GetTopicsQueryHandler(IUnitOfWork unitOfWork, IMapper mapper)
+        private readonly ISlackService _slackService;
+        public GetTopicsQueryHandler(IUnitOfWork unitOfWork, IMapper mapper, ISlackService slackService)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
+            _slackService = slackService;
         }
 
         public async Task<PagedResults<TopicResponse>> Handle(GetTopicsQuery request, CancellationToken cancellationToken)
@@ -63,6 +66,7 @@ namespace ThinkTank.Application.CQRS.Topics.Queries.GetTopics
             }
             catch (CrudException ex)
             {
+                await _slackService.SendMessage(_slackService.CreateMessage(ex, "Get topic list error!!!!!"));
                 throw new CrudException(HttpStatusCode.InternalServerError, "Get topic list error!!!!!", ex.Message);
             }
         }

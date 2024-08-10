@@ -19,7 +19,8 @@ namespace ThinkTank.Application.CQRS.Reports.Commands.CreateReport
         private readonly IMapper _mapper;
         private readonly DateTime date;
         private readonly INotificationService _notificationService;
-        public CreateReportCommandHandler(IUnitOfWork unitOfWork, IMapper mapper,  INotificationService notificationService)
+        private readonly ISlackService _slackService;
+        public CreateReportCommandHandler(IUnitOfWork unitOfWork, IMapper mapper,  INotificationService notificationService, ISlackService slackService)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
@@ -27,6 +28,7 @@ namespace ThinkTank.Application.CQRS.Reports.Commands.CreateReport
                 date = DateTime.UtcNow.ToLocalTime().AddHours(7);
             else date = DateTime.Now;
             _notificationService = notificationService;
+            _slackService = slackService;
         }
         public async Task<ReportResponse> Handle(CreateReportCommand request, CancellationToken cancellationToken)
         {
@@ -89,6 +91,7 @@ namespace ThinkTank.Application.CQRS.Reports.Commands.CreateReport
             }
             catch (Exception ex)
             {
+                await _slackService.SendMessage(_slackService.CreateMessage(ex, "Create Report Error!!!"));
                 throw new CrudException(HttpStatusCode.InternalServerError, "Create Report Error!!!", ex?.Message);
             }
         }

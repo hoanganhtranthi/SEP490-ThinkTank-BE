@@ -1,5 +1,4 @@
 ﻿
-
 using AutoMapper;
 using System.Net;
 using ThinkTank.Application.Configuration.Commands;
@@ -18,7 +17,8 @@ namespace ThinkTank.Application.CQRS.AccountIn1vs1s.Commands.CreateAccountIn1vs1
         private readonly IMapper _mapper;
         public readonly IBadgesService _badgesService;
         private readonly DateTime date;
-        public CreateAccountIn1vs1CommandHandler(IUnitOfWork unitOfWork, IMapper mapper, IBadgesService badgesService)
+        private readonly ISlackService _slackService;
+        public CreateAccountIn1vs1CommandHandler(IUnitOfWork unitOfWork, IMapper mapper, IBadgesService badgesService, ISlackService slackService)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
@@ -26,6 +26,7 @@ namespace ThinkTank.Application.CQRS.AccountIn1vs1s.Commands.CreateAccountIn1vs1
             if (TimeZoneInfo.Local.BaseUtcOffset != TimeSpan.FromHours(7))
                 date = DateTime.UtcNow.ToLocalTime().AddHours(7);
             else date = DateTime.Now;
+            _slackService = slackService;
         }
 
         public async Task<AccountIn1vs1Response> Handle(CreateAccountIn1vs1Command request, CancellationToken cancellationToken)
@@ -98,6 +99,7 @@ namespace ThinkTank.Application.CQRS.AccountIn1vs1s.Commands.CreateAccountIn1vs1
             }
             catch (Exception ex)
             {
+                await _slackService.SendMessage(_slackService.CreateMessage(ex, "Create Account In 1vs1 Error!!!"));
                 throw new CrudException(HttpStatusCode.InternalServerError, "Create Account In 1vs1 Error!!!", ex?.Message);
             }
         }

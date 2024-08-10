@@ -1,11 +1,11 @@
 ﻿
 using Microsoft.EntityFrameworkCore;
-using System.Net.NetworkInformation;
 using System.Net;
 using ThinkTank.Application.Configuration.Queries;
 using ThinkTank.Application.DTO.Response;
 using ThinkTank.Application.GlobalExceptionHandling.Exceptions;
 using ThinkTank.Application.Helpers;
+using ThinkTank.Application.Services.IService;
 using ThinkTank.Application.UnitOfWork;
 using ThinkTank.Domain.Entities;
 
@@ -14,9 +14,11 @@ namespace ThinkTank.Application.CQRS.Achieviements.Queries.GetLeaderboard
     public class GetLeaderboardQueryHandler : IQueryHandler<GetLeaderboardQuery, PagedResults<LeaderboardResponse>>
     {
         private readonly IUnitOfWork _unitOfWork;
-        public GetLeaderboardQueryHandler(IUnitOfWork unitOfWork)
+        private readonly ISlackService _slackService;
+        public GetLeaderboardQueryHandler(IUnitOfWork unitOfWork,ISlackService slackService)
         {
             _unitOfWork = unitOfWork;
+            _slackService = slackService;
         }
 
         public async Task<PagedResults<LeaderboardResponse>> Handle(GetLeaderboardQuery request, CancellationToken cancellationToken)
@@ -92,6 +94,7 @@ namespace ThinkTank.Application.CQRS.Achieviements.Queries.GetLeaderboard
             }
             catch (Exception ex)
             {
+                await _slackService.SendMessage(_slackService.CreateMessage(ex, "Get leaderboard of achievement error!!!!!"));
                 throw new CrudException(HttpStatusCode.InternalServerError, "Get leaderboard of achievement error!!!!!", ex.Message);
             }
         }

@@ -11,6 +11,7 @@ using ThinkTank.Application.Helpers;
 using ThinkTank.Application.UnitOfWork;
 using ThinkTank.Domain.Entities;
 using AutoMapper.QueryableExtensions;
+using ThinkTank.Application.Services.IService;
 
 namespace ThinkTank.Application.Accounts.Queries.GetAccounts
 {
@@ -18,11 +19,13 @@ namespace ThinkTank.Application.Accounts.Queries.GetAccounts
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
+        private readonly ISlackService _slackService;
 
-        public GetAccountsQueryHandler(IUnitOfWork unitOfWork, IMapper mapper)
+        public GetAccountsQueryHandler(IUnitOfWork unitOfWork, IMapper mapper,ISlackService slackService)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
+            _slackService = slackService;
         }
 
         public async Task<PagedResults<AccountResponse>> Handle(GetAccountsQuery request, CancellationToken cancellationToken)
@@ -45,6 +48,7 @@ namespace ThinkTank.Application.Accounts.Queries.GetAccounts
             }
             catch (CrudException ex)
             {
+                await _slackService.SendMessage(_slackService.CreateMessage(ex, "Get account list error!!!!!"));
                 throw new CrudException(HttpStatusCode.InternalServerError, "Get account list error!!!!!", ex.Message);
             }
         }

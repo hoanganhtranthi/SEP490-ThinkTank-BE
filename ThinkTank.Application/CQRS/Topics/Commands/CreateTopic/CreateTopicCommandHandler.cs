@@ -6,6 +6,7 @@ using ThinkTank.Application.Configuration.Commands;
 using ThinkTank.Application.DTO.Request;
 using ThinkTank.Application.DTO.Response;
 using ThinkTank.Application.GlobalExceptionHandling.Exceptions;
+using ThinkTank.Application.Services.IService;
 using ThinkTank.Application.UnitOfWork;
 using ThinkTank.Domain.Entities;
 
@@ -15,10 +16,12 @@ namespace ThinkTank.Application.CQRS.Topics.Commands.CreateTopic
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
-        public CreateTopicCommandHandler(IUnitOfWork unitOfWork, IMapper mapper)
+        private readonly ISlackService _slackService;
+        public CreateTopicCommandHandler(IUnitOfWork unitOfWork, IMapper mapper, ISlackService slackService)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
+            _slackService = slackService;
         }
         
         public async Task<TopicResponse> Handle(CreateTopicCommand request, CancellationToken cancellationToken)
@@ -50,6 +53,7 @@ namespace ThinkTank.Application.CQRS.Topics.Commands.CreateTopic
             }
             catch (Exception ex)
             {
+                await _slackService.SendMessage(_slackService.CreateMessage(ex, "Create Topic Error!!!"));
                 throw new CrudException(HttpStatusCode.InternalServerError, "Create Topic Error!!!", ex?.Message);
             }
         }

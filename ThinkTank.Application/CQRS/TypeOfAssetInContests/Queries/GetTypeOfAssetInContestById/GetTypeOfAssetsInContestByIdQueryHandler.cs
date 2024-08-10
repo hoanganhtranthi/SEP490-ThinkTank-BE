@@ -1,10 +1,10 @@
 ﻿
-using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using System.Net;
 using ThinkTank.Application.Configuration.Queries;
 using ThinkTank.Application.DTO.Response;
 using ThinkTank.Application.GlobalExceptionHandling.Exceptions;
+using ThinkTank.Application.Services.IService;
 using ThinkTank.Application.UnitOfWork;
 using ThinkTank.Domain.Entities;
 
@@ -13,11 +13,11 @@ namespace ThinkTank.Application.CQRS.TypeOfAssetInContests.Queries.GetTypeOfAsse
     public class GetTypeOfAssetsInContestByIdQueryHandler : IQueryHandler<GetTypeOfAssetsInContestByIdQuery, TypeOfAssetInContestResponse>
     {
         private readonly IUnitOfWork _unitOfWork;
-        private readonly IMapper _mapper;
-        public GetTypeOfAssetsInContestByIdQueryHandler(IUnitOfWork unitOfWork, IMapper mapper)
+        private readonly ISlackService _slackService;
+        public GetTypeOfAssetsInContestByIdQueryHandler(IUnitOfWork unitOfWork, ISlackService slackService)
         {
             _unitOfWork = unitOfWork;
-            _mapper = mapper;
+            _slackService = slackService;
         }
 
         public async Task<TypeOfAssetInContestResponse> Handle(GetTypeOfAssetsInContestByIdQuery request, CancellationToken cancellationToken)
@@ -50,6 +50,7 @@ namespace ThinkTank.Application.CQRS.TypeOfAssetInContests.Queries.GetTypeOfAsse
             }
             catch (Exception ex)
             {
+                await _slackService.SendMessage(_slackService.CreateMessage(ex, "Get type of asset in contest by id error!!!"));
                 throw new CrudException(HttpStatusCode.InternalServerError, "Get type of asset in contest by id error!!!", ex.InnerException?.Message);
             }
         }

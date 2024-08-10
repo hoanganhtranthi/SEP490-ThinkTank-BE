@@ -5,6 +5,7 @@ using System.Net;
 using ThinkTank.Application.Configuration.Queries;
 using ThinkTank.Application.DTO.Response;
 using ThinkTank.Application.GlobalExceptionHandling.Exceptions;
+using ThinkTank.Application.Services.IService;
 using ThinkTank.Application.UnitOfWork;
 using ThinkTank.Domain.Entities;
 
@@ -13,9 +14,11 @@ namespace ThinkTank.Application.Analysis.Queries.GetAnalysisOfAccountIdAndGameId
     public class GetAnalysisOfAccountIdAndGameIdQueryHandler : IQueryHandler<GetAnalysisOfAccountIdAndGameIdQuery, List<RatioMemorizedDailyResponse>>
     {
         private readonly IUnitOfWork _unitOfWork;
-        public GetAnalysisOfAccountIdAndGameIdQueryHandler(IUnitOfWork unitOfWork)
+        private readonly ISlackService _slackService;
+        public GetAnalysisOfAccountIdAndGameIdQueryHandler(IUnitOfWork unitOfWork,ISlackService slackService)
         {
             _unitOfWork = unitOfWork;
+            _slackService = slackService;
         }
 
         public async Task<List<RatioMemorizedDailyResponse>> Handle(GetAnalysisOfAccountIdAndGameIdQuery request, CancellationToken cancellationToken)
@@ -59,6 +62,7 @@ namespace ThinkTank.Application.Analysis.Queries.GetAnalysisOfAccountIdAndGameId
             }
             catch (Exception ex)
             {
+                await _slackService.SendMessage(_slackService.CreateMessage(ex, "Get Analysis of Account by Account Id and Game Id error!!!!!"));
                 throw new CrudException(HttpStatusCode.InternalServerError, "Get Analysis of Account by Account Id and Game Id error!!!!!", ex.Message);
             }
         }

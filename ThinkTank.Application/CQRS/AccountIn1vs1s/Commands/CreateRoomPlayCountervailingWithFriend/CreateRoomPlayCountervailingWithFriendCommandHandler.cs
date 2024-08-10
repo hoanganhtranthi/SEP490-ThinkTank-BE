@@ -1,8 +1,4 @@
 ﻿
-
-using AutoMapper;
-using Newtonsoft.Json.Serialization;
-using Newtonsoft.Json;
 using System.Net;
 using ThinkTank.Application.Configuration.Commands;
 using ThinkTank.Application.DTO.Response;
@@ -16,19 +12,15 @@ namespace ThinkTank.Application.CQRS.AccountIn1vs1s.Commands.CreateRoomPlayCount
     public class CreateRoomPlayCountervailingWithFriendCommandHandler : ICommandHandler<CreateRoomPlayCountervailingWithFriendCommand, RoomIn1vs1Response>
     {
         private readonly IUnitOfWork _unitOfWork;
-        private readonly IMapper _mapper;
         public readonly IBadgesService _badgesService;
-        private readonly DateTime date;
         private readonly INotificationService _notificationService;
-        public CreateRoomPlayCountervailingWithFriendCommandHandler(IUnitOfWork unitOfWork, IMapper mapper, IBadgesService badgesService,INotificationService notificationService)
+        private readonly ISlackService _slackService;
+        public CreateRoomPlayCountervailingWithFriendCommandHandler(IUnitOfWork unitOfWork, IBadgesService badgesService,INotificationService notificationService, ISlackService slackService)
         {
             _unitOfWork = unitOfWork;
-            _mapper = mapper;
             _badgesService = badgesService;
-            if (TimeZoneInfo.Local.BaseUtcOffset != TimeSpan.FromHours(7))
-                date = DateTime.UtcNow.ToLocalTime().AddHours(7);
-            else date = DateTime.Now;
             _notificationService = notificationService;
+            _slackService = slackService;
         }
 
         public async Task<RoomIn1vs1Response> Handle(CreateRoomPlayCountervailingWithFriendCommand request, CancellationToken cancellationToken)
@@ -94,6 +86,7 @@ namespace ThinkTank.Application.CQRS.AccountIn1vs1s.Commands.CreateRoomPlayCount
             }
             catch (Exception ex)
             {
+                await _slackService.SendMessage(_slackService.CreateMessage(ex, "Match play countervailing mode with friend error !!!!!"));
                 throw new CrudException(HttpStatusCode.InternalServerError, "Match play countervailing mode with friend error !!!!!", ex.Message);
             }
         }

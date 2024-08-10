@@ -6,6 +6,7 @@ using System.Net;
 using ThinkTank.Application.Configuration.Queries;
 using ThinkTank.Application.DTO.Response;
 using ThinkTank.Application.GlobalExceptionHandling.Exceptions;
+using ThinkTank.Application.Services.IService;
 using ThinkTank.Application.UnitOfWork;
 using ThinkTank.Domain.Entities;
 
@@ -14,9 +15,11 @@ namespace ThinkTank.Application.CQRS.Rooms.Queries.GetRoomById
     public class GetRoomByIdQueryHandler : IQueryHandler<GetRoomByIdQuery, RoomResponse>
     {
         private readonly IUnitOfWork _unitOfWork;
-        public GetRoomByIdQueryHandler(IUnitOfWork unitOfWork)
+        private readonly ISlackService _slackService;
+        public GetRoomByIdQueryHandler(IUnitOfWork unitOfWork, ISlackService slackService)
         {
             _unitOfWork = unitOfWork;
+            _slackService = slackService;
         }
 
         public async Task<RoomResponse> Handle(GetRoomByIdQuery request, CancellationToken cancellationToken)
@@ -61,6 +64,7 @@ namespace ThinkTank.Application.CQRS.Rooms.Queries.GetRoomById
             }
             catch (Exception ex)
             {
+                await _slackService.SendMessage(_slackService.CreateMessage(ex, "Get room by id Error!!!"));
                 throw new CrudException(HttpStatusCode.InternalServerError, "Get room by id Error!!!", ex.InnerException?.Message);
             }
         }

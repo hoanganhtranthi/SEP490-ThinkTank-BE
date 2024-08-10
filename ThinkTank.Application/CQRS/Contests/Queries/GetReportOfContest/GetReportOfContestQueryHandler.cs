@@ -4,6 +4,7 @@ using System.Net;
 using ThinkTank.Application.Configuration.Queries;
 using ThinkTank.Application.DTO.Response;
 using ThinkTank.Application.GlobalExceptionHandling.Exceptions;
+using ThinkTank.Application.Services.IService;
 using ThinkTank.Application.UnitOfWork;
 using ThinkTank.Domain.Entities;
 
@@ -13,12 +14,14 @@ namespace ThinkTank.Application.CQRS.Contests.Queries.GetReportOfContest
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly DateTime date;
-        public GetReportOfContestQueryHandler(IUnitOfWork unitOfWork)
+        private readonly ISlackService _slackService;
+        public GetReportOfContestQueryHandler(IUnitOfWork unitOfWork, ISlackService slackService)
         {
             _unitOfWork = unitOfWork;
             if (TimeZoneInfo.Local.BaseUtcOffset != TimeSpan.FromHours(7))
                 date = DateTime.UtcNow.ToLocalTime().AddHours(7);
             else date = DateTime.Now;
+            _slackService = slackService;
         }
 
         public async Task<ContestReportResponse> Handle(GetReportOfContestQuery request, CancellationToken cancellationToken)
@@ -74,6 +77,7 @@ namespace ThinkTank.Application.CQRS.Contests.Queries.GetReportOfContest
             }
             catch (Exception ex)
             {
+                await _slackService.SendMessage(_slackService.CreateMessage(ex, "Get Report Of Contest error!!!!!"));
                 throw new CrudException(HttpStatusCode.InternalServerError, "Get Report Of Contest error!!!!!", ex.Message);
             }
         }
